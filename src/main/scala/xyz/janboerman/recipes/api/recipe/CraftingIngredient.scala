@@ -59,7 +59,7 @@ trait CraftingIngredient extends Ingredient {
 
 }
 
-class SimpleCraftingIngredient(val choices: List[_ <: ItemStack]) extends CraftingIngredient {
+class SimpleCraftingIngredient(private val choices: List[_ <: ItemStack]) extends CraftingIngredient {
     override def getChoices(): List[_ <: ItemStack] = choices
     override def clone(): SimpleCraftingIngredient = new SimpleCraftingIngredient(choices.map(stack => if (stack == null) null else stack.clone()))
 }

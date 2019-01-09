@@ -14,6 +14,7 @@ case class BetterCraftShapedRecipe(mojang: BetterShapedRecipe) extends CraftShap
 
     override def getResult: ItemStack = toBukkitStack(mojang.getResult())
 
+    @Deprecated
     override def getIngredientMap: util.Map[Character, ItemStack] = {
         val map = new util.HashMap[Character, ItemStack]()
         mojang.getShape().ingredientMap.foreach({case (key, ingredient) => map.put(Character.valueOf(key), {
@@ -51,6 +52,7 @@ case class BetterCraftShapelessRecipe(mojang: BetterShapelessRecipe) extends Cra
 
     override def getResult: ItemStack = toBukkitStack(mojang.getResult())
 
+    @Deprecated
     override def getIngredientList: util.List[ItemStack] = {
         val list = new util.ArrayList[ItemStack]()
         mojang.getIngredients().forEach(ingredient => list.add({ingredient.buildChoices()

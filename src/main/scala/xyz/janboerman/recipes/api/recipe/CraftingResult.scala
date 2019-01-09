@@ -2,7 +2,7 @@ package xyz.janboerman.recipes.api.recipe
 
 import org.bukkit.inventory.ItemStack
 
-case class CraftingResult(resultStack: ItemStack, remainingStacks: List[Option[_ <: ItemStack]])
+case class CraftingResult(private val resultStack: ItemStack, private val remainingStacks: List[Option[_ <: ItemStack]])
     extends Product2[ItemStack, List[Option[_ <: ItemStack]]] {
 
     def getResultStack(): ItemStack = resultStack

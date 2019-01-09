@@ -15,12 +15,9 @@ object RecipeEditor {
     //TODO I might be able to use the type-class pattern here? yes but no cause I also want an UnkownRecipeEditor that just supports the delete operation for unknown recipes.
 
 
-
-
     lazy val UnknownRecipeIcon = new ItemBuilder(Material.STRUCTURE_VOID).name(ChatColor.RED + "Unknown recipe").build()
 }
 
-import RecipeEditor._
 abstract class RecipeEditor[R <: Recipe](protected var recipe: R,
                                          protected val recipesMenu: RecipesMenu,
                                          protected val api: JannyRecipesAPI,
@@ -56,7 +53,7 @@ abstract class RecipeEditor[R <: Recipe](protected var recipe: R,
     def saveRecipe(): Boolean //TODO can i share some code here across implementations?
     def deleteRecipe(): Boolean //TODO can i share some code here across implementations?
 
-    def getIcon(): Option[ItemStack] = None //TODO make this return Optional[ItemStack] ? Some recipes don't have a result. or the recipe can be null.
+    def getIcon(): Option[ItemStack] = None
     //TODO can FixedResult be a type-class? ShapedRecipe, FurnaceRecipe and ShapelessRecipes can all have instances defined
     //TODO then maybe modified recipes can implement FixedResult if their base recipes implement it.
 

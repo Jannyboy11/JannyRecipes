@@ -49,6 +49,7 @@ case class JannyShapedToBukkit(janny: ApiShapedRecipe) extends ShapedRecipe(jann
     override def getResult: ItemStack = janny.getResult
     override def getShape: Array[String] = janny.getShape.toArray
     override def getChoiceMap: util.Map[Character, RecipeChoice] = JavaConverters.mapAsJavaMap(janny.getIngredients().map({case (k,v) => (k, JannyCraftingIngredientToRecipeChoice(v))}))
+    @Deprecated
     override def getIngredientMap: util.Map[Character, ItemStack] = JavaConverters.mapAsJavaMap(janny.getIngredients().map({case (k, v) => {
         val choices = v.getChoices()
         val itemStack: ItemStack = if (choices.isEmpty) null else if (choices.length == 1) choices(0) else {
@@ -77,6 +78,7 @@ case class JannyShapelessToBukkit(janny: ApiShapelessRecipe) extends ShapelessRe
     override def getGroup: String = janny.getGroup.getOrElse("")
     override def getResult(): ItemStack = janny.getResult
     override def getChoiceList(): util.List[RecipeChoice] = JavaConverters.bufferAsJavaList(janny.getIngredients().map(JannyCraftingIngredientToRecipeChoice).toBuffer)
+    @Deprecated
     override def getIngredientList: util.List[ItemStack] = JavaConverters.bufferAsJavaList(janny.getIngredients().map(craftingIngredient => {
         val choices = craftingIngredient.getChoices()
         val itemStack: ItemStack = if (choices.isEmpty) null else if (choices.length == 1) choices(0) else {
@@ -124,7 +126,7 @@ case class JannyCraftingIngredientToRecipeChoice(janny: ApiCraftingIngredient) e
                 val javaIterator: java.util.Iterator[ItemStack] = JavaConverters.asJavaIterator(ingredient.getChoices().iterator)
                 val javaStream: java.util.stream.Stream[ItemStack] = StreamSupport.stream(Spliterators.spliteratorUnknownSize(javaIterator, 0), false)
                 val nmsStackStream: java.util.stream.Stream[net.minecraft.server.v1_13_R2.ItemStack] = javaStream.map(Conversions.toNMSStack)
-                new RecipeItemStack(nmsStackStream.map(nmsStack => new StackProvider(nmsStack)))
+                new RecipeItemStack(nmsStackStream.map(new StackProvider(_)))
         }
     }
 }

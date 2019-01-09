@@ -26,6 +26,7 @@ case class BetterRecipeChoice(recipeItemStack: RecipeItemStack) extends Material
 }) {
     //we can assume the choices array was already built, because we built it in our constructor call :)
 
+    @Deprecated
     override def getItemStack: org.bukkit.inventory.ItemStack = {
         if (recipeItemStack.choices.isEmpty) {
             new org.bukkit.inventory.ItemStack(Material.AIR)
@@ -54,8 +55,8 @@ case class BetterRecipeChoice(recipeItemStack: RecipeItemStack) extends Material
                 NmsIngredient.empty
             } else {
                 new RecipeItemStack(Arrays.stream(recipeItemStack.choices)
-                    .map[ItemStack](itemStack => itemStack.cloneItemStack())
-                    .map[StackProvider](itemStack => new StackProvider(itemStack)))
+                    .map[ItemStack](_.cloneItemStack())
+                    .map[StackProvider](new StackProvider(_)))
             }
         })
     }

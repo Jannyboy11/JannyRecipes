@@ -6,7 +6,7 @@ import xyz.janboerman.recipes.api.gui.{RecipeEditor, RecipeGuiFactory, RecipesMe
 import xyz.janboerman.recipes.v1_13_R2.Impl_1_13_R2
 
 object GuiFactory extends RecipeGuiFactory {
-    override def newRecipesMenu(): RecipesMenu = new RecipesMenu(Impl_1_13_R2)
+    override def newRecipesMenu(): RecipesMenu = new RecipesMenu(Impl_1_13_R2, RecipesPlugin)
 
     override def newRecipeEditor(recipe: Recipe, mainMenu: RecipesMenu): RecipeEditor[_] = {
         //TODO custom recipe types

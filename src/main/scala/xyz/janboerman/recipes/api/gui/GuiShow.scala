@@ -8,6 +8,23 @@ import org.bukkit.{Color, DyeColor, FireworkEffect, Material}
 import xyz.janboerman.guilib.api.ItemBuilder
 import xyz.janboerman.recipes.api.recipe._
 
+//TODO do I want/need this? probabaly not. It seemed nice in theory though.
+object GuiShow {
+    implicit val itemstackShow = new GuiShow[ItemStack] {
+        override def getRepresentation(thing: ItemStack): ItemStack = thing
+    }
+
+    implicit val materialShow = new GuiShow[Material] {
+        override def getRepresentation(thing: Material): ItemStack = new ItemStack(thing)
+    }
+}
+
+trait GuiShow[T] {
+
+    def getRepresentation(thing: T): ItemStack
+
+}
+
 object ComplexRecipeInstances {
     implicit val armorDyeShow = new GuiShow[ArmorDyeRecipe] {
         private lazy val repr = new ItemBuilder(Material.LEATHER_CHESTPLATE)
@@ -169,18 +186,3 @@ object RegularRecipeInstances {
     //    } //this should really be the fallback
 }
 
-object GuiShow {
-    implicit val itemstackShow = new GuiShow[ItemStack] {
-        override def getRepresentation(thing: ItemStack): ItemStack = thing
-    }
-
-    implicit val materialShow = new GuiShow[Material] {
-        override def getRepresentation(thing: Material): ItemStack = new ItemStack(thing)
-    }
-}
-
-trait GuiShow[T] {
-
-    def getRepresentation(thing: T): ItemStack
-
-}

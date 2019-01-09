@@ -13,7 +13,7 @@ object RecipesCommandExecutor extends CommandExecutor {
         }
 
         val player = sender.asInstanceOf[Player]
-        player.openInventory(new RecipesMenu(RecipesPlugin).getInventory)
+        player.openInventory(new RecipesMenu(RecipesPlugin, RecipesPlugin).getInventory)
 
         true
     }

@@ -54,7 +54,7 @@ object FurnaceRecipeContainer {
 }
 import FurnaceRecipeContainer._
 
-//TODO de-duplicate this code
+//TODO de-duplicate this code. make the shift-clickable slots and sizes private vals.
 class FurnaceRecipeContainer(id: Int, bukkitPlayer: CraftPlayer, bukkitInventory: CraftInventory)
     extends Container {
     import xyz.janboerman.recipes.v1_13_R2.Extensions.{NmsStack, NmsSlot}

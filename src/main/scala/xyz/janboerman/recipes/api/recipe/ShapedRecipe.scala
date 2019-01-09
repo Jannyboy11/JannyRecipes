@@ -16,7 +16,13 @@ object ShapedRecipe {
         new SimpleShapedRecipe(namespacedKey, shape, ingredients, result)
 }
 
-trait ShapedRecipe extends CraftingRecipe {
+trait ShapedRecipe extends CraftingRecipe
+    with FixedIngredients
+    with FixedResult {
+
+    override def getResultStack(): ItemStack = getResult()
+    override def getIngredientStacks: Iterable[ItemStack] = getIngredients().values.flatMap(_.getChoices())
+
     def getResult(): ItemStack
 
     def getGroup(): Option[String] = None
@@ -86,11 +92,11 @@ trait ShapedRecipe extends CraftingRecipe {
     }
 }
 
-class SimpleShapedRecipe(val namespacedKey: NamespacedKey,
-                         val group: Option[String],
-                         val shape: IndexedSeq[String],
-                         val ingredients: Map[Char, _ <: CraftingIngredient],
-                         val result: ItemStack) extends ShapedRecipe {
+class SimpleShapedRecipe(private val namespacedKey: NamespacedKey,
+                         private val group: Option[String],
+                         private val shape: IndexedSeq[String],
+                         private val ingredients: Map[Char, _ <: CraftingIngredient],
+                         private val result: ItemStack) extends ShapedRecipe {
 
     def this(namespacedKey: NamespacedKey, shape: IndexedSeq[String], ingredients: Map[Char, _ <: CraftingIngredient], result: ItemStack) =
         this(namespacedKey, None, shape, ingredients, result)

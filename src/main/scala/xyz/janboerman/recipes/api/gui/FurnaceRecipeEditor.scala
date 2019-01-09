@@ -62,6 +62,9 @@ class FurnaceRecipeEditor(inventory: Inventory,
             val experienceButton = new ItemButton[FurnaceRecipeEditor](new ItemBuilder(Material.EXPERIENCE_BOTTLE)
                 .name(interactable("Experience" + (if (recipe != null) ": " + new DecimalFormat("#.##").format(recipe.getExperience()) else "")))
                 .build()) //TODO add functionality
+
+            setButton(14, cookingTimeButton)
+            setButton(16, experienceButton)
         }
 
         val saveAndExitButton = new RedirectItemButton[FurnaceRecipeEditor](
@@ -91,9 +94,6 @@ class FurnaceRecipeEditor(inventory: Inventory,
                 super.onClick(menuHolder, event)
             }
         }
-
-        setButton(14, cookingTimeButton)
-        setButton(16, experienceButton)
 
         setButton(27, saveAndExitButton)
         setButton(29, renameButton)

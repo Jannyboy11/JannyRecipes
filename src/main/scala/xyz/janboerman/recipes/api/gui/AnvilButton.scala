@@ -10,22 +10,24 @@ import org.bukkit.plugin.Plugin
 import xyz.janboerman.guilib.api.ItemBuilder
 import xyz.janboerman.guilib.api.menu.{ItemButton, MenuHolder}
 
-class AnvilButton[P <: Plugin](val callback: String => Unit,
-                               val paperDisplayName: String,
-                               displayName: String,
-                               material: Material)
-    extends ItemButton[MenuHolder[P]](new ItemBuilder(material).name(displayName).build()) {
+/**
+  * A button that opens an AnvilGui
+  * @param callback the anvil gui's callback
+  * @param paperDisplayName the display name of the item being renamed
+  * @param displayName the display name of the button itself
+  * @param material the material type
+  * @tparam MH the menuholder's type
+  */
+class AnvilButton[MH <: MenuHolder[_]](private val callback: (MH, InventoryClickEvent, String) => Unit,
+                                       private val paperDisplayName: String,
+                                       displayName: String,
+                                       material: Material)
+    extends ItemButton[MH](new ItemBuilder(material).name(displayName).build()) {
 
-    def this(callback: String => Unit, paperDisplayName: String, displayName: String) =
-        this(callback, paperDisplayName, displayName, Material.NAME_TAG)
-
-    def this(callback: String => Unit, displayName: String) =
-        this(callback, "Please enter a new name..", displayName)
-
-    override def onClick(holder: MenuHolder[P], event: InventoryClickEvent): Unit = {
+    override def onClick(holder: MH, event: InventoryClickEvent): Unit = {
         if (event.getWhoClicked.isInstanceOf[Player]) {
             val player = event.getWhoClicked.asInstanceOf[Player]
-            val plugin = holder.getPlugin
+            val plugin = holder.getPlugin.asInstanceOf[Plugin]
             plugin.getServer.getScheduler.runTask(plugin, new Runnable {
                 //Can't use the lambda expression version because scalac is dumb.
                 //It doesn't know that it should prioritize the functional interface over the abstract class.
@@ -37,7 +39,7 @@ class AnvilButton[P <: Plugin](val callback: String => Unit,
                     new AnvilGUI(plugin, player, paperDisplayName, new BiFunction[Player, String, String] {
                         //same for BiFunction[Player, String, String] and ClickHandler.
                         override def apply(p: Player, userInput: String): String = {
-                            callback(userInput)
+                            callback(holder, event, userInput)
                             null
                         }
                     })

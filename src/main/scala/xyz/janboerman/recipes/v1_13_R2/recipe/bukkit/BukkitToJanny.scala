@@ -140,6 +140,7 @@ case class BukkitRecipeChoiceToJannyCraftingIngredient(bukkit: RecipeChoice) ext
 }
 
 case class BukkitRecipeChoiceToJannyFurnaceIngredient(bukkit: RecipeChoice) extends FurnaceIngredient {
+    @Deprecated
     override def getItemStack(): ItemStack = bukkit match {
         case materialChoice: MaterialChoice =>
             val choices = materialChoice.getChoices()

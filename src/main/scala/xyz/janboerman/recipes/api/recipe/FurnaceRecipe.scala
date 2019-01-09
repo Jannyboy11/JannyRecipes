@@ -20,7 +20,12 @@ object FurnaceRecipe {
         apply(key, group, ingredient, result, 200, 0F)
 }
 
-trait FurnaceRecipe extends SmeltingRecipe {
+trait FurnaceRecipe extends SmeltingRecipe
+    with FixedIngredients
+    with FixedResult {
+
+    override def getResultStack(): ItemStack = getResult()
+    override def getIngredientStacks: Iterable[ItemStack] = Seq(getIngredient().getItemStack())
 
     def getIngredient(): FurnaceIngredient
 
@@ -34,12 +39,12 @@ trait FurnaceRecipe extends SmeltingRecipe {
     }
 }
 
-class SimpleFurnaceRecipe(val namespacedKey: NamespacedKey,
-                          val group: Option[String],
-                          val furnaceIngredient: FurnaceIngredient,
-                          val result: ItemStack,
-                          val cookingTime: Int,
-                          val experience: Float)
+class SimpleFurnaceRecipe(private val namespacedKey: NamespacedKey,
+                          private val group: Option[String],
+                          private val furnaceIngredient: FurnaceIngredient,
+                          private val result: ItemStack,
+                          private val cookingTime: Int,
+                          private val experience: Float)
     extends FurnaceRecipe {
 
     def this(namespacedKey: NamespacedKey, furnaceIngredient: FurnaceIngredient, result: ItemStack, cookingTme: Int, experience: Float) = this(namespacedKey, None, furnaceIngredient, result, cookingTme, experience)

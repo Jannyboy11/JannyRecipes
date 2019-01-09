@@ -14,7 +14,13 @@ object ShapelessRecipe {
         new SimpleShapelessRecipe(namespacedKey, ingredients, result)
 }
 
-trait ShapelessRecipe extends CraftingRecipe {
+trait ShapelessRecipe extends CraftingRecipe
+    with FixedIngredients
+    with FixedResult {
+
+    override def getResultStack(): ItemStack = getResult()
+    override def getIngredientStacks: Iterable[ItemStack] = getIngredients().flatMap(_.getChoices())
+
     def getResult(): ItemStack
 
     def getGroup(): Option[String] = None
@@ -37,10 +43,10 @@ trait ShapelessRecipe extends CraftingRecipe {
     }
 }
 
-class SimpleShapelessRecipe(val namespacedKey: NamespacedKey,
-                            val group: Option[String],
-                            val ingredients: List[_ <: CraftingIngredient],
-                            val result: ItemStack)
+class SimpleShapelessRecipe(private val namespacedKey: NamespacedKey,
+                            private val group: Option[String],
+                            private val ingredients: List[_ <: CraftingIngredient],
+                            private val result: ItemStack)
     extends ShapelessRecipe {
 
     def this(namespacedKey: NamespacedKey, ingredients: List[_ <: CraftingIngredient], result: ItemStack) = this(namespacedKey, None, ingredients, result)

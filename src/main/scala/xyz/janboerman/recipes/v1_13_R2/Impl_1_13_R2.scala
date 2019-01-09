@@ -13,7 +13,6 @@ import scala.collection.JavaConverters
 
 object Impl_1_13_R2 extends JannyImplementation {
 
-
     private var alreadyInitialized = false
 
     override def tryInitialize(): Boolean = {
@@ -80,9 +79,9 @@ object Impl_1_13_R2 extends JannyImplementation {
         .asScalaIterator(getCraftingManager().recipes.values().iterator())
         .map(Conversions.toJannyRecipe)
 
+    override def getGuiFactory(): RecipeGuiFactory = GuiFactory
+
     def removeRecipe(namespacedKey: NamespacedKey): Boolean = removeRecipe(toNMSKey(namespacedKey))
     def removeRecipe(minecraftKey: MinecraftKey): Boolean = getCraftingManager().recipes.remove(minecraftKey) != null
-
-    override def getGuiFactory(): RecipeGuiFactory = GuiFactory
 
 }

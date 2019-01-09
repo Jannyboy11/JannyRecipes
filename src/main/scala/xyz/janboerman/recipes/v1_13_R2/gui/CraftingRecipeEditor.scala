@@ -67,7 +67,7 @@ object CraftingRecipeContainer {
 }
 import CraftingRecipeContainer._
 
-//TODO de-duplicate this code
+//TODO de-duplicate this code. make the shift-clickable slots and sizes private vals.
 class CraftingRecipeContainer(id: Int,
                               private val bukkitPlayer: CraftHumanEntity,
                               private val bukkitInventory: CraftInventory)

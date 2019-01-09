@@ -27,7 +27,7 @@ trait FurnaceIngredient extends Ingredient { outer =>
 
 }
 
-class SimpleFurnaceIngredient(matcher: ItemStack) extends FurnaceIngredient {
+class SimpleFurnaceIngredient(private val matcher: ItemStack) extends FurnaceIngredient {
     override def getItemStack(): ItemStack = if (matcher == null) null else matcher.clone()
     override def clone(): SimpleFurnaceIngredient = new SimpleFurnaceIngredient(if (matcher == null) null else matcher.clone)
 }

@@ -6,10 +6,10 @@ import org.bukkit.inventory.ItemStack
 trait FixedResult {
 
     def getResultStack(): ItemStack
-    def hasResultType(material: Material): Boolean = {
+    def getResultMaterial(): Material = {
         val resultStack = getResultStack()
-        if (resultStack == null) return false
-        resultStack.getType `eq` material
+        if (resultStack == null) null else resultStack.getType
     }
+    def hasResultType(material: Material): Boolean = getResultMaterial() `eq` material
 
 }

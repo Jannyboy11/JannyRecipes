@@ -4,21 +4,23 @@ import org.bukkit.Material
 import org.bukkit.plugin.Plugin
 import xyz.janboerman.guilib.api.ItemBuilder
 import xyz.janboerman.guilib.api.menu.{ItemButton, MenuHolder, RedirectItemButton}
-import xyz.janboerman.recipes.api.gui.RecipesMenu.{ByTypeFilter, RecipeFilter}
-import RecipesMenu._
 import org.bukkit.event.inventory.{InventoryClickEvent, InventoryCloseEvent, InventoryOpenEvent}
 import org.bukkit.inventory.ItemStack
+import xyz.janboerman.recipes.api.gui.RecipeFilter._
 
 import scala.collection.mutable
 
 object FilterMenu {
     val InventorySize = 5 * 9
+
+    val SearchProperties = new mutable.HashSet[SearchProperty]
+    SearchProperties.addAll(Seq(IngredientSearchProperty, ResultSearchProperty, NamespaceSearchProperty, KeySearchProperty))
 }
 import FilterMenu._
 
 class FilterMenu[P <: Plugin](private val mainMenu: RecipesMenu,
                               plugin: P,
-                              private val searchFilters: Option[(String, mutable.Map[String, RecipeFilter])],
+                              private val searchFilters: Option[(String, mutable.Map[SearchProperty, RecipeFilter])],
                               private val typeFilters: mutable.Set[ByTypeFilter])
     extends MenuHolder[P](plugin, InventorySize, "Select filters") {
 
@@ -36,6 +38,7 @@ class FilterMenu[P <: Plugin](private val mainMenu: RecipesMenu,
         val FurnaceStack = new ItemBuilder(Material.FURNACE).name(interactable("Type: Furnace")).build()
         val ComplexStack = new ItemBuilder(Material.CRAFTING_TABLE).name(interactable("Type: Complex")).build()
 
+        //TODO use a for loop or something similar
         val shapedIndex = if (typeFilters.contains(ShapedFilter)) 0 else 27
         val shapedButton = new StatusSwitchingButton(ShapedFilter, 0, 27, ShapedStack)
         val shapelessIndex = if (typeFilters.contains(ShapelessFilter)) 1 else 28
@@ -50,17 +53,26 @@ class FilterMenu[P <: Plugin](private val mainMenu: RecipesMenu,
         setButton(furnaceIndex, furnaceButton)
         setButton(complexIndex, complexButton)
 
-        var searchButtonIndex = 9
         searchFilters.foreach({
-            case (searchTerm, searchFilters) =>
-                searchFilters.take(9).foreach({
-                    case (searchProperty: SearchProperty, searchFilter: RecipeFilter) =>
-                        val searchFilterButton: StatusSwitchingButton = new StatusSwitchingButton(searchFilter, searchButtonIndex, searchButtonIndex + 27,
-                            new ItemBuilder(Material.COMPASS).name(searchProperty + ": " + searchTerm).build())
-                        setButton(searchButtonIndex, searchFilterButton)
-                        searchButtonIndex += 1
-                })
+            case (searchTerm, searchFilters) => {
+                var searchButtonIndex = 9
+                for (searchProperty <- SearchProperties.take(9)) {
+                    val upperIndex = searchButtonIndex
+                    val lowerIndex = searchButtonIndex + 27
+                    val itemStack = new ItemBuilder(Material.COMPASS).name(interactable(searchProperty.getName() + ": " + searchTerm)).build()
+
+                    val option = searchFilters.get(searchProperty)
+                    if (option.isDefined) {
+                        setButton(upperIndex, new StatusSwitchingButton(option.get, upperIndex, lowerIndex, itemStack))
+                    } else {
+                        setButton(lowerIndex, new StatusSwitchingButton(searchProperty.newSearchFilter(searchTerm), upperIndex, lowerIndex, itemStack))
+                    }
+
+                    searchButtonIndex += 1
+                }
+            }
         })
+
 
         val inventory = getInventory
         val glassPaneStack = new ItemBuilder(Material.LIGHT_BLUE_STAINED_GLASS_PANE).name(Space).build()

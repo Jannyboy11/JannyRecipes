@@ -36,10 +36,12 @@ class AnvilButton[MH <: MenuHolder[_]](private val callback: (MH, InventoryClick
                 //instead of to an instance of the functional interface
                 override def run(): Unit = {
                     event.getView.close()
+
                     new AnvilGUI(plugin, player, paperDisplayName, new BiFunction[Player, String, String] {
                         //same for BiFunction[Player, String, String] and ClickHandler.
                         override def apply(p: Player, userInput: String): String = {
                             callback(holder, event, userInput)
+                            println("DEBUG - Executed anvil callback!")
                             null
                         }
                     })

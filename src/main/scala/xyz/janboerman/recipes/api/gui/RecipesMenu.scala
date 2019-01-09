@@ -2,11 +2,12 @@ package xyz.janboerman.recipes.api.gui
 
 import org.bukkit.event.inventory.{InventoryClickEvent, InventoryOpenEvent}
 import org.bukkit.plugin.Plugin
+import org.bukkit.scheduler.BukkitTask
 import org.bukkit.{Keyed, Material}
 import xyz.janboerman.guilib.api.ItemBuilder
 import xyz.janboerman.guilib.api.menu.{ItemButton, MenuHolder, RedirectItemButton}
-import xyz.janboerman.recipes.RecipesPlugin
 import xyz.janboerman.recipes.api.JannyRecipesAPI
+import xyz.janboerman.recipes.api.gui.RecipeFilter.RecipeFilter
 import xyz.janboerman.recipes.api.recipe._
 
 import scala.collection.mutable
@@ -14,92 +15,6 @@ import scala.collection.mutable.ArrayBuffer
 
 object RecipesMenu {
     val RecipesPerPage: Int = 5 * 9
-
-    type RecipeFilter = Recipe => Boolean
-
-    class ByTypeFilter(private val recipeClass: Class[_ <: Recipe]) extends RecipeFilter {
-        override def equals(obj: Any): Boolean = {
-            obj match {
-                case recipeTypeFilter: ByTypeFilter => recipeTypeFilter.recipeClass == this.recipeClass
-                case _ => false
-            }
-        }
-
-        override def hashCode(): Int = recipeClass.hashCode()
-
-        override def apply(recipe: Recipe): Boolean = recipeClass.isInstance(recipe)
-    }
-
-    class ByNamespaceFilter(private val namespace: String) extends RecipeFilter {
-        override def equals(obj: Any): Boolean = {
-            obj match {
-                case byNamespaceFilter: ByNamespaceFilter => byNamespaceFilter.namespace == this.namespace
-                case _ => false
-            }
-        }
-
-        override def hashCode(): Int = namespace.hashCode()
-
-        override def apply(recipe: Recipe): Boolean = recipe match {
-            case keyedRecipe: Keyed => keyedRecipe.getKey.getNamespace.equalsIgnoreCase(namespace)
-            case _ => false
-        }
-    }
-
-    class ByKeyFilter(private val key: String) extends RecipeFilter {
-        override def equals(obj: Any): Boolean = {
-            obj match {
-                case byKeyFilter: ByKeyFilter => byKeyFilter.key == this.key
-                case _ => false
-            }
-        }
-
-        override def hashCode(): Int = key.hashCode + 1
-
-        override def apply(recipe: Recipe): Boolean = recipe match {
-            case keyedRecipe: Keyed => keyedRecipe.getKey.getKey.equalsIgnoreCase(key)
-            case _ => false
-        }
-    }
-
-    class ByResultFilter(private val material: Material) extends RecipeFilter {
-        override def equals(obj: Any): Boolean = {
-            obj match {
-                case byResultFilter: ByResultFilter => byResultFilter.material == this.material
-                case _ => false
-            }
-        }
-
-        override def hashCode(): Int = material.hashCode()
-
-        override def apply(recipe: Recipe): Boolean = recipe match {
-            case fixedResult: FixedResult => fixedResult.hasResultType(material)
-            case _ => false
-        }
-    }
-
-    class ByIngredientFilter(private val material: Material) extends RecipeFilter {
-        override def equals(obj: Any): Boolean = {
-            obj match {
-                case byIngredientFilter: ByIngredientFilter => byIngredientFilter.material == this.material
-                case _ => false
-            }
-        }
-
-        override def hashCode(): Int = material.hashCode()
-
-        override def apply(recipe: Recipe): Boolean = recipe match {
-            case fixedIngredients: FixedIngredients => fixedIngredients.hasIngredient(material)
-            case _ => false
-        }
-    }
-
-    val ShapedFilter = new ByTypeFilter(classOf[ShapedRecipe])
-    val ShapelessFilter = new ByTypeFilter(classOf[ShapelessRecipe])
-    val FurnaceFilter = new ByTypeFilter(classOf[FurnaceRecipe])
-    val ComplexFilter = new ByTypeFilter(classOf[ComplexRecipe])
-
-    type SearchProperty = String
 }
 import RecipesMenu._
 
@@ -115,15 +30,24 @@ class RecipesMenu(private val api: JannyRecipesAPI, plugin: Plugin) extends Menu
     private var firstTimeOpen = true
     private val guiFactory = api.getGuiFactory()
     private var search: String = _
-
     private val typeFilters = new mutable.HashSet[ByTypeFilter]()
     private val searchFilters = new mutable.HashMap[SearchProperty, RecipeFilter]
     private val genericFilters = new mutable.HashMap[String, RecipeFilter]
+    private var needsRefresh = true
 
-    def addFilter(filterKey: String, recipeFilter: RecipeFilter): Unit = genericFilters.put(filterKey, recipeFilter)
-    def removeFilter(filterKey: String): Unit = genericFilters.remove(filterKey)
+    def scheduleRefresh(): Unit = needsRefresh = true
+
+    def addFilter(filterKey: String, recipeFilter: RecipeFilter): Unit = {
+        scheduleRefresh()
+        genericFilters.put(filterKey, recipeFilter)
+    }
+    def removeFilter(filterKey: String): Unit = {
+        scheduleRefresh()
+        genericFilters.remove(filterKey)
+    }
 
     def addSearchFilter(searchProperty: SearchProperty, recipeFilter: RecipeFilter): Unit = {
+        scheduleRefresh()
         searchFilters.put(searchProperty, recipeFilter)
     }
 
@@ -133,56 +57,48 @@ class RecipesMenu(private val api: JannyRecipesAPI, plugin: Plugin) extends Menu
 
         searchFilters.clear()
         if (query != null && query.nonEmpty) {
-            addSearchFilter("Namespace", new ByNamespaceFilter(query))
-            addSearchFilter("Key", new ByKeyFilter(query))
-
-            val material = Material.matchMaterial(query)
-            if (material != null) {
-                addSearchFilter("Ingredient", new ByIngredientFilter(material))
-                addSearchFilter("Result", new ByResultFilter(material))
-            }
+            addSearchFilter(NamespaceSearchProperty, new ByNamespaceFilter(query))
+            addSearchFilter(KeySearchProperty, new ByKeyFilter(query))
+            addSearchFilter(IngredientSearchProperty, new ByIngredientFilter(query))
+            addSearchFilter(ResultSearchProperty, new ByResultFilter(query))
         }
     }
 
     override def onOpen(event: InventoryOpenEvent): Unit = {
-        refresh()
+        println("DEBUG - RecipesMenu onOpen called")
 
-        if (firstTimeOpen) {
+        if (needsRefresh) {
+            refresh()
             fillPage()
-            firstTimeOpen = false
+            needsRefresh = false
         }
 
-        //TODO initialise the buttons in the middle
-        //New...
-        //Refresh
-        //Filters...
-        //Page...
-        //Search...
+        if (firstTimeOpen) {
+            val newButtonIndex = RecipesPerPage + 2
+            val refreshButtonIndex = newButtonIndex + 1
+            val filtersButtonIndex = refreshButtonIndex + 1
+            val pageButtonIndex = filtersButtonIndex + 1
+            val searchButtonIndex = pageButtonIndex + 1
 
-        val newButtonIndex = RecipesPerPage + 2
-        val refreshButtonIndex = newButtonIndex + 1
-        val filtersButtonIndex = refreshButtonIndex + 1
-        val pageButtonIndex = filtersButtonIndex + 1
-        val searchButtonIndex = pageButtonIndex + 1
+            val newButton = new ItemButton[RecipesMenu](new ItemBuilder(Material.NETHER_STAR).name(interactable("New...")).build()) //TODO
+            val refreshButton = new ItemButton[RecipesMenu](new ItemBuilder(Material.TOTEM_OF_UNDYING).name(interactable("Refresh")).build()) //TODO
+            val filtersButton = new RedirectItemButton[RecipesMenu](new ItemBuilder(Material.COBWEB).name(interactable("Filters...")).build(), () => {
+                new FilterMenu[Plugin](this, getPlugin, getSearch().map(x => (x, searchFilters)), typeFilters).getInventory()
+            })
+            val pageButton = new ItemButton[RecipesMenu](new ItemBuilder(Material.CLOCK).name(interactable("Page...")).build()) //TODO page number in lore.
+            val searchButton = new AnvilButton[RecipesMenu]( { case (holder: RecipesMenu, event: InventoryClickEvent, input) =>
+                holder.setSearch(input)
+                getPlugin.getServer.getScheduler.runTask(getPlugin, (_: BukkitTask) => event.getWhoClicked.openInventory(holder.getInventory))
+            }, "", interactable("What do you seek?"), Material.COMPASS)
 
-        val newButton = new ItemButton[RecipesMenu](new ItemBuilder(Material.NETHER_STAR).name(interactable("New...")).build()) //TODO
-        val refreshButton = new ItemButton[RecipesMenu](new ItemBuilder(Material.TOTEM_OF_UNDYING).name(interactable("Refresh")).build()) //TODO
-        val filtersButton = new RedirectItemButton[RecipesMenu](new ItemBuilder(Material.COBWEB).name(interactable("Filters...")).build(), () => {
-            new FilterMenu[Plugin](this, getPlugin, getSearch().map(x => (x, searchFilters)), typeFilters).getInventory()
-        })
-        val pageButton = new ItemButton[RecipesMenu](new ItemBuilder(Material.CLOCK).name(interactable("Page...")).build())
-        val searchButton = new AnvilButton[RecipesMenu]( { case (holder: RecipesMenu, event: InventoryClickEvent, input) =>
-            holder.setSearch(input)
-            event.getWhoClicked.openInventory(holder.getInventory)
-        }, interactable("Click me to complete the search term!"),
-            "What do you seek?", Material.COMPASS)
+            setButton(newButtonIndex, newButton)
+            setButton(refreshButtonIndex, refreshButton)
+            setButton(filtersButtonIndex, filtersButton)
+            setButton(pageButtonIndex, pageButton)
+            setButton(searchButtonIndex, searchButton)
 
-        setButton(newButtonIndex, newButton)
-        setButton(refreshButtonIndex, refreshButton)
-        setButton(filtersButtonIndex, filtersButton)
-        setButton(pageButtonIndex, pageButton)
-        setButton(searchButtonIndex, searchButton)
-
+            firstTimeOpen = false
+        }
 
     }
 
@@ -191,8 +107,9 @@ class RecipesMenu(private val api: JannyRecipesAPI, plugin: Plugin) extends Menu
         cachedRecipes.clear()
         lastReachedRecipe = -1
 
-        val recipeFilters = typeFilters ++ searchFilters ++ genericFilters
+        val recipeFilters: Iterator[RecipeFilter] = typeFilters.iterator ++ searchFilters.valuesIterator ++ genericFilters.valuesIterator
         if (recipeFilters.nonEmpty) {
+            //appearantly this still goes wrong. lol.
             val filter: Recipe => Boolean = recipeFilters.foldLeft[Recipe => Boolean](_ => false)({case (p1: RecipeFilter, p2: RecipeFilter) => (x: Recipe) => p1(x) || p2(x)})
 
             recipeIterator = recipeIterator.filter(filter)

@@ -7,6 +7,6 @@ trait FixedIngredients {
 
     def getIngredientStacks(): Iterable[ItemStack]
     def hasIngredient(itemStack: ItemStack): Boolean = getIngredientStacks.exists(_ == itemStack)
-    def hasIngredient(material: Material): Boolean = getIngredientStacks.exists(is => if (is == null) false else is.getType `eq` material)
+    def hasIngredient(material: Material): Boolean = getIngredientStacks.exists(is => if (is == null) material == null else is.getType `eq` material)
 
 }

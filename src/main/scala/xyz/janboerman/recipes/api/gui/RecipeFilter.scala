@@ -1,8 +1,11 @@
 package xyz.janboerman.recipes.api.gui
 
+import org.bukkit.inventory.ItemStack
 import org.bukkit.{Keyed, Material}
-import xyz.janboerman.recipes.api.gui.RecipeFilter.RecipeFilter
+import xyz.janboerman.guilib.api.ItemBuilder
 import xyz.janboerman.recipes.api.recipe._
+
+import scala.collection.mutable
 
 trait SearchProperty {
     def getName(): String
@@ -29,16 +32,37 @@ object KeySearchProperty extends SearchProperty {
 
 
 object RecipeFilter {
-    type RecipeFilter = Recipe => Boolean
+    val ShapedFilter = new ByTypeFilter(classOf[ShapedRecipe]) with SingleFilter {
+        override def getIcon(): ItemStack = new ItemBuilder(Material.CRAFTING_TABLE).name(interactable("Type: Shaped")).build()
+    }
+    val ShapelessFilter = new ByTypeFilter(classOf[ShapelessRecipe]) with SingleFilter {
+        override def getIcon(): ItemStack = new ItemBuilder(Material.CRAFTING_TABLE).name(interactable("Type: Shapeless")).build()
+    }
+    val FurnaceFilter = new ByTypeFilter(classOf[FurnaceRecipe]) with SingleFilter {
+        override def getIcon(): ItemStack = new ItemBuilder(Material.FURNACE).name(interactable("Type: Furnace")).build()
+    }
+    val ComplexFilter = new ByTypeFilter(classOf[ComplexRecipe]) with SingleFilter {
+        override def getIcon(): ItemStack = new ItemBuilder(Material.CRAFTING_TABLE).name(interactable("Type: Complex")).build()
+    }
 
-    val ShapedFilter = new ByTypeFilter(classOf[ShapedRecipe])
-    val ShapelessFilter = new ByTypeFilter(classOf[ShapelessRecipe])
-    val FurnaceFilter = new ByTypeFilter(classOf[FurnaceRecipe])
-    val ComplexFilter = new ByTypeFilter(classOf[ComplexRecipe])
-
+    val TypeFilters = new mutable.HashSet[ByTypeFilter]
+    TypeFilters.addAll(Seq(ShapedFilter, ShapelessFilter, FurnaceFilter, ComplexFilter))
 }
-import RecipeFilter._
 
+//TODO do I want this? so that search filters can declare their own representation in the FiltersMenu gui
+//TODO Yes. Probably. But it can wait for now.
+trait SingleFilter {
+    def getIcon(): ItemStack
+}
+
+/*TODO trait SearchFilter {
+    def getSearchQuery(): String
+}*/
+
+trait RecipeFilter extends Function[Recipe, Boolean] {
+    def ||(that: RecipeFilter): RecipeFilter = recipe => this(recipe) || that(recipe)
+    def &&(that: RecipeFilter): RecipeFilter = recipe => this(recipe) && that(recipe)
+}
 
 class ByTypeFilter(private val recipeClass: Class[_ <: Recipe]) extends RecipeFilter {
     override def equals(obj: Any): Boolean = {
@@ -51,6 +75,8 @@ class ByTypeFilter(private val recipeClass: Class[_ <: Recipe]) extends RecipeFi
     override def hashCode(): Int = recipeClass.hashCode()
 
     override def apply(recipe: Recipe): Boolean = recipeClass.isInstance(recipe)
+
+
 }
 
 class ByNamespaceFilter(private val namespace: String) extends RecipeFilter {

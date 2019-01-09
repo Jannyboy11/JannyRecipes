@@ -7,7 +7,6 @@ import org.bukkit.{Keyed, Material}
 import xyz.janboerman.guilib.api.ItemBuilder
 import xyz.janboerman.guilib.api.menu.{ItemButton, MenuHolder, RedirectItemButton}
 import xyz.janboerman.recipes.api.JannyRecipesAPI
-import xyz.janboerman.recipes.api.gui.RecipeFilter.RecipeFilter
 import xyz.janboerman.recipes.api.recipe._
 
 import scala.collection.mutable
@@ -29,11 +28,14 @@ class RecipesMenu(private val api: JannyRecipesAPI, plugin: Plugin) extends Menu
 
     private var firstTimeOpen = true
     private val guiFactory = api.getGuiFactory()
+
     private var search: String = _
     private val typeFilters = new mutable.HashSet[ByTypeFilter]()
     private val searchFilters = new mutable.HashMap[SearchProperty, RecipeFilter]
     private val genericFilters = new mutable.HashMap[String, RecipeFilter]
     private var needsRefresh = true
+
+    private var pageButton: ItemButton[RecipesMenu] = _
 
     def scheduleRefresh(): Unit = needsRefresh = true
 
@@ -63,15 +65,13 @@ class RecipesMenu(private val api: JannyRecipesAPI, plugin: Plugin) extends Menu
             addSearchFilter(ResultSearchProperty, new ByResultFilter(query))
         }
     }
+    def clearSearch(): Unit = {
+        this.search = null
+        this.searchFilters.clear()
+        scheduleRefresh()
+    }
 
     override def onOpen(event: InventoryOpenEvent): Unit = {
-        println("DEBUG - RecipesMenu onOpen called")
-
-        if (needsRefresh) {
-            refresh()
-            fillPage()
-            needsRefresh = false
-        }
 
         if (firstTimeOpen) {
             val newButtonIndex = RecipesPerPage + 2
@@ -85,11 +85,23 @@ class RecipesMenu(private val api: JannyRecipesAPI, plugin: Plugin) extends Menu
             val filtersButton = new RedirectItemButton[RecipesMenu](new ItemBuilder(Material.COBWEB).name(interactable("Filters...")).build(), () => {
                 new FilterMenu[Plugin](this, getPlugin, getSearch().map(x => (x, searchFilters)), typeFilters).getInventory()
             })
-            val pageButton = new ItemButton[RecipesMenu](new ItemBuilder(Material.CLOCK).name(interactable("Page...")).build()) //TODO page number in lore.
+            this.pageButton = new ItemButton[RecipesMenu](new ItemBuilder(Material.CLOCK).name(interactable("Page...")).build()) {
+                //TODO anvil gui to set the page.
+            }
             val searchButton = new AnvilButton[RecipesMenu]( { case (holder: RecipesMenu, event: InventoryClickEvent, input) =>
                 holder.setSearch(input)
                 getPlugin.getServer.getScheduler.runTask(getPlugin, (_: BukkitTask) => event.getWhoClicked.openInventory(holder.getInventory))
-            }, "", interactable("What do you seek?"), Material.COMPASS)
+            }, "", new ItemBuilder(Material.COMPASS).name(interactable("Search...")).lore(lore("Right click to clear")).build()) {
+                override def onClick(holder: RecipesMenu, event: InventoryClickEvent): Unit = {
+                    if (event.isLeftClick) {
+                        super.onClick(holder, event)
+                    } else if (event.isRightClick) {
+                        holder.clearSearch()
+                        holder.refresh()
+                        holder.fillPage()
+                    }
+                }
+            }
 
             setButton(newButtonIndex, newButton)
             setButton(refreshButtonIndex, refreshButton)
@@ -100,20 +112,31 @@ class RecipesMenu(private val api: JannyRecipesAPI, plugin: Plugin) extends Menu
             firstTimeOpen = false
         }
 
+        if (needsRefresh) {
+            refresh()
+            fillPage()
+        }
     }
 
     def refresh(): Unit = {
+        println("DEBUG - refresh")
+
         recipeIterator = api.iterateRecipes()
         cachedRecipes.clear()
         lastReachedRecipe = -1
 
-        val recipeFilters: Iterator[RecipeFilter] = typeFilters.iterator ++ searchFilters.valuesIterator ++ genericFilters.valuesIterator
-        if (recipeFilters.nonEmpty) {
-            //appearantly this still goes wrong. lol.
-            val filter: Recipe => Boolean = recipeFilters.foldLeft[Recipe => Boolean](_ => false)({case (p1: RecipeFilter, p2: RecipeFilter) => (x: Recipe) => p1(x) || p2(x)})
-
-            recipeIterator = recipeIterator.filter(filter)
+        var filter: RecipeFilter = (_: Recipe) => true
+        if (typeFilters.nonEmpty) {
+            filter = filter && typeFilters.iterator.foldLeft[RecipeFilter](_ => false)({case (p1, p2) => p1 || p2})
         }
+        if (searchFilters.nonEmpty) {
+            filter = filter && searchFilters.valuesIterator.foldLeft[RecipeFilter](_ => false)({case (p1, p2) => p1 || p2})
+        }
+        if (genericFilters.nonEmpty) {
+            filter = filter && genericFilters.valuesIterator.foldLeft[RecipeFilter](_ => false)({case (p1, p2) => p1 || p2})
+        }
+
+        recipeIterator = recipeIterator.filter(filter)
     }
 
     def hasPreviousPage(): Boolean = currentPageNumber > 0
@@ -121,6 +144,8 @@ class RecipesMenu(private val api: JannyRecipesAPI, plugin: Plugin) extends Menu
     def hasNextPage(): Boolean = recipeIterator.hasNext || currentPageNumber * RecipesPerPage < lastReachedRecipe - RecipesPerPage
 
     private def fillPage(): Unit = {
+        println("DEBUG - fillPage")
+
         var startIndex = currentPageNumber * RecipesPerPage
 
         //if the recipes for this page aren't 'loaded' yet, load them all unit here.
@@ -176,6 +201,12 @@ class RecipesMenu(private val api: JannyRecipesAPI, plugin: Plugin) extends Menu
         } else {
             unsetButton(RecipesPerPage + 8)
         }
+
+        if (pageButton != null) {
+            pageButton.setIcon(new ItemBuilder(pageButton.getIcon).lore(lore("Current: " + (currentPageNumber + 1))).build())
+        }
+
+        needsRefresh = false
     }
 
 }

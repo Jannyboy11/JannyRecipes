@@ -33,25 +33,21 @@ class FilterMenu[P <: Plugin](private val mainMenu: RecipesMenu,
     }
 
     override def onOpen(event: InventoryOpenEvent): Unit = {
-        val ShapedStack = new ItemBuilder(Material.CRAFTING_TABLE).name(interactable("Type: Shaped")).build()
-        val ShapelessStack = new ItemBuilder(Material.CRAFTING_TABLE).name(interactable("Type: Shapeless")).build()
-        val FurnaceStack = new ItemBuilder(Material.FURNACE).name(interactable("Type: Furnace")).build()
-        val ComplexStack = new ItemBuilder(Material.CRAFTING_TABLE).name(interactable("Type: Complex")).build()
 
-        //TODO use a for loop or something similar
-        val shapedIndex = if (typeFilters.contains(ShapedFilter)) 0 else 27
-        val shapedButton = new StatusSwitchingButton(ShapedFilter, 0, 27, ShapedStack)
-        val shapelessIndex = if (typeFilters.contains(ShapelessFilter)) 1 else 28
-        val shapelessButton = new StatusSwitchingButton(ShapelessFilter, 1, 28, ShapelessStack)
-        val furnaceIndex = if (typeFilters.contains(FurnaceFilter)) 2 else 29
-        val furnaceButton = new StatusSwitchingButton(FurnaceFilter, 2, 29, FurnaceStack)
-        val complexIndex = if (typeFilters.contains(ComplexFilter)) 3 else 30
-        val complexButton = new StatusSwitchingButton(ComplexFilter, 3, 30, ComplexStack)
+        var typeButtonIndex = 0
+        for (typeFilter <- TypeFilters
+            .filter(_.isInstanceOf[SingleFilter])
+            .map(_.asInstanceOf[ByTypeFilter with SingleFilter])
+            .take(9)) {
 
-        setButton(shapedIndex, shapedButton)
-        setButton(shapelessIndex, shapelessButton)
-        setButton(furnaceIndex, furnaceButton)
-        setButton(complexIndex, complexButton)
+            val upperIndex = typeButtonIndex
+            val lowerIndex = typeButtonIndex + 27
+
+            val index = if (typeFilters.contains(typeFilter)) upperIndex else lowerIndex
+            setButton(index, new StatusSwitchingButton(typeFilter, upperIndex, lowerIndex, typeFilter.getIcon()))
+
+            typeButtonIndex += 1
+        }
 
         searchFilters.foreach({
             case (searchTerm, searchFilters) => {
@@ -80,7 +76,7 @@ class FilterMenu[P <: Plugin](private val mainMenu: RecipesMenu,
         for (i <- 23 until 27) inventory.setItem(i, glassPaneStack)
 
         setButton(22, new RedirectItemButton[FilterMenu[P]](
-            new ItemBuilder(Material.RED_CONCRETE).name(interactable(Exit)).build(),
+            new ItemBuilder(Material.LIME_CONCRETE).name(interactable(Exit)).build(),
             () => mainMenu.getInventory()))
     }
 
@@ -89,6 +85,7 @@ class FilterMenu[P <: Plugin](private val mainMenu: RecipesMenu,
 
         typeFilters.clear()
         typeFilters.addAll(statusses.filter(_._2).keys.filter(_.isInstanceOf[ByTypeFilter]).map(_.asInstanceOf[ByTypeFilter]))
+        mainMenu.scheduleRefresh()
     }
 
 

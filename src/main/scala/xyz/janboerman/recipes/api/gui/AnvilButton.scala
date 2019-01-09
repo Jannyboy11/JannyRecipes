@@ -6,8 +6,8 @@ import net.wesjd.anvilgui.AnvilGUI
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.Plugin
-import xyz.janboerman.guilib.api.ItemBuilder
 import xyz.janboerman.guilib.api.menu.{ItemButton, MenuHolder}
 
 /**
@@ -20,9 +20,8 @@ import xyz.janboerman.guilib.api.menu.{ItemButton, MenuHolder}
   */
 class AnvilButton[MH <: MenuHolder[_]](private val callback: (MH, InventoryClickEvent, String) => Unit,
                                        private val paperDisplayName: String,
-                                       displayName: String,
-                                       material: Material)
-    extends ItemButton[MH](new ItemBuilder(material).name(displayName).build()) {
+                                       icon: ItemStack)
+    extends ItemButton[MH](icon) {
 
     override def onClick(holder: MH, event: InventoryClickEvent): Unit = {
         if (event.getWhoClicked.isInstanceOf[Player]) {
@@ -41,7 +40,6 @@ class AnvilButton[MH <: MenuHolder[_]](private val callback: (MH, InventoryClick
                         //same for BiFunction[Player, String, String] and ClickHandler.
                         override def apply(p: Player, userInput: String): String = {
                             callback(holder, event, userInput)
-                            println("DEBUG - Executed anvil callback!")
                             null
                         }
                     })

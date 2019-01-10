@@ -87,7 +87,7 @@ object Impl_1_13_R2 extends JannyImplementation {
 
     override def getGuiFactory(): RecipeGuiFactory = GuiFactory
 
-    override def persist(): RecipeStorage = RecipesPlugin.persist() //TODO
+    override def persist(): RecipeStorage = Storage_1_13_R2
 
     def removeRecipe(namespacedKey: NamespacedKey): Boolean = removeRecipe(toNMSKey(namespacedKey))
     def removeRecipe(minecraftKey: MinecraftKey): Boolean = getCraftingManager().recipes.remove(minecraftKey) != null

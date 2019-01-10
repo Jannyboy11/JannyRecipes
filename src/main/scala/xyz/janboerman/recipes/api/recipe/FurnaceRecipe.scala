@@ -87,8 +87,8 @@ class SimpleFurnaceRecipe(private val namespacedKey: NamespacedKey,
         getGroup().foreach(map.put(GroupString, _))
         map.put(IngredientsString, getIngredient())
         map.put(ResultString, getResult())
-        map.put(CookingTimeString, java.lang.Integer.valueOf(getCookingTime()))
-        map.put(ExperienceString, java.lang.Float.valueOf(getExperience()))
+        map.put(CookingTimeString, java.lang.Integer.valueOf(getCookingTime())) //scalac is dumb, it doesn't know that it should autobox
+        map.put(ExperienceString, java.lang.Float.valueOf(getExperience()))     //Int to java.lang.Integer and Float to java.lang.Float
         map
     }
 }

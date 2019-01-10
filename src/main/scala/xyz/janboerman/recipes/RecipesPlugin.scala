@@ -1,12 +1,15 @@
 package xyz.janboerman.recipes
 
 import org.bukkit.NamespacedKey
+import org.bukkit.configuration.serialization.{ConfigurationSerializable, ConfigurationSerialization, SerializableAs}
 import org.bukkit.permissions.PermissionDefault
 import org.bukkit.plugin.PluginLoadOrder
 import xyz.janboerman.guilib.api.GuiListener
 import xyz.janboerman.recipes.api.JannyRecipesAPI
 import xyz.janboerman.recipes.api.gui.RecipeGuiFactory
-import xyz.janboerman.recipes.api.recipe.Recipe
+import xyz.janboerman.recipes.api.persist.RecipeStorage
+import xyz.janboerman.recipes.api.persist.RecipeStorage.{SerializableList, SerializableMap}
+import xyz.janboerman.recipes.api.recipe._
 import xyz.janboerman.recipes.command.{ReEditCommandExecutor, ReOpenCommandExecutor, RecipesCommandExecutor}
 import xyz.janboerman.recipes.event.ImplementationEvent
 import xyz.janboerman.recipes.listeners.GuiInventoryHolderListener
@@ -20,7 +23,7 @@ object RecipesPlugin
     extends ScalaPlugin(new ScalaPluginDescription("JannyRecipes", "3.0.0-SNAPSHOT")
         .authors("Jannyboy11")
         .website("https://www.github.com/Jannyboy11/JannyRecipes")
-        .prefix("JR")
+        .prefix("CustomRecipes")
         .description("Plugin and library for managing crafting and smelting recipes")
         .loadOrder(PluginLoadOrder.STARTUP)
         .addCommand(new Command("recipes").description("Open the recipes manager").permission("jannyrecipes.command.recipes"))
@@ -34,6 +37,8 @@ object RecipesPlugin
     private var implementation: JannyImplementation = null
     private var guiListener: GuiListener = null
 
+    val persistentStorage: SimpleStorage = new SimpleStorage(this)
+
     implicit def getGuiListener: GuiListener = guiListener
 
     override def onLoad(): Unit = {
@@ -45,7 +50,43 @@ object RecipesPlugin
         }
     }
 
+    def registerClass(clazz: Class[_ <: ConfigurationSerializable]): Unit = {
+        val option = getConfigurationAlias(clazz)
+        if (option.isDefined) {
+            ConfigurationSerialization.registerClass(clazz, option.get)
+        } else {
+            ConfigurationSerialization.registerClass(clazz)
+        }
+    }
+
+    private def getConfigurationAlias(clazz: Class[_ <: ConfigurationSerializable]): Option[String] = {
+        val serializableAs: SerializableAs = clazz.getAnnotation(classOf[SerializableAs])
+        Option(serializableAs).map(_.value())
+    }
+
     override def onEnable(): Unit = {
+        getServer.getScheduler.runTaskLater(this, (_: org.bukkit.scheduler.BukkitTask) => getLogger.info("DEBUG - diamond max durability = " + org.bukkit.Material.DIAMOND .getMaxDurability), 100L)
+
+        registerClass(classOf[NamespacedRecipeKey])
+        registerClass(classOf[StringRecipeKey])
+        registerClass(classOf[UUIDRecipeKey])
+
+        registerClass(classOf[SerializableList[_]])
+        registerClass(classOf[SerializableMap[_, _]])
+
+        registerClass(classOf[SimpleCraftingIngredient])
+        registerClass(classOf[SimpleFurnaceIngredient])
+
+        registerClass(classOf[SimpleShapedRecipe])
+        registerClass(classOf[SimpleShapelessRecipe])
+        registerClass(classOf[SimpleFurnaceRecipe])
+
+        //complex types registered by implementation
+
+        if (!persist().init()) {
+            getLogger.warning("Persistent storage layer failed to initialize correctly.")
+        }
+
         val pluginManager = getServer.getPluginManager
         guiListener = GuiListener.getInstance()
         pluginManager.registerEvents(guiListener, this)
@@ -86,7 +127,7 @@ object RecipesPlugin
 
     override def getRecipe(key: NamespacedKey): Recipe = implementation.getRecipe(key)
 
-    override def addRecipe(key: NamespacedKey, recipe: Recipe): Boolean = implementation.addRecipe(key, recipe)
+    override def addRecipe(recipe: Recipe): Boolean = implementation.addRecipe(recipe)
 
     override def removeRecipe(recipe: Recipe): Boolean = implementation.removeRecipe(recipe)
 
@@ -95,4 +136,7 @@ object RecipesPlugin
     override def iterateRecipes(): Iterator[_ <: Recipe] = implementation.iterateRecipes()
 
     override def getGuiFactory(): RecipeGuiFactory = implementation.getGuiFactory()
+
+    override def persist(): RecipeStorage = implementation.persist()
+
 }

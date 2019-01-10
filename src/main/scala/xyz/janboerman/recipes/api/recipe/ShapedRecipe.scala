@@ -1,7 +1,11 @@
 package xyz.janboerman.recipes.api.recipe
 
+import java.util
+
+import org.bukkit.configuration.serialization.{ConfigurationSerializable, SerializableAs}
 import org.bukkit.{NamespacedKey, World}
 import org.bukkit.inventory.{CraftingInventory, Inventory, ItemStack}
+import xyz.janboerman.recipes.api.persist.RecipeStorage._
 
 import scala.collection.mutable.ListBuffer
 
@@ -92,11 +96,24 @@ trait ShapedRecipe extends CraftingRecipe
     }
 }
 
+object SimpleShapedRecipe {
+    def valueOf(map: util.Map[String, AnyRef]): SimpleShapedRecipe = {
+        val namespacedKey = map.get(KeyString).asInstanceOf[NamespacedRecipeKey].namespacedKey
+        val group = Option(map.get(GroupString).asInstanceOf[String]).filter(_.nonEmpty)
+        val shape = map.get(ShapeString).asInstanceOf[SerializableList[String]].list.toIndexedSeq
+        val ingredients = map.get(IngredientsString).asInstanceOf[SerializableMap[Char, _ <: CraftingIngredient]].map
+        val result = map.get(ItemStackString).asInstanceOf[ItemStack]
+        new SimpleShapedRecipe(namespacedKey, group, shape, ingredients, result)
+    }
+}
+
+@SerializableAs("SimpleShapedRecipe")
 class SimpleShapedRecipe(private val namespacedKey: NamespacedKey,
                          private val group: Option[String],
                          private val shape: IndexedSeq[String],
                          private val ingredients: Map[Char, _ <: CraftingIngredient],
-                         private val result: ItemStack) extends ShapedRecipe {
+                         private val result: ItemStack) extends ShapedRecipe
+    with ConfigurationSerializable {
 
     def this(namespacedKey: NamespacedKey, shape: IndexedSeq[String], ingredients: Map[Char, _ <: CraftingIngredient], result: ItemStack) =
         this(namespacedKey, None, shape, ingredients, result)
@@ -108,4 +125,16 @@ class SimpleShapedRecipe(private val namespacedKey: NamespacedKey,
     override def getIngredients(): Map[Char, _ <: CraftingIngredient] = ingredients
 
     override def getKey: NamespacedKey = namespacedKey
+
+    override def getGroup(): Option[String] = group
+
+    override def serialize(): util.Map[String, AnyRef] = {
+        val map = new util.HashMap[String, AnyRef]()
+        map.put(KeyString, new NamespacedRecipeKey(getKey))
+        getGroup().foreach(map.put(GroupString, _))
+        map.put(ShapeString, new SerializableList[String](getShape().toList))
+        map.put(IngredientsString, new SerializableMap[Char, CraftingIngredient](getIngredients()))
+        map.put(ResultString, getResult())
+        map
+    }
 }

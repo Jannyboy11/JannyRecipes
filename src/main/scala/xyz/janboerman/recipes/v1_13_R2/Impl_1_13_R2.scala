@@ -1,10 +1,11 @@
 package xyz.janboerman.recipes.v1_13_R2
 
 import Conversions.{toJannyRecipe, toNMSKey, toNMSRecipe}
-import net.minecraft.server.v1_13_R2.{MinecraftKey, RecipeSerializer, RecipeSerializers}
+import net.minecraft.server.v1_13_R2.{MinecraftKey, PotionBrewer, RecipeSerializer, RecipeSerializers}
 import org.bukkit.{Bukkit, Keyed, NamespacedKey}
-import xyz.janboerman.recipes.JannyImplementation
+import xyz.janboerman.recipes.{JannyImplementation, RecipesPlugin}
 import xyz.janboerman.recipes.api.gui.RecipeGuiFactory
+import xyz.janboerman.recipes.api.persist.RecipeStorage
 import xyz.janboerman.recipes.api.recipe._
 import xyz.janboerman.recipes.v1_13_R2.gui.GuiFactory
 import xyz.janboerman.recipes.v1_13_R2.recipe._
@@ -53,8 +54,13 @@ object Impl_1_13_R2 extends JannyImplementation {
         if (iRecipe == null) null else toJannyRecipe(iRecipe)
     }
 
-    override def addRecipe(key: NamespacedKey, recipe: Recipe): Boolean = {
-        getCraftingManager().recipes.putIfAbsent(toNMSKey(key), toNMSRecipe(recipe)) == null
+    override def addRecipe(recipe: Recipe): Boolean = {
+        if (recipe.isInstanceOf[Keyed]) {
+            val keyedRecipe = recipe.asInstanceOf[Recipe with Keyed]
+            getCraftingManager().recipes.putIfAbsent(toNMSKey(keyedRecipe.getKey), toNMSRecipe(recipe)) == null
+        } else {
+            false
+        }
     }
 
     def isRegistered(key: NamespacedKey): Boolean = {
@@ -80,6 +86,8 @@ object Impl_1_13_R2 extends JannyImplementation {
         .map(Conversions.toJannyRecipe)
 
     override def getGuiFactory(): RecipeGuiFactory = GuiFactory
+
+    override def persist(): RecipeStorage = RecipesPlugin.persist() //TODO
 
     def removeRecipe(namespacedKey: NamespacedKey): Boolean = removeRecipe(toNMSKey(namespacedKey))
     def removeRecipe(minecraftKey: MinecraftKey): Boolean = getCraftingManager().recipes.remove(minecraftKey) != null

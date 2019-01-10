@@ -34,7 +34,7 @@ case class JannyFurnaceToBukkit(janny: ApiFurnaceRecipe) extends FurnaceRecipe (
 
     //TODO override setters?
 
-    override def addToCraftingManager(): Unit = Impl_1_13_R2.addRecipe(getKey, janny)
+    override def addToCraftingManager(): Unit = Impl_1_13_R2.addRecipe(janny)
 }
 
 case class JannyShapedToBukkit(janny: ApiShapedRecipe) extends ShapedRecipe(janny.getKey, janny.getResult()) with CraftRecipe {
@@ -62,7 +62,7 @@ case class JannyShapedToBukkit(janny: ApiShapedRecipe) extends ShapedRecipe(jann
 
     //TODO override setters?
 
-    override def addToCraftingManager(): Unit = Impl_1_13_R2.addRecipe(getKey, janny)
+    override def addToCraftingManager(): Unit = Impl_1_13_R2.addRecipe(janny)
     override def toNMS(bukkit: RecipeChoice): RecipeItemStack = bukkit match {
         case bukkitToJanny: JannyCraftingIngredientToRecipeChoice => bukkitToJanny.toRecipeItemStack
         case _ => super.toNMS(bukkit)
@@ -91,7 +91,7 @@ case class JannyShapelessToBukkit(janny: ApiShapelessRecipe) extends ShapelessRe
 
     //TODO override setters?
 
-    override def addToCraftingManager(): Unit = Impl_1_13_R2.addRecipe(getKey, janny)
+    override def addToCraftingManager(): Unit = Impl_1_13_R2.addRecipe(janny)
     override def toNMS(bukkit: RecipeChoice): RecipeItemStack = bukkit match {
         case bukkitToJanny: JannyCraftingIngredientToRecipeChoice => bukkitToJanny.toRecipeItemStack
         case _ => super.toNMS(bukkit)

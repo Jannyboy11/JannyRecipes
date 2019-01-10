@@ -1,7 +1,7 @@
 package xyz.janboerman.recipes.v1_13_R2
 
 import java.util
-import java.util.stream.{Collectors, StreamSupport}
+import java.util.stream.StreamSupport
 import java.util.{Spliterator, Spliterators}
 
 import com.google.gson.JsonObject
@@ -18,6 +18,7 @@ import org.bukkit.inventory.RecipeChoice.MaterialChoice
 import scala.collection.JavaConverters
 import xyz.janboerman.recipes.Extensions.BukkitKey
 import xyz.janboerman.recipes.RecipesPlugin
+import xyz.janboerman.recipes.api.MaterialUtils._
 import xyz.janboerman.recipes.api.recipe.{FurnaceRecipe, CraftingIngredient => _, FurnaceIngredient => _, _}
 import xyz.janboerman.recipes.v1_13_R2.Extensions._
 import xyz.janboerman.recipes.v1_13_R2.recipe._
@@ -26,129 +27,6 @@ import xyz.janboerman.recipes.v1_13_R2.recipe.janny._
 import xyz.janboerman.recipes.v1_13_R2.recipe.wrapper._
 
 object Conversions {
-    // ======================= Special bukkit ingredients ======================
-
-    lazy val dyesIngredient = util.Arrays.asList(
-        org.bukkit.Material.INK_SAC,
-        org.bukkit.Material.ROSE_RED,
-        org.bukkit.Material.CACTUS_GREEN,
-        org.bukkit.Material.COCOA_BEANS,
-        org.bukkit.Material.LAPIS_LAZULI,
-        org.bukkit.Material.PURPLE_DYE,
-        org.bukkit.Material.CYAN_DYE,
-        org.bukkit.Material.LIGHT_GRAY_DYE,
-        org.bukkit.Material.GRAY_DYE,
-        org.bukkit.Material.PINK_DYE,
-        org.bukkit.Material.LIME_DYE,
-        org.bukkit.Material.DANDELION_YELLOW,
-        org.bukkit.Material.LIGHT_BLUE_DYE,
-        org.bukkit.Material.MAGENTA_DYE,
-        org.bukkit.Material.ORANGE_DYE,
-        org.bukkit.Material.BONE_MEAL)
-
-    lazy val bannerIngredient = util.Arrays.asList(
-        org.bukkit.Material.WHITE_BANNER,
-        org.bukkit.Material.ORANGE_BANNER,
-        org.bukkit.Material.MAGENTA_BANNER,
-        org.bukkit.Material.LIGHT_BLUE_BANNER,
-        org.bukkit.Material.YELLOW_BANNER,
-        org.bukkit.Material.LIME_BANNER,
-        org.bukkit.Material.PINK_BANNER,
-        org.bukkit.Material.GRAY_BANNER,
-        org.bukkit.Material.LIGHT_GRAY_BANNER,
-        org.bukkit.Material.CYAN_BANNER,
-        org.bukkit.Material.PURPLE_BANNER,
-        org.bukkit.Material.BLUE_BANNER,
-        org.bukkit.Material.BROWN_BANNER,
-        org.bukkit.Material.GREEN_BANNER,
-        org.bukkit.Material.RED_BANNER,
-        org.bukkit.Material.BLACK_BANNER
-    )
-
-    lazy val fireworkShapesIngredient = util.Arrays.asList(
-        org.bukkit.Material.FIRE_CHARGE,
-        org.bukkit.Material.FEATHER,
-        org.bukkit.Material.GOLD_NUGGET,
-        org.bukkit.Material.SKELETON_SKULL,
-        org.bukkit.Material.WITHER_SKELETON_SKULL,
-        org.bukkit.Material.CREEPER_HEAD,
-        org.bukkit.Material.PLAYER_HEAD,
-        org.bukkit.Material.DRAGON_HEAD,
-        org.bukkit.Material.ZOMBIE_HEAD,
-    )
-
-    lazy val shulkerBoxIngredient = util.Arrays.asList(
-        org.bukkit.Material.SHULKER_BOX,
-        org.bukkit.Material.BLACK_SHULKER_BOX,
-        org.bukkit.Material.BLUE_SHULKER_BOX,
-        org.bukkit.Material.BROWN_SHULKER_BOX,
-        org.bukkit.Material.CYAN_SHULKER_BOX,
-        org.bukkit.Material.GRAY_SHULKER_BOX,
-        org.bukkit.Material.GREEN_SHULKER_BOX,
-        org.bukkit.Material.LIGHT_BLUE_SHULKER_BOX,
-        org.bukkit.Material.LIGHT_GRAY_SHULKER_BOX,
-        org.bukkit.Material.LIME_SHULKER_BOX,
-        org.bukkit.Material.MAGENTA_SHULKER_BOX,
-        org.bukkit.Material.ORANGE_SHULKER_BOX,
-        org.bukkit.Material.PINK_SHULKER_BOX,
-        org.bukkit.Material.PURPLE_SHULKER_BOX,
-        org.bukkit.Material.RED_SHULKER_BOX,
-        org.bukkit.Material.WHITE_SHULKER_BOX,
-        org.bukkit.Material.YELLOW_SHULKER_BOX
-    )
-
-    private def isMadeOfToolMaterial(material: org.bukkit.Material): Boolean = {
-        val name = material.name()
-
-        (name.startsWith("WOODEN")
-            || name.startsWith("STONE")
-            || name.startsWith("IRON")
-            || name.startsWith("GOLDEN")
-            || name.startsWith("DIAMOND"))
-    }
-
-    private def isTool(material: org.bukkit.Material): Boolean = {
-        val name = material.name()
-
-        (isMadeOfToolMaterial(material) &&
-            (name.endsWith("AXE") //includes PICKAXE
-                || name.endsWith("SHOVEL")
-                || name.endsWith("HOE"))) ||
-            material == org.bukkit.Material.SHEARS ||
-            material == org.bukkit.Material.FISHING_ROD ||
-            material == org.bukkit.Material.FLINT_AND_STEEL
-    }
-
-    private def isWeapon(material: org.bukkit.Material): Boolean = {
-        val name = material.name()
-
-        (isMadeOfToolMaterial(material) &&  name.endsWith("SWORD")) ||
-            name.endsWith("BOW") ||
-            material == org.bukkit.Material.TRIDENT
-    }
-
-    private def isArmour(material: org.bukkit.Material): Boolean = {
-        val name = material.name()
-        //don't count horse armour because it is unbreakable
-        material == org.bukkit.Material.SHIELD ||
-            //leather variants have different displaynames - their materials *might* change in the future
-            material == org.bukkit.Material.LEATHER_HELMET ||
-            material == org.bukkit.Material.LEATHER_CHESTPLATE ||
-            material == org.bukkit.Material.LEATHER_LEGGINGS ||
-            material == org.bukkit.Material.LEATHER_BOOTS ||
-            (isMadeOfToolMaterial(material) &&
-                (name.endsWith("HELMET")
-                    || name.endsWith("CHESTPLATE")
-                    || name.endsWith("LEGGINGS")
-                    || name.endsWith("BOOTS")))
-    }
-
-    lazy val breakableItems = util.Arrays.stream(org.bukkit.Material.values())
-        .filter(m => isTool(m)
-            || isWeapon(m)
-            || isArmour(m))
-        .collect(Collectors.toList())
-
 
     // ======================= NMS <-> Bukkit ======================
 
@@ -248,27 +126,27 @@ object Conversions {
         //TODO allow other plugins to register custom IRecipe type predicates?
         //TODO modified recipe? do i apply modifiers to iRecipe? probably should
         nms match {
-            //janny wrappers //TODO make a common superclass JannyToNMS
+            //janny wrappers //TODO make a common superclass JannyToNMS TODO figure out why I have not done this yet. xd
             case JannyShapedToNMS(janny) => janny
             case JannyShapelessToNMS(janny) => janny
             case JannyFurnaceToNMS(janny) => janny
             case JannySmeltingToNMS(janny) => janny
 
             //special cases
-            case _: RecipeArmorDye => JannyArmorDye
-            case _: RecipeBannerAdd => JannyBannerAddPattern
-            case _: RecipeBannerDuplicate => JannyBannerDuplicate
-            case _: RecipeBookClone => JannyBookClone
-            case _: RecipeFireworks => JannyFireworkRocket
-            case _: RecipeFireworksStar => JannyFireworkStar
-            case _: RecipeFireworksFade => JannyFireworkStarFade
-            case _: RecipeMapClone => JannyMapClone
-            case _: RecipeMapExtend => JannyMapExtend       //should not occur.
-            case _: BetterMapExtendRecipe => JannyMapExtend //doesn't extend MapExtendRecipe for reasons.
-            case _: RecipeRepair => JannyRepairItem
-            case _: RecipiesShield => JannyShieldDecoration
-            case _: RecipeShulkerBox => JannyShulkerBoxColor
-            case _: RecipeTippedArrow => JannyTippedArrow
+            case _: RecipeArmorDye          => new JannyArmorDye()
+            case _: RecipeBannerAdd         => new JannyBannerAddPattern()
+            case _: RecipeBannerDuplicate   => new JannyBannerDuplicate()
+            case _: RecipeBookClone         => new JannyBookClone()
+            case _: RecipeFireworks         => new JannyFireworkRocket()
+            case _: RecipeFireworksStar     => new JannyFireworkStar()
+            case _: RecipeFireworksFade     => new JannyFireworkStarFade()
+            case _: RecipeMapClone          => new JannyMapClone()
+            case _: RecipeMapExtend         => new JannyMapExtend()
+            case _: BetterMapExtendRecipe   => new JannyMapExtend()
+            case _: RecipeRepair            => new JannyRepairItem()
+            case _: RecipiesShield          => new JannyShieldDecoration()
+            case _: RecipeShulkerBox        => new JannyShulkerBoxColor()
+            case _: RecipeTippedArrow       => new JannyTippedArrow()
 
             //normal cases
             case shaped: BetterShapedRecipe => JannyShaped(shaped)
@@ -369,7 +247,7 @@ object Conversions {
             //complex recipe cases
             case janny: ArmorDyeRecipe =>
                 val recipe = new inventory.ShapelessRecipe(janny.getKey, new org.bukkit.inventory.ItemStack(org.bukkit.Material.LEATHER_HELMET))
-                recipe.addIngredient(org.bukkit.Material.BONE_MEAL)
+                recipe.addIngredient(new MaterialChoice(dyesIngredient))
                 recipe
             case janny: BannerAddPatternRecipe =>
                 val recipe = new inventory.ShapelessRecipe(janny.getKey, new inventory.ItemStack(org.bukkit.Material.WHITE_BANNER))

@@ -7,7 +7,6 @@ trait SmeltingRecipe extends Recipe with Keyed {
 
     def getResult(): ItemStack
 
-
     //furnaces don't actually call craftItem on the recipe, they just call getResult
     //in the Janny implementation I can do some ugly hacks to circumvent this xD
 
@@ -24,7 +23,7 @@ trait SmeltingRecipe extends Recipe with Keyed {
     //TODO should the trySmelt method return a Tuple2<ItemStack, Float> instead?
     //TODO in the nms FurnaceRecipe#g() (which is .getExperience()) is called by the SlotFurnaceResult
     //TODO when is that called? when the player clicks the result slot.
-    //TODO the tile entity furnace counts how many xp it got per recipe. so.
+    //TODO the tile entity furnace counts how many xp it got per recipe. so no.
     //TODO there is a lazy multiplication instead of a strict sum.
 
 }

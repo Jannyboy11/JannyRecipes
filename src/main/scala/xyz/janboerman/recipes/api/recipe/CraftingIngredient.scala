@@ -1,7 +1,12 @@
 package xyz.janboerman.recipes.api.recipe
 
+import java.util
+
 import org.bukkit.Material
+import org.bukkit.configuration.serialization.{ConfigurationSerializable, SerializableAs}
 import org.bukkit.inventory.ItemStack
+import xyz.janboerman.recipes.api.persist.RecipeStorage.SerializableList
+import xyz.janboerman.recipes.api.persist.RecipeStorage._
 
 object CraftingIngredient {
     private lazy val EmptyIngredient = new CraftingIngredient {
@@ -48,7 +53,7 @@ trait CraftingIngredient extends Ingredient {
         }
     }
 
-    override def apply(itemStack: ItemStack): Boolean = getChoices().exists(_.getType == itemStack.getType)
+    override def apply(itemStack: ItemStack): Boolean = if (itemStack == null) false else getChoices().exists(_.getType == itemStack.getType)
 
     override def clone(): CraftingIngredient = {
         val choicesClone = getChoices().map(itemStack => itemStack.clone())
@@ -59,7 +64,22 @@ trait CraftingIngredient extends Ingredient {
 
 }
 
-class SimpleCraftingIngredient(private val choices: List[_ <: ItemStack]) extends CraftingIngredient {
+object SimpleCraftingIngredient {
+    def valueOf(map: util.Map[String, AnyRef]): SimpleCraftingIngredient = {
+        val serializableList = map.get(ChoicesString).asInstanceOf[SerializableList[_ <: ItemStack]]
+        new SimpleCraftingIngredient(serializableList.list)
+    }
+}
+
+@SerializableAs("SimpleCraftingIngredient")
+class SimpleCraftingIngredient(private val choices: List[_ <: ItemStack]) extends CraftingIngredient
+    with ConfigurationSerializable {
     override def getChoices(): List[_ <: ItemStack] = choices
     override def clone(): SimpleCraftingIngredient = new SimpleCraftingIngredient(choices.map(stack => if (stack == null) null else stack.clone()))
+
+    override def serialize(): util.Map[String, AnyRef] = {
+        val map = new util.HashMap[String, AnyRef]()
+        map.put(ChoicesString, new SerializableList(choices))
+        map
+    }
 }

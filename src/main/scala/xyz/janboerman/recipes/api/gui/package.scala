@@ -16,6 +16,7 @@ package object gui {
     val TypeShapeless = static("Type: Shapeless")
     val TypeFurnace = static("Type: Furnace")
 
+    def error(message: String): String = ChatColor.RESET + "" + ChatColor.RED + message
     def lore(lore: String): String = ChatColor.RESET + "" + ChatColor.AQUA + lore
     def interactable(text: String): String = ChatColor.RESET + "" + ChatColor.ITALIC + text
     def static(text: String): String = ChatColor.RESET + "" + ChatColor.AQUA + text

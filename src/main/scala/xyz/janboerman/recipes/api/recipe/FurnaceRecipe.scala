@@ -1,7 +1,11 @@
 package xyz.janboerman.recipes.api.recipe
 
+import java.util
+
 import org.bukkit.NamespacedKey
+import org.bukkit.configuration.serialization.{ConfigurationSerializable, SerializableAs}
 import org.bukkit.inventory.{FurnaceInventory, ItemStack}
+import xyz.janboerman.recipes.api.persist.RecipeStorage._
 
 object FurnaceRecipe {
     def unapply(arg: FurnaceRecipe): Option[(NamespacedKey, Option[String], FurnaceIngredient, ItemStack, Int, Float)] =
@@ -39,18 +43,35 @@ trait FurnaceRecipe extends SmeltingRecipe
     }
 }
 
+object SimpleFurnaceRecipe {
+    def valueOf(map: util.Map[String, AnyRef]): SimpleFurnaceRecipe = {
+        val namespacedKey = map.get(KeyString).asInstanceOf[NamespacedRecipeKey].namespacedKey
+        val group = Option(map.get(GroupString).asInstanceOf[String]).filter(_.nonEmpty)
+        val furnaceIngredient = map.get(IngredientsString).asInstanceOf[FurnaceIngredient]
+        val result = map.get(ResultString).asInstanceOf[ItemStack]
+        val cookingTime = String.valueOf(map.get(CookingTimeString)).toInt
+        val experience = String.valueOf(map.get(ExperienceString)).toFloat
+        new SimpleFurnaceRecipe(namespacedKey, group, furnaceIngredient, result, cookingTime, experience)
+    }
+}
+
+@SerializableAs("SimpleFurnaceRecipe")
 class SimpleFurnaceRecipe(private val namespacedKey: NamespacedKey,
                           private val group: Option[String],
                           private val furnaceIngredient: FurnaceIngredient,
                           private val result: ItemStack,
                           private val cookingTime: Int,
                           private val experience: Float)
-    extends FurnaceRecipe {
+    extends FurnaceRecipe with ConfigurationSerializable {
 
-    def this(namespacedKey: NamespacedKey, furnaceIngredient: FurnaceIngredient, result: ItemStack, cookingTme: Int, experience: Float) = this(namespacedKey, None, furnaceIngredient, result, cookingTme, experience)
-    def this(namespacedKey: NamespacedKey, furnaceIngredient: FurnaceIngredient, result: ItemStack) = this(namespacedKey, furnaceIngredient, result, 200, 0F)
-    def this(namespacedKey: NamespacedKey, furnaceIngredient: FurnaceIngredient, result: ItemStack, cookingTime: Int) = this(namespacedKey, furnaceIngredient, result, cookingTime, 0F)
-    def this(namespacedKey: NamespacedKey, furnaceIngredient: FurnaceIngredient, result: ItemStack, experience: Float) = this(namespacedKey, furnaceIngredient, result, 200, 0F)
+    def this(namespacedKey: NamespacedKey, furnaceIngredient: FurnaceIngredient, result: ItemStack, cookingTme: Int, experience: Float) =
+        this(namespacedKey, None, furnaceIngredient, result, cookingTme, experience)
+    def this(namespacedKey: NamespacedKey, furnaceIngredient: FurnaceIngredient, result: ItemStack) =
+        this(namespacedKey, furnaceIngredient, result, 200, 0F)
+    def this(namespacedKey: NamespacedKey, furnaceIngredient: FurnaceIngredient, result: ItemStack, cookingTime: Int) =
+        this(namespacedKey, furnaceIngredient, result, cookingTime, 0F)
+    def this(namespacedKey: NamespacedKey, furnaceIngredient: FurnaceIngredient, result: ItemStack, experience: Float) =
+        this(namespacedKey, furnaceIngredient, result, 200, 0F)
 
     override def getIngredient(): FurnaceIngredient = furnaceIngredient
 
@@ -60,4 +81,14 @@ class SimpleFurnaceRecipe(private val namespacedKey: NamespacedKey,
 
     override def getGroup(): Option[String] = group
 
+    override def serialize(): util.Map[String, AnyRef] = {
+        val map = new util.HashMap[String, AnyRef]()
+        map.put(KeyString, new NamespacedRecipeKey(getKey))
+        getGroup().foreach(map.put(GroupString, _))
+        map.put(IngredientsString, getIngredient())
+        map.put(ResultString, getResult())
+        map.put(CookingTimeString, java.lang.Integer.valueOf(getCookingTime()))
+        map.put(ExperienceString, java.lang.Float.valueOf(getExperience()))
+        map
+    }
 }

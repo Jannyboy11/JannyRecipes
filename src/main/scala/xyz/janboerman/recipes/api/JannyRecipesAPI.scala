@@ -2,6 +2,7 @@ package xyz.janboerman.recipes.api
 
 import org.bukkit.{Bukkit, NamespacedKey}
 import xyz.janboerman.recipes.api.gui.RecipeGuiFactory
+import xyz.janboerman.recipes.api.persist.RecipeStorage
 import xyz.janboerman.recipes.api.recipe.Recipe
 
 import scala.collection.JavaConverters
@@ -12,9 +13,9 @@ trait JannyRecipesAPI {
 
     def toBukkitRecipe(janny: Recipe): org.bukkit.inventory.Recipe
 
-    def getRecipe(key: NamespacedKey): Recipe
+    def getRecipe(key: NamespacedKey /*TODO change to RecipeKey*/): Recipe
 
-    def addRecipe(key: NamespacedKey, recipe: Recipe): Boolean
+    def addRecipe(/*TODO add paramter: RecipeKey*/recipe: Recipe): Boolean
 
     def removeRecipe(recipe: Recipe): Boolean
 
@@ -26,5 +27,5 @@ trait JannyRecipesAPI {
 
     def getGuiFactory(): RecipeGuiFactory
 
-    //TODO def getPersistentStorage(): PersistentRecipeStorage
+    def persist(): RecipeStorage
 }

@@ -10,8 +10,6 @@ object GuiFactory extends RecipeGuiFactory {
 
     override def newRecipeEditor(recipe: Recipe, mainMenu: RecipesMenu): RecipeEditor[_] = {
         //TODO custom recipe types
-        //println("DEBUG - trying to create recipe editor for: " + recipe + " of type " + recipe.getClass)
-
 
         recipe match {
             //TODO modified recipes

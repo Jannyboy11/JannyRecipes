@@ -1,9 +1,11 @@
 package xyz.janboerman.recipes.v1_13_R2.recipe.janny
 
+import java.util
 import java.util.Objects
 
 import net.minecraft.server.v1_13_R2._
 import org.bukkit.NamespacedKey
+import org.bukkit.configuration.serialization.SerializableAs
 import org.bukkit.craftbukkit.v1_13_R2.inventory.CraftItemStack
 import org.bukkit.inventory.{CraftingInventory, FurnaceInventory, ItemStack}
 import xyz.janboerman.recipes.api.recipe.{CraftingIngredient, FurnaceIngredient, FurnaceRecipe, _}
@@ -80,6 +82,12 @@ class JannyFurnace(furnaceRecipe: BetterFurnaceRecipe) extends JannyRecipe(furna
     override def getResult(): ItemStack = toBukkitStack(furnaceRecipe.getResult())
 
     override def getIngredient(): FurnaceIngredient = JannyFurnaceIngredient(furnaceRecipe.getIngredient())
+
+    override def getExperience(): Float = furnaceRecipe.getExperience()
+
+    override def getCookingTime(): Int = furnaceRecipe.getCookingTime()
+
+    override def getGroup(): Option[String] = furnaceRecipe.getGroup()
 }
 
 object JannyShaped {
@@ -104,16 +112,120 @@ class JannyShapeless(shapelessRecipes: BetterShapelessRecipe)   extends JannyCra
 }
 
 abstract class JannyComplex(complexRecipe: IRecipe) extends JannyCrafting(complexRecipe) with ComplexRecipe
-case object JannyArmorDye           extends JannyComplex(armorDye)                  with ArmorDyeRecipe
-case object JannyBannerAddPattern   extends JannyComplex(bannerAddPattern)          with BannerAddPatternRecipe
-case object JannyBannerDuplicate    extends JannyComplex(bannerDuplicate)           with BannerDuplicateRecipe
-case object JannyBookClone          extends JannyComplex(bannerDuplicate)           with BookCloneRecipe
-case object JannyFireworkRocket     extends JannyComplex(fireworkRocket)            with FireworkRocketRecipe
-case object JannyFireworkStar       extends JannyComplex(fireworkStar)              with FireworkStarRecipe
-case object JannyFireworkStarFade   extends JannyComplex(fireworkStarFade)          with FireworkStarFadeRecipe
-case object JannyMapClone           extends JannyComplex(mapClone)                  with MapCloneRecipe
-case object JannyMapExtend          extends JannyShaped(BetterMapExtendRecipe())    with MapExtendRecipe
-case object JannyRepairItem         extends JannyComplex(repairItem)                with RepairItemRecipe
-case object JannyShieldDecoration   extends JannyComplex(shieldDecoration)          with ShieldDecorationRecipe
-case object JannyShulkerBoxColor    extends JannyComplex(shulkerBoxColor)           with ShulkerBoxColorRecipe
-case object JannyTippedArrow        extends JannyShaped(BetterTippedArrowRecipe())  with TippedArrowRecipe
+
+//TODO metaprogramming?
+object JannyArmorDye {
+    def valueOf(map: util.Map[String, AnyRef]): JannyArmorDye = new JannyArmorDye
+}
+@SerializableAs("JannyArmorDye")
+case class JannyArmorDye()           extends JannyComplex(armorDye)                  with ArmorDyeRecipe {
+    override def serialize(): util.Map[String, AnyRef] = util.Map.of()
+}
+
+
+object JannyBannerAddPattern {
+    def valueOf(map: util.Map[String, AnyRef]): JannyBannerAddPattern = new JannyBannerAddPattern()
+}
+@SerializableAs("JannyBannerAddPattern")
+case class JannyBannerAddPattern()  extends JannyComplex(bannerAddPattern)          with BannerAddPatternRecipe {
+    override def serialize(): util.Map[String, AnyRef] = util.Map.of()
+}
+
+
+object JannyBannerDuplicate {
+   def valueOf(map: util.Map[String, AnyRef]): JannyBannerDuplicate = new JannyBannerDuplicate()
+}
+@SerializableAs("JannyBannerDuplicate")
+case class JannyBannerDuplicate()   extends JannyComplex(bannerDuplicate)           with BannerDuplicateRecipe {
+    override def serialize(): util.Map[String, AnyRef] = util.Map.of()
+}
+
+
+object JannyBookClone {
+    def valueOf(map: util.Map[String, AnyRef]): JannyBookClone = new JannyBookClone()
+}
+@SerializableAs("JannyBookClone")
+case class JannyBookClone()         extends JannyComplex(bookClone)           with BookCloneRecipe {
+    override def serialize(): util.Map[String, AnyRef] = util.Map.of()
+}
+
+
+object JannyFireworkRocket {
+    def valueOf(map: util.Map[String, AnyRef]): JannyFireworkRocket = new JannyFireworkRocket()
+}
+@SerializableAs("JannyFireworkRocket")
+case class JannyFireworkRocket()    extends JannyComplex(fireworkRocket)            with FireworkRocketRecipe {
+    override def serialize(): util.Map[String, AnyRef] = util.Map.of()
+}
+
+
+object JannyFireworkStar {
+    def valueOf(map: util.Map[String, AnyRef]): JannyFireworkStar = new JannyFireworkStar()
+}
+@SerializableAs("JannyFireworkStar")
+case class JannyFireworkStar()      extends JannyComplex(fireworkStar)              with FireworkStarRecipe {
+    override def serialize(): util.Map[String, AnyRef] = util.Map.of()
+}
+
+
+object JannyFireworkStarFade {
+    def valueOf(map: util.Map[String, AnyRef]): JannyFireworkStarFade = new JannyFireworkStarFade()
+}
+@SerializableAs("JannyFireworkStarFade")
+case class JannyFireworkStarFade()  extends JannyComplex(fireworkStarFade)          with FireworkStarFadeRecipe {
+    override def serialize(): util.Map[String, AnyRef] = util.Map.of()
+}
+
+
+object JannyMapClone {
+    def valueOf(map: util.Map[String, AnyRef]): JannyMapClone = new JannyMapClone()
+}
+@SerializableAs("JannyMapClone")
+case class JannyMapClone()          extends JannyComplex(mapClone)                  with MapCloneRecipe {
+    override def serialize(): util.Map[String, AnyRef] = util.Map.of()
+}
+
+
+object JannyMapExtend {
+    def valueOf(map: util.Map[String, AnyRef]): JannyMapExtend = new JannyMapExtend()
+}
+@SerializableAs("JannyMapExtend")
+case class JannyMapExtend()         extends JannyShaped(BetterMapExtendRecipe())    with MapExtendRecipe {
+    override def serialize(): util.Map[String, AnyRef] = util.Map.of()
+}
+
+
+object JannyRepairItem {
+    def valueOf(map: util.Map[String, AnyRef]): JannyRepairItem = new JannyRepairItem()
+}
+@SerializableAs("JannyRepairItem")
+case class JannyRepairItem()        extends JannyComplex(repairItem)                with RepairItemRecipe {
+    override def serialize(): util.Map[String, AnyRef] = util.Map.of()
+}
+
+
+object JannyShieldDecoration {
+    def valueOf(map: util.Map[String, AnyRef]): JannyShieldDecoration = new JannyShieldDecoration()
+}
+@SerializableAs("JannyShieldDecoration")
+case class JannyShieldDecoration()  extends JannyComplex(shieldDecoration)          with ShieldDecorationRecipe {
+    override def serialize(): util.Map[String, AnyRef] = util.Map.of()
+}
+
+
+object JannyShulkerBoxColor {
+    def valueOf(map: util.Map[String, AnyRef]): JannyShulkerBoxColor = new JannyShulkerBoxColor()
+}
+@SerializableAs("JannyShulkerBoxColor")
+case class JannyShulkerBoxColor()   extends JannyComplex(shulkerBoxColor)           with ShulkerBoxColorRecipe {
+    override def serialize(): util.Map[String, AnyRef] = util.Map.of()
+}
+
+
+object JannyTippedArrow {
+    def valueOf(map: util.Map[String, AnyRef]): JannyTippedArrow = new JannyTippedArrow()
+}
+@SerializableAs("JannyTippedArrow")
+case class JannyTippedArrow()       extends JannyShaped(BetterTippedArrowRecipe())  with TippedArrowRecipe {
+    override def serialize(): util.Map[String, AnyRef] = util.Map.of()
+}

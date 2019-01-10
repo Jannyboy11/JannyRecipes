@@ -3,7 +3,7 @@ package xyz.janboerman.recipes.api.gui
 import org.bukkit.event.inventory.{InventoryClickEvent, InventoryOpenEvent}
 import org.bukkit.plugin.Plugin
 import org.bukkit.scheduler.BukkitTask
-import org.bukkit.{Keyed, Material}
+import org.bukkit.{ChatColor, Keyed, Material}
 import xyz.janboerman.guilib.api.ItemBuilder
 import xyz.janboerman.guilib.api.menu.{ItemButton, MenuHolder, RedirectItemButton}
 import xyz.janboerman.recipes.api.JannyRecipesAPI
@@ -11,6 +11,7 @@ import xyz.janboerman.recipes.api.recipe._
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
+import scala.util.Try
 
 object RecipesMenu {
     val RecipesPerPage: Int = 5 * 9
@@ -38,6 +39,11 @@ class RecipesMenu(private val api: JannyRecipesAPI, plugin: Plugin) extends Menu
     private var pageButton: ItemButton[RecipesMenu] = _
 
     def scheduleRefresh(): Unit = needsRefresh = true
+
+    def setCurrentPage(newPageNr: Int): Unit = {
+        this.currentPageNumber = newPageNr
+        scheduleRefresh()
+    }
 
     def addFilter(filterKey: String, recipeFilter: RecipeFilter): Unit = {
         scheduleRefresh()
@@ -85,8 +91,15 @@ class RecipesMenu(private val api: JannyRecipesAPI, plugin: Plugin) extends Menu
             val filtersButton = new RedirectItemButton[RecipesMenu](new ItemBuilder(Material.COBWEB).name(interactable("Filters...")).build(), () => {
                 new FilterMenu[Plugin](this, getPlugin, getSearch().map(x => (x, searchFilters)), typeFilters).getInventory()
             })
-            this.pageButton = new ItemButton[RecipesMenu](new ItemBuilder(Material.CLOCK).name(interactable("Page...")).build()) {
-                //TODO anvil gui to set the page.
+            this.pageButton = new AnvilButton[RecipesMenu]({ case (holder: RecipesMenu, event: InventoryClickEvent, input) =>
+                var newPageNr = Try { Integer.parseInt(input) }
+                    .getOrElse({event.getWhoClicked().sendMessage(ChatColor.RED + "Please enter a positive integer number."); currentPageNumber}) - 1
+                //TODO don't hardcode the ChatFormat
+
+                if (newPageNr < 0) newPageNr = 0
+                holder.setCurrentPage(newPageNr)
+                getPlugin.getServer.getScheduler.runTask(getPlugin, (_: BukkitTask) => event.getWhoClicked.openInventory(holder.getInventory))
+            }, "" + (currentPageNumber + 1), new ItemBuilder(Material.CLOCK).name(interactable("Page...")).build()) {
             }
             val searchButton = new AnvilButton[RecipesMenu]( { case (holder: RecipesMenu, event: InventoryClickEvent, input) =>
                 holder.setSearch(input)
@@ -119,8 +132,6 @@ class RecipesMenu(private val api: JannyRecipesAPI, plugin: Plugin) extends Menu
     }
 
     def refresh(): Unit = {
-        println("DEBUG - refresh")
-
         recipeIterator = api.iterateRecipes()
         cachedRecipes.clear()
         lastReachedRecipe = -1
@@ -144,9 +155,8 @@ class RecipesMenu(private val api: JannyRecipesAPI, plugin: Plugin) extends Menu
     def hasNextPage(): Boolean = recipeIterator.hasNext || currentPageNumber * RecipesPerPage < lastReachedRecipe - RecipesPerPage
 
     private def fillPage(): Unit = {
-        println("DEBUG - fillPage")
-
-        var startIndex = currentPageNumber * RecipesPerPage
+        var startIndex = currentPageNumber * RecipesPerPage //might overflow because currentPageNr is dependent on user input
+        if (startIndex < 0) startIndex = 0
 
         //if the recipes for this page aren't 'loaded' yet, load them all unit here.
         while (lastReachedRecipe < startIndex + RecipesPerPage && recipeIterator.hasNext) {

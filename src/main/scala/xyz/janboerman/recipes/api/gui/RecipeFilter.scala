@@ -29,6 +29,10 @@ object KeySearchProperty extends SearchProperty {
     override def getName(): String = "Key"
     override def newSearchFilter(searchTerm: String): RecipeFilter = new ByKeyFilter(searchTerm)
 }
+object LocalizedNameSearchProperty extends SearchProperty {
+    override def getName(): String = "Localized Name"
+    override def newSearchFilter(searchTerm: String): RecipeFilter = new ByLocalizedNameFilter(searchTerm)
+}
 
 
 object RecipeFilter {
@@ -105,6 +109,7 @@ class ByKeyFilter(private val key: String) extends RecipeFilter {
 
     override def hashCode(): Int = key.hashCode
 
+    //TODO use RecipeKey instead
     override def apply(recipe: Recipe): Boolean = recipe match {
         case keyedRecipe: Keyed => keyedRecipe.getKey.getKey.equalsIgnoreCase(key)
         case _ => false
@@ -148,6 +153,32 @@ class ByIngredientFilter(private val searchTerm: String) extends RecipeFilter {
             Option(fixedIngredients.getIngredientStacks())
                 .map(_.toString.toLowerCase)
                 .exists(_.contains(searchTerm.toLowerCase))
+        case _ => false
+    }
+}
+
+class ByLocalizedNameFilter(private val searchTerm: String) extends RecipeFilter {
+    override def equals(obj: Any): Boolean = {
+        obj match {
+            case byLocalizedNameFilter: ByLocalizedNameFilter => byLocalizedNameFilter.searchTerm == this.searchTerm
+            case _ => false
+        }
+    }
+
+    override def hashCode(): Int = searchTerm.hashCode()
+
+    private def hasLocalizedName(itemStack: ItemStack): Boolean = {
+        if (itemStack == null) return false
+        val itemMeta = itemStack.getItemMeta
+        if (itemMeta == null) return false
+        if (!itemMeta.hasLocalizedName) return false
+
+        itemMeta.getLocalizedName.toLowerCase.contains(searchTerm.toLowerCase)
+    }
+
+    override def apply(recipe: Recipe): Boolean = recipe match {
+        case fixedIngredients: FixedIngredients => fixedIngredients.getIngredientStacks().exists(hasLocalizedName)
+        case fixedResult: FixedResult => hasLocalizedName(fixedResult.getResultStack())
         case _ => false
     }
 }

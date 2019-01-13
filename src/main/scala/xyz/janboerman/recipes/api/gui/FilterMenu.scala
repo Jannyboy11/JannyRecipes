@@ -14,7 +14,7 @@ object FilterMenu {
     val InventorySize = 5 * 9
 
     val SearchProperties = new mutable.HashSet[SearchProperty]
-    SearchProperties.addAll(Seq(IngredientSearchProperty, ResultSearchProperty, NamespaceSearchProperty, KeySearchProperty))
+    SearchProperties.addAll(Seq(IngredientSearchProperty, ResultSearchProperty, NamespaceSearchProperty, KeySearchProperty, LocalizedNameSearchProperty))
     //TODO remove NamespaceSearchProperty, change the semantic meaning of KeySearchProperty, add GroupSearchProperty
 }
 import FilterMenu._

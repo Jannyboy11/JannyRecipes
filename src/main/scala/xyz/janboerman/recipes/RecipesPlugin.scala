@@ -72,9 +72,10 @@ object RecipesPlugin
         registerClass(classOf[UUIDRecipeKey])
 
         registerClass(classOf[SerializableList[_]])
-        registerClass(classOf[SerializableMap[_, _]])
+        registerClass(classOf[SerializableMap[_]])
 
         registerClass(classOf[SimpleCraftingIngredient])
+        registerClass(classOf[ExactCraftingIngredient])
         registerClass(classOf[SimpleFurnaceIngredient])
 
         registerClass(classOf[SimpleShapedRecipe])

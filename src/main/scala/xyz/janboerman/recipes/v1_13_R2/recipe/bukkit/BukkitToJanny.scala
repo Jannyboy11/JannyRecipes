@@ -1,23 +1,47 @@
 package xyz.janboerman.recipes.v1_13_R2.recipe.bukkit
 
-import org.bukkit.inventory.RecipeChoice.MaterialChoice
-import org.bukkit.{Material, NamespacedKey, World}
+import java.util
+import java.util.stream.Collectors
+
+import org.bukkit.configuration.serialization.{ConfigurationSerializable, SerializableAs}
+import org.bukkit.inventory.RecipeChoice.{ExactChoice, MaterialChoice}
+import org.bukkit.{Material, NamespacedKey, World, inventory}
 import org.bukkit.inventory.{FurnaceRecipe => _, ShapedRecipe => _, ShapelessRecipe => _, _}
 import xyz.janboerman.recipes.api.recipe._
 import xyz.janboerman.recipes.v1_13_R2.Extensions.{NmsInventory, ObcCraftingInventory}
 
 import scala.collection.JavaConverters
 import scala.collection.mutable.ListBuffer
+import BukkitRecipeChoice._
+import xyz.janboerman.recipes.api.persist.RecipeStorage._
 
-case class BukkitShapedToJanny(bukkit: org.bukkit.inventory.ShapedRecipe) extends ShapedRecipe {
+object BukkitShapedToJanny {
+    def valueOf(map: util.Map[String, AnyRef]): BukkitShapedToJanny = {
+        val key = map.get(KeyString).asInstanceOf[NamespacedRecipeKey].namespacedKey
+        val result = map.get(ResultString).asInstanceOf[ItemStack]
+        val ingredients = JavaConverters.mapAsScalaMap(map.get(IngredientsString).asInstanceOf[util.Map[String, BukkitRecipeChoiceToJannyCraftingIngredient]])
+            .map {case (string: String, ingredient: BukkitRecipeChoiceToJannyCraftingIngredient) => (string(0), ingredient)}
+        val pattern = JavaConverters.asScalaBuffer(map.get(PatternString).asInstanceOf[util.List[String]]).toIndexedSeq
+        val group = map.getOrDefault(GroupString, "").asInstanceOf[String]
+        val bukkitRecipe = new inventory.ShapedRecipe(key, result)
+        bukkitRecipe.setGroup(group)
+        bukkitRecipe.shape(pattern.toArray: _*)
+        for ((c, ingr) <- ingredients) {
+            bukkitRecipe.setIngredient(c, ingr.asInstanceOf[BukkitRecipeChoiceToJannyCraftingIngredient].bukkit)
+        }
+        BukkitShapedToJanny(bukkitRecipe)
+    }
+}
+@SerializableAs("BukkitShapedRecipe")
+case class BukkitShapedToJanny(bukkit: org.bukkit.inventory.ShapedRecipe) extends ShapedRecipe with ConfigurationSerializable {
     override def getResult(): ItemStack = bukkit.getResult
 
     override def getShape(): IndexedSeq[String] = bukkit.getShape
 
-    override def getIngredients(): Map[Char, _ <: CraftingIngredient] = {
+    override def getIngredients(): Map[Char, BukkitRecipeChoiceToJannyCraftingIngredient] = {
         val mutableBukkitMap = JavaConverters.mapAsScalaMap(bukkit.getChoiceMap)
 
-        var map = Map[Char, CraftingIngredient]()
+        var map = Map[Char, BukkitRecipeChoiceToJannyCraftingIngredient]()
         mutableBukkitMap.foreach({case (character, recipeChoice) =>
             map += character.charValue() -> BukkitRecipeChoiceToJannyCraftingIngredient(recipeChoice)
         })
@@ -78,14 +102,38 @@ case class BukkitShapedToJanny(bukkit: org.bukkit.inventory.ShapedRecipe) extend
     }
 
     override def getKey: NamespacedKey = bukkit.getKey
+    override def getGroup(): Option[String] = Option(bukkit.getGroup).filter(_.nonEmpty)
+
+    override def serialize(): util.Map[String, AnyRef] = {
+        val map = new util.HashMap[String, AnyRef]()
+        map.put(KeyString, new NamespacedRecipeKey(getKey))
+        map.put(PatternString, JavaConverters.bufferAsJavaList(getShape().toBuffer))
+        map.put(IngredientsString, JavaConverters.mapAsJavaMap(getIngredients().map {case (c, ingr) => (String.valueOf(c), ingr)}))
+        map.put(ResultString, getResult())
+        map.put(GroupString, getGroup().getOrElse(""))
+        map
+    }
 }
 
-case class BukkitShapelessToJanny(bukkit: org.bukkit.inventory.ShapelessRecipe) extends ShapelessRecipe {
+object BukkitShapelessToJanny {
+    def valueOf(map: util.Map[String, AnyRef]): BukkitShapelessToJanny = {
+        val key = map.get(KeyString).asInstanceOf[NamespacedRecipeKey].namespacedKey
+        val ingredients = map.get(IngredientsString).asInstanceOf[List[BukkitRecipeChoiceToJannyCraftingIngredient]]
+        val result = map.get(ResultString).asInstanceOf[ItemStack]
+        val group = map.getOrDefault(GroupString, "").asInstanceOf[String]
+        val bukkitRecipe = new inventory.ShapelessRecipe(key, result)
+        bukkitRecipe.setGroup(group)
+        ingredients.map(_.bukkit).foreach(bukkitRecipe.addIngredient)
+        BukkitShapelessToJanny(bukkitRecipe)
+    }
+}
+@SerializableAs("BukkitShapelessRecipe")
+case class BukkitShapelessToJanny(bukkit: org.bukkit.inventory.ShapelessRecipe) extends ShapelessRecipe with ConfigurationSerializable {
     override def getResult(): ItemStack = bukkit.getResult
 
-    override def getIngredients(): List[_ <: CraftingIngredient] = {
+    override def getIngredients(): List[BukkitRecipeChoiceToJannyCraftingIngredient] = {
         JavaConverters.asScalaBuffer(bukkit.getChoiceList)
-            .map(BukkitRecipeChoiceToJannyCraftingIngredient)
+            .map(BukkitRecipeChoiceToJannyCraftingIngredient(_))
             .toList
     }
 
@@ -105,12 +153,36 @@ case class BukkitShapelessToJanny(bukkit: org.bukkit.inventory.ShapelessRecipe) 
     }
 
     override def getKey: NamespacedKey = bukkit.getKey
+    override def getGroup(): Option[String] = Option(bukkit.getGroup).filter(_.nonEmpty)
+
+    override def serialize(): util.Map[String, AnyRef] = {
+        val map = new util.HashMap[String, AnyRef]()
+        map.put(KeyString, new NamespacedRecipeKey(getKey))
+        map.put(IngredientsString, new SerializableList[BukkitRecipeChoiceToJannyCraftingIngredient](getIngredients()))
+        map.put(ResultString, getResult())
+        map.put(GroupString, getGroup().getOrElse(""))
+        map
+    }
 }
 
-case class BukkitFurnaceToJanny(bukkit: org.bukkit.inventory.FurnaceRecipe) extends FurnaceRecipe { self =>
+object BukkitFurnaceToJanny {
+    def valueOf(map: util.Map[String, AnyRef]): BukkitFurnaceToJanny = {
+        val key = map.get(KeyString).asInstanceOf[NamespacedRecipeKey].namespacedKey
+        val ingredients = map.get(IngredientsString).asInstanceOf[BukkitRecipeChoiceToJannyFurnaceIngredient].bukkit
+        val result = map.get(ResultString).asInstanceOf[ItemStack]
+        val group = map.getOrDefault(GroupString, "").asInstanceOf[String]
+        val experience = map.get(ExperienceString).toString.toFloat
+        val cookingTime = map.get(CookingTimeString).toString.toInt
+        val bukkitRecipe = new inventory.FurnaceRecipe(key, result, ingredients, experience, cookingTime)
+        bukkitRecipe.setGroup(group)
+        BukkitFurnaceToJanny(bukkitRecipe)
+    }
+}
+@SerializableAs("BukkitFurnaceRecipe")
+case class BukkitFurnaceToJanny(bukkit: org.bukkit.inventory.FurnaceRecipe) extends FurnaceRecipe with ConfigurationSerializable { self =>
     override def getResult(): ItemStack = bukkit.getResult
 
-    override def getIngredient(): FurnaceIngredient = new BukkitRecipeChoiceToJannyFurnaceIngredient(bukkit.getInputChoice) {
+    override def getIngredient(): BukkitRecipeChoiceToJannyFurnaceIngredient = new BukkitRecipeChoiceToJannyFurnaceIngredient(bukkit.getInputChoice) {
         override def getItemStack: ItemStack = self.bukkit.getInput
     }
 
@@ -124,22 +196,53 @@ case class BukkitFurnaceToJanny(bukkit: org.bukkit.inventory.FurnaceRecipe) exte
     }
 
     override def getKey: NamespacedKey = bukkit.getKey
+    override def getGroup(): Option[String] = Option(bukkit.getGroup).filter(_.nonEmpty)
+    override def getExperience(): Float = bukkit.getExperience
+    override def getCookingTime(): Int = bukkit.getCookingTime
+
+    override def serialize(): util.Map[String, AnyRef] = {
+        val map = new util.HashMap[String, AnyRef]()
+        map.put(KeyString, new NamespacedRecipeKey(getKey))
+        map.put(IngredientsString, getIngredient())
+        map.put(ResultString, getResult())
+        map.put(GroupString, getGroup().getOrElse(""))
+        map.put(ExperienceString, java.lang.Float.valueOf(getExperience()))
+        map.put(CookingTimeString, java.lang.Integer.valueOf(getCookingTime()))
+        map
+    }
 }
 
-case class BukkitRecipeChoiceToJannyCraftingIngredient(bukkit: RecipeChoice) extends CraftingIngredient {
+object BukkitRecipeChoiceToJannyCraftingIngredient {
+    def valueOf(map: util.Map[String, AnyRef]): BukkitRecipeChoiceToJannyCraftingIngredient = {
+        BukkitRecipeChoiceToJannyCraftingIngredient(deserializeRecipeChoice(map))
+    }
+}
+@SerializableAs("BukkitCraftingIngredient")
+case class BukkitRecipeChoiceToJannyCraftingIngredient(bukkit: RecipeChoice) extends CraftingIngredient
+    with ConfigurationSerializable {
     override def getChoices(): List[_ <: ItemStack] = bukkit match {
         case materialChoice: MaterialChoice => JavaConverters.asScalaBuffer(materialChoice.getChoices)
                 .toList
                 .map(new ItemStack(_))
+        case exactChoice: ExactChoice => List(exactChoice.getItemStack)
         case _ => List()
     }
 
-    override def apply(itemStack: ItemStack) = bukkit.test(itemStack)
+    override def apply(itemStack: ItemStack): Boolean = bukkit.test(itemStack)
 
     override def clone(): BukkitRecipeChoiceToJannyCraftingIngredient = BukkitRecipeChoiceToJannyCraftingIngredient(cloneRecipeChoice(bukkit))
+
+    override def serialize(): util.Map[String, AnyRef] = serializeRecipeChoice(bukkit)
 }
 
-case class BukkitRecipeChoiceToJannyFurnaceIngredient(bukkit: RecipeChoice) extends FurnaceIngredient {
+object BukkitRecipeChoiceToJannyFurnaceIngredient {
+    def valueOf(map: util.Map[String, AnyRef]): BukkitRecipeChoiceToJannyFurnaceIngredient = {
+        BukkitRecipeChoiceToJannyFurnaceIngredient(deserializeRecipeChoice(map))
+    }
+}
+@SerializableAs("BukkitFurnaceIngredient")
+case class BukkitRecipeChoiceToJannyFurnaceIngredient(bukkit: RecipeChoice) extends FurnaceIngredient
+    with ConfigurationSerializable {
     @Deprecated
     override def getItemStack(): ItemStack = bukkit match {
         case materialChoice: MaterialChoice =>
@@ -153,10 +256,47 @@ case class BukkitRecipeChoiceToJannyFurnaceIngredient(bukkit: RecipeChoice) exte
                 stack.setDurability(Short.MaxValue)
                 stack
             }
+        case exactChoice: ExactChoice => exactChoice.getItemStack()
         case _ => new ItemStack(Material.AIR)
     }
 
-    override def apply(itemStack: ItemStack) = bukkit.test(itemStack)
+    override def apply(itemStack: ItemStack): Boolean = bukkit.test(itemStack)
 
     override def clone(): BukkitRecipeChoiceToJannyFurnaceIngredient = BukkitRecipeChoiceToJannyFurnaceIngredient(cloneRecipeChoice(bukkit))
+
+    override def serialize(): util.Map[String, AnyRef] = serializeRecipeChoice(bukkit)
+}
+
+
+object BukkitRecipeChoice {
+    val IngredientType = "ingredient-type"
+    val Choices = "choices"
+    val MaterialChoice = "material-choice"
+    val ExactChoice = "exact-choice"
+    val Empty = ""
+
+    def serializeRecipeChoice(recipeChoice: RecipeChoice): java.util.Map[String, AnyRef] = {
+        val (ingredientType, choices) = recipeChoice match {
+            case mc: MaterialChoice => (MaterialChoice, mc.getChoices.stream.map[ItemStack](new ItemStack(_)).collect(Collectors.toList[ItemStack]))
+            case ec: ExactChoice    => (ExactChoice, util.List.of[ItemStack](ec.getItemStack))
+            case _                  => (Empty, util.List.of())
+        }
+        val map = new util.HashMap[String, AnyRef]()
+        map.put(IngredientType, ingredientType)
+        map.put(Choices, choices)
+        map
+    }
+    def deserializeRecipeChoice(map: util.Map[String, AnyRef]): RecipeChoice = {
+        val ingredientType = map.get(IngredientType).asInstanceOf[String]
+        val choices = map.get(Choices).asInstanceOf[util.List[ItemStack]]
+        ingredientType match {
+            case MaterialChoice => new MaterialChoice(choices.stream().map[Material](_.getType).collect(Collectors.toList[Material]))
+            case ExactChoice    => new ExactChoice(choices.get(0))
+            case _              => new RecipeChoice {
+                override def getItemStack: ItemStack = null
+                override def test(t: ItemStack): Boolean = false
+                override def clone(): RecipeChoice = this
+            }
+        }
+    }
 }

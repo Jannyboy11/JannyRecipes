@@ -10,9 +10,11 @@ import org.bukkit.{Material, NamespacedKey}
 import org.bukkit.craftbukkit.v1_13_R2.inventory.CraftRecipe
 import org.bukkit.inventory.RecipeChoice.MaterialChoice
 import org.bukkit.inventory._
-import xyz.janboerman.recipes.api.recipe.{ComplexRecipe, CraftingIngredient => ApiCraftingIngredient, FurnaceRecipe => ApiFurnaceRecipe, ShapedRecipe => ApiShapedRecipe, ShapelessRecipe => ApiShapelessRecipe}
+import xyz.janboerman.recipes.api.recipe.{ComplexRecipe, ExactCraftingIngredient, SimpleCraftingIngredient,
+    CraftingIngredient => ApiCraftingIngredient, FurnaceRecipe => ApiFurnaceRecipe,
+    ShapedRecipe => ApiShapedRecipe, ShapelessRecipe => ApiShapelessRecipe}
 import xyz.janboerman.recipes.v1_13_R2.recipe.janny.JannyCraftingIngredient
-import xyz.janboerman.recipes.v1_13_R2.{Conversions, Impl_1_13_R2}
+import xyz.janboerman.recipes.v1_13_R2.{Conversions, Impl}
 
 import scala.collection.JavaConverters
 
@@ -34,7 +36,7 @@ case class JannyFurnaceToBukkit(janny: ApiFurnaceRecipe) extends FurnaceRecipe (
 
     //TODO override setters?
 
-    override def addToCraftingManager(): Unit = Impl_1_13_R2.addRecipe(janny)
+    override def addToCraftingManager(): Unit = Impl.addRecipe(janny)
 }
 
 case class JannyShapedToBukkit(janny: ApiShapedRecipe) extends ShapedRecipe(janny.getKey, janny.getResult()) with CraftRecipe {
@@ -62,7 +64,7 @@ case class JannyShapedToBukkit(janny: ApiShapedRecipe) extends ShapedRecipe(jann
 
     //TODO override setters?
 
-    override def addToCraftingManager(): Unit = Impl_1_13_R2.addRecipe(janny)
+    override def addToCraftingManager(): Unit = Impl.addRecipe(janny)
     override def toNMS(bukkit: RecipeChoice): RecipeItemStack = bukkit match {
         case bukkitToJanny: JannyCraftingIngredientToRecipeChoice => bukkitToJanny.toRecipeItemStack
         case _ => super.toNMS(bukkit)
@@ -91,7 +93,7 @@ case class JannyShapelessToBukkit(janny: ApiShapelessRecipe) extends ShapelessRe
 
     //TODO override setters?
 
-    override def addToCraftingManager(): Unit = Impl_1_13_R2.addRecipe(janny)
+    override def addToCraftingManager(): Unit = Impl.addRecipe(janny)
     override def toNMS(bukkit: RecipeChoice): RecipeItemStack = bukkit match {
         case bukkitToJanny: JannyCraftingIngredientToRecipeChoice => bukkitToJanny.toRecipeItemStack
         case _ => super.toNMS(bukkit)
@@ -115,13 +117,26 @@ case class JannyCraftingIngredientToRecipeChoice(janny: ApiCraftingIngredient) e
         }
     }
 
-    override def clone(): MaterialChoice = super.clone()
+    override def clone(): MaterialChoice = {
+        janny match {
+            case simple: SimpleCraftingIngredient => JannyCraftingIngredientToRecipeChoice(simple.clone())
+            case exact: ExactCraftingIngredient => JannyCraftingIngredientToRecipeChoice(exact.clone())
+            case _ => super.clone()
+        }
+    }
 
     override def test(t: ItemStack): Boolean = janny.apply(t)
 
     def toRecipeItemStack(): RecipeItemStack = {
         janny match {
             case JannyCraftingIngredient(recipeItemStack) => recipeItemStack
+            case exactIngredient: ExactCraftingIngredient => //TODO this is really just a best effort
+                val javaIterator: java.util.Iterator[ItemStack] = JavaConverters.asJavaIterator(exactIngredient.getChoices().iterator)
+                val javaStream: java.util.stream.Stream[ItemStack] = StreamSupport.stream(Spliterators.spliteratorUnknownSize(javaIterator, 0), false)
+                val nmsStackStream: java.util.stream.Stream[net.minecraft.server.v1_13_R2.ItemStack] = javaStream.map(Conversions.toNMSStack)
+                val recipeItemStack = new RecipeItemStack(nmsStackStream.map(new StackProvider(_)))
+                recipeItemStack.exact = true
+                recipeItemStack
             case ingredient => //TODO unfortunately RecipeItemStack is final so we cannot extend it and override its behaviour like we could in 1.12.
                 val javaIterator: java.util.Iterator[ItemStack] = JavaConverters.asJavaIterator(ingredient.getChoices().iterator)
                 val javaStream: java.util.stream.Stream[ItemStack] = StreamSupport.stream(Spliterators.spliteratorUnknownSize(javaIterator, 0), false)

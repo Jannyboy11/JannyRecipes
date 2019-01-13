@@ -123,14 +123,20 @@ object Extensions {
             elements.foreach(list.add)
             list
         }
+        def withEmpty[T](emptyElement: T): NonNullList[T] = NonNullList.a(emptyElement)
     }
 
     object NmsIngredient {
         //the next two apply methods are more like deserializers. do I want to name them deserialize() explicitly?
         def apply(json: JsonElement): RecipeItemStack = RecipeItemStack.a(json)
         def apply(packetDataSerializer: PacketDataSerializer): RecipeItemStack = RecipeItemStack.b(packetDataSerializer)
-        def apply(iMaterial: IMaterial): RecipeItemStack = RecipeItemStack.a(iMaterial)
+        def apply(iMaterial: IMaterial*): RecipeItemStack = RecipeItemStack.a(iMaterial: _*)
         def empty: RecipeItemStack = RecipeItemStack.a
+        def exact(iMaterial: IMaterial*): RecipeItemStack =  {
+            val recipeItemStack = NmsIngredient(iMaterial: _*)
+            recipeItemStack.exact = true
+            recipeItemStack
+        }
     }
 
     implicit class NmsIngredient(recipeItemStack: RecipeItemStack) {

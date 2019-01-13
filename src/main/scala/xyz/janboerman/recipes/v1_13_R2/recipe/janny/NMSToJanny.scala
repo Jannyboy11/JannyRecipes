@@ -5,12 +5,13 @@ import java.util.Objects
 
 import net.minecraft.server.v1_13_R2._
 import org.bukkit.NamespacedKey
-import org.bukkit.configuration.serialization.SerializableAs
+import org.bukkit.configuration.serialization.{ConfigurationSerializable, SerializableAs}
 import org.bukkit.craftbukkit.v1_13_R2.inventory.CraftItemStack
 import org.bukkit.inventory.{CraftingInventory, FurnaceInventory, ItemStack}
 import xyz.janboerman.recipes.api.recipe.{CraftingIngredient, FurnaceIngredient, FurnaceRecipe, _}
 import xyz.janboerman.recipes.v1_13_R2.Conversions._
 import xyz.janboerman.recipes.v1_13_R2.Extensions.{NmsInventory, NmsRecipe, ObcCraftingInventory, ObcFurnaceInventory}
+import xyz.janboerman.recipes.v1_13_R2.Storage
 import xyz.janboerman.recipes.v1_13_R2.recipe._
 
 import scala.collection.JavaConverters
@@ -64,8 +65,14 @@ class JannyCrafting(iRecipe: IRecipe) extends JannyRecipe(iRecipe) with Crafting
 object JannyFurnace {
     def apply(furnaceRecipe: BetterFurnaceRecipe): JannyFurnace  = new JannyFurnace(furnaceRecipe)
     def unapply(arg: JannyFurnace): Option[BetterFurnaceRecipe]  = Some(arg.nms.asInstanceOf[BetterFurnaceRecipe])
+    def valueOf(map: util.Map[String, AnyRef]): JannyFurnace = {
+        new JannyFurnace(Storage.deserializeFurnaceRecipe(map))
+    }
 }
-class JannyFurnace(furnaceRecipe: BetterFurnaceRecipe) extends JannyRecipe(furnaceRecipe) with FurnaceRecipe {
+@SerializableAs("JannyFurnace")
+class JannyFurnace(furnaceRecipe: BetterFurnaceRecipe) extends JannyRecipe(furnaceRecipe)
+    with FurnaceRecipe
+    with ConfigurationSerializable {
     lazy val key = toBukkitKey(nms.getKey)
 
     override def trySmelt(furnaceInventory: FurnaceInventory): Option[ItemStack] = {
@@ -88,27 +95,44 @@ class JannyFurnace(furnaceRecipe: BetterFurnaceRecipe) extends JannyRecipe(furna
     override def getCookingTime(): Int = furnaceRecipe.getCookingTime()
 
     override def getGroup(): Option[String] = furnaceRecipe.getGroup()
+
+    override def serialize(): util.Map[String, AnyRef] = {
+        Storage.serializeFurnaceRecipe(furnaceRecipe)
+    }
 }
 
 object JannyShaped {
-    def apply(shapedRecipes: BetterShapedRecipe): JannyShaped    = new JannyShaped(shapedRecipes)
-    def unapply(arg: JannyShaped): Option[BetterShapedRecipe]    = Some(arg.nms.asInstanceOf[BetterShapedRecipe])
+    def apply(shapedRecipes: BetterShapedRecipe): JannyShaped   = new JannyShaped(shapedRecipes)
+    def unapply(arg: JannyShaped): Option[BetterShapedRecipe]   = Some(arg.nms.asInstanceOf[BetterShapedRecipe])
+    def valueOf(map: util.Map[String, AnyRef]): JannyShaped     = new JannyShaped(Storage.deserializeShapedRecipe(map))
 }
 object JannyShapeless {
-    def apply(shapelessRecipes: BetterShapelessRecipe): JannyShapeless   = new JannyShapeless(shapelessRecipes)
-    def unapply(arg: JannyShapeless): Option[BetterShapelessRecipe]      = Some(arg.nms.asInstanceOf[BetterShapelessRecipe])
+    def apply(shapelessRecipes: BetterShapelessRecipe): JannyShapeless  = new JannyShapeless(shapelessRecipes)
+    def unapply(arg: JannyShapeless): Option[BetterShapelessRecipe]     = Some(arg.nms.asInstanceOf[BetterShapelessRecipe])
+    def valueOf(map: util.Map[String, AnyRef]): JannyShapeless          = new JannyShapeless(Storage.deserializeShapelessRecipe(map))
 }
-class JannyShaped(shapedRecipes: BetterShapedRecipe)            extends JannyCrafting(shapedRecipes)    with ShapedRecipe {
+@SerializableAs("JannyShaped")
+class JannyShaped(shapedRecipes: BetterShapedRecipe) extends JannyCrafting(shapedRecipes)
+    with ShapedRecipe
+    with ConfigurationSerializable {
+
     override def getGroup = shapedRecipes.getGroup()
     override def getResult() = toBukkitStack(shapedRecipes.getResult())
     override def getShape(): IndexedSeq[String] = shapedRecipes.shape.pattern
     override def getIngredients(): Map[Char, _ <: CraftingIngredient] = shapedRecipes.shape.ingredientMap.map({ case (k, v) => (k, JannyCraftingIngredient(v))})
+
+    override def serialize(): util.Map[String, AnyRef] = Storage.serializeShapedRecipe(shapedRecipes)
 }
-class JannyShapeless(shapelessRecipes: BetterShapelessRecipe)   extends JannyCrafting(shapelessRecipes) with ShapelessRecipe {
+@SerializableAs("JannyShapeless")
+class JannyShapeless(shapelessRecipes: BetterShapelessRecipe) extends JannyCrafting(shapelessRecipes)
+    with ShapelessRecipe
+    with ConfigurationSerializable {
     override def getGroup = shapelessRecipes.getGroup()
     override def getResult() = toBukkitStack(shapelessRecipes.getResult())
     override def getIngredients(): List[JannyCraftingIngredient] =
         JavaConverters.collectionAsScalaIterable(shapelessRecipes.getIngredients()).map(JannyCraftingIngredient(_)).toList
+
+    override def serialize(): util.Map[String, AnyRef] = Storage.serializeShapelessRecipe(shapelessRecipes)
 }
 
 abstract class JannyComplex(complexRecipe: IRecipe) extends JannyCrafting(complexRecipe) with ComplexRecipe

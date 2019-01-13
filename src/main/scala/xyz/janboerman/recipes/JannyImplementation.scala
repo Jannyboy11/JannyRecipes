@@ -2,13 +2,13 @@ package xyz.janboerman.recipes
 
 import org.bukkit.Server
 import xyz.janboerman.recipes.api.JannyRecipesAPI
-import xyz.janboerman.recipes.v1_13_R2.Impl_1_13_R2
+import xyz.janboerman.recipes.v1_13_R2.Impl
 
 import scala.collection.mutable
 
 object JannyImplementation {
     private val implementations = new mutable.ListBuffer[() => JannyImplementation]()
-    registerImplementation(() => Impl_1_13_R2)
+    registerImplementation(() => Impl)
 
     def registerImplementation(implementationSupplier: () => JannyImplementation): Unit = {
         implementations += implementationSupplier

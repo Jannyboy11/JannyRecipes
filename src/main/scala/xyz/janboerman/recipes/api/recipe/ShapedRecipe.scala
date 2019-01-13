@@ -101,7 +101,9 @@ object SimpleShapedRecipe {
         val namespacedKey = map.get(KeyString).asInstanceOf[NamespacedRecipeKey].namespacedKey
         val group = Option(map.get(GroupString).asInstanceOf[String]).filter(_.nonEmpty)
         val shape = map.get(ShapeString).asInstanceOf[SerializableList[String]].list.toIndexedSeq
-        val ingredients = map.get(IngredientsString).asInstanceOf[SerializableMap[Char, _ <: CraftingIngredient]].map
+        val ingredients: Map[Char, _<: CraftingIngredient] = map.get(IngredientsString)
+            .asInstanceOf[SerializableMap[_ <: CraftingIngredient]].map
+            .map({case (string, ingredient) => (string(0), ingredient)})
         val result = map.get(ItemStackString).asInstanceOf[ItemStack]
         new SimpleShapedRecipe(namespacedKey, group, shape, ingredients, result)
     }
@@ -133,7 +135,7 @@ class SimpleShapedRecipe(private val namespacedKey: NamespacedKey,
         map.put(KeyString, new NamespacedRecipeKey(getKey))
         getGroup().foreach(map.put(GroupString, _))
         map.put(ShapeString, new SerializableList[String](getShape().toList))
-        map.put(IngredientsString, new SerializableMap[Char, CraftingIngredient](getIngredients()))
+        map.put(IngredientsString, new SerializableMap[CraftingIngredient](getIngredients().map({case (character, ingredient) => (character.toString, ingredient)})))
         map.put(ResultString, getResult())
         map
     }

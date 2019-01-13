@@ -17,8 +17,10 @@ object RecipeStorage {
     val ShapeString = "shape"
     val IngredientsString = "ingredients"
     val ItemStackString = "itemstack"
+    val PatternString = "pattern"
     val GroupString = "group"
     val ChoicesString = "choices"
+    val ExactString = "exact"
     val ElementsString = "elements"
     val CookingTimeString = "cooking-time"
     val ExperienceString = "experience"
@@ -50,18 +52,19 @@ object RecipeStorage {
     }
 
     object SerializableMap {
-        def valueOf[K, V](map: util.Map[String, AnyRef]): SerializableMap[K, V] = {
-            val javaMap = map.get(ElementsString).asInstanceOf[util.Map[K, V]]
+        def valueOf[V](map: util.Map[String, AnyRef]): SerializableMap[V] = {
+            val javaMap = map.get(ElementsString).asInstanceOf[util.Map[String, V]]
             val scalaMap = JavaConverters.mapAsScalaMap(javaMap)
-            new SerializableMap[K, V](scalaMap.toMap)
+            new SerializableMap[V](scalaMap.toMap)
         }
     }
 
+    //TODO the ShapedRecipe (de)serializers should convert their characters to strings and vice versa.
     @SerializableAs("SeriazableMap")
-    implicit class SerializableMap[K, +V](val map: Map[K, V]) extends ConfigurationSerializable {
+    implicit class SerializableMap[+V](val map: Map[String, V]) extends ConfigurationSerializable {
         override def serialize(): util.Map[String, AnyRef] = {
             val javaMap = new util.HashMap[String, AnyRef]()
-            val scalaMap = new mutable.HashMap[K, V]
+            val scalaMap = new mutable.HashMap[String, V]
             scalaMap.addAll(map)
             javaMap.put(ElementsString, JavaConverters.mapAsJavaMap(map))
             javaMap
@@ -69,7 +72,7 @@ object RecipeStorage {
 
         override def toString: String = map.toString()
         override def equals(obj: Any): Boolean = obj match {
-            case sm: SerializableMap[K, V] => sm.map == this.map
+            case sm: SerializableMap[V] => sm.map == this.map
             case _ => false
         }
         override def hashCode(): Int = map.hashCode()

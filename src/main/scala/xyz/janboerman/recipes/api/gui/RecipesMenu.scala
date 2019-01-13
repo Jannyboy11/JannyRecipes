@@ -65,10 +65,9 @@ class RecipesMenu(private val api: JannyRecipesAPI, plugin: Plugin) extends Menu
 
         searchFilters.clear()
         if (query != null && query.nonEmpty) {
-            addSearchFilter(NamespaceSearchProperty, new ByNamespaceFilter(query))
-            addSearchFilter(KeySearchProperty, new ByKeyFilter(query))
-            addSearchFilter(IngredientSearchProperty, new ByIngredientFilter(query))
-            addSearchFilter(ResultSearchProperty, new ByResultFilter(query))
+            for (searchProperty <- FilterMenu.SearchProperties) {
+                addSearchFilter(searchProperty, searchProperty.newSearchFilter(query))
+            }
         }
     }
     def clearSearch(): Unit = {

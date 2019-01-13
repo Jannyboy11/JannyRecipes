@@ -2,6 +2,7 @@ package xyz.janboerman.recipes.v1_13_R2
 
 import Conversions.{toJannyRecipe, toNMSKey, toNMSRecipe}
 import net.minecraft.server.v1_13_R2.{MinecraftKey, PotionBrewer, RecipeSerializer, RecipeSerializers}
+import org.bukkit.craftbukkit.v1_13_R2.util.CraftMagicNumbers
 import org.bukkit.{Bukkit, Keyed, NamespacedKey}
 import xyz.janboerman.recipes.{JannyImplementation, RecipesPlugin}
 import xyz.janboerman.recipes.api.gui.RecipeGuiFactory
@@ -12,7 +13,7 @@ import xyz.janboerman.recipes.v1_13_R2.recipe._
 
 import scala.collection.JavaConverters
 
-object Impl_1_13_R2 extends JannyImplementation {
+object Impl extends JannyImplementation {
 
     private var alreadyInitialized = false
 
@@ -22,7 +23,25 @@ object Impl_1_13_R2 extends JannyImplementation {
         if (!Bukkit.getServer.getClass.getName.equals("org.bukkit.craftbukkit.v1_13_R2.CraftServer"))
             return false
 
+        val mappingsVersion: String = CraftMagicNumbers.INSTANCE.asInstanceOf[CraftMagicNumbers].getMappingsVersion
+        if (mappingsVersion != "00ed8e5c39debc3ed194ad7c5645cc45") {
+            val logger = RecipesPlugin.getLogger
+
+            logger.warning("\r\n============= WARNING =============")
+            logger.warning("Found a possibly incompatible NMS version. " + RecipesPlugin.getName + " may not work as expected.")
+            logger.warning("Compile-time version: 00ed8e5c39debc3ed194ad7c5645cc45")
+            logger.warning("Run-time version: " + mappingsVersion)
+            logger.warning("============= WARNING =============\r\n")
+
+            //TODO record metrics on the NMS version?
+            //TODO if 1.13.2 ever gets new mappings we should create a Map<MappingsVersion, Map<FieldSemanticId, FieldName>>
+
+            //TODO I could think of all kinds of things that I want to collect statistics on :P
+            //TODO such as Implementation name
+        }
+
         try {
+
             val serializerMapField = classOf[RecipeSerializers].getDeclaredField("q")
             serializerMapField.setAccessible(true)
             val serializersMap = serializerMapField.get(null).asInstanceOf[java.util.Map[String, RecipeSerializer[_]]]
@@ -87,7 +106,7 @@ object Impl_1_13_R2 extends JannyImplementation {
 
     override def getGuiFactory(): RecipeGuiFactory = GuiFactory
 
-    override def persist(): RecipeStorage = Storage_1_13_R2
+    override def persist(): RecipeStorage = Storage
 
     def removeRecipe(namespacedKey: NamespacedKey): Boolean = removeRecipe(toNMSKey(namespacedKey))
     def removeRecipe(minecraftKey: MinecraftKey): Boolean = getCraftingManager().recipes.remove(minecraftKey) != null

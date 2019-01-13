@@ -65,7 +65,7 @@ object Conversions {
         case janny: JannyCraftingIngredient => janny
         case _ => JannyToNMSCraftingIngredient(craftingIngredient)
     }
-    //TODO implement conversions from and to RecipeChoice (BetterRecipeChoice, JannyCraftingIngredientToRecipeChoice, also janny nms versions: CraftingIngredient, FurnaceIngredient)
+    //TODO implement conversions from and to RecipeChoice (MaterialChoice, ExactChoice) (BetterRecipeChoice, JannyCraftingIngredientToRecipeChoice, also janny nms versions: CraftingIngredient, FurnaceIngredient)
 
     //furnace ingredient
     def toRecipeItemStack(furnaceIngredient: FurnaceIngredient): RecipeItemStack = furnaceIngredient match {

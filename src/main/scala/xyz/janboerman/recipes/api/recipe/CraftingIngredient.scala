@@ -53,7 +53,11 @@ trait CraftingIngredient extends Ingredient {
         }
     }
 
-    override def apply(itemStack: ItemStack): Boolean = if (itemStack == null) false else getChoices().exists(_.getType == itemStack.getType)
+    override def apply(itemStack: ItemStack): Boolean = {
+        getChoices().exists(choice =>
+            if (itemStack == null) choice == null
+            else choice != null && choice.getType == itemStack.getType)
+    }
 
     override def clone(): CraftingIngredient = {
         val choicesClone = getChoices().map(itemStack => itemStack.clone())
@@ -72,14 +76,35 @@ object SimpleCraftingIngredient {
 }
 
 @SerializableAs("SimpleCraftingIngredient")
-class SimpleCraftingIngredient(private val choices: List[_ <: ItemStack]) extends CraftingIngredient
+case class SimpleCraftingIngredient(private val choices: List[_ <: ItemStack]) extends CraftingIngredient
     with ConfigurationSerializable {
+
     override def getChoices(): List[_ <: ItemStack] = choices
     override def clone(): SimpleCraftingIngredient = new SimpleCraftingIngredient(choices.map(stack => if (stack == null) null else stack.clone()))
-
     override def serialize(): util.Map[String, AnyRef] = {
         val map = new util.HashMap[String, AnyRef]()
         map.put(ChoicesString, new SerializableList(choices))
         map
     }
+}
+
+object ExactCraftingIngredient {
+    def valueOf(map: util.Map[String, AnyRef]): ExactCraftingIngredient = {
+        val choices = map.get(ChoicesString).asInstanceOf[List[_ <: ItemStack]]
+        new ExactCraftingIngredient(choices)
+    }
+}
+
+@SerializableAs("ExactCraftingIngredient")
+case class ExactCraftingIngredient(private val choices: List[_ <: ItemStack]) extends CraftingIngredient
+    with ConfigurationSerializable {
+
+    override def getChoices(): List[_ <: ItemStack] = choices
+    override def clone(): ExactCraftingIngredient = new ExactCraftingIngredient(choices.map(stack => if (stack == null) null else stack.clone()))
+    override def serialize(): util.Map[String, AnyRef] = {
+        val map = new util.HashMap[String, AnyRef]()
+        map.put(ChoicesString, getChoices())
+        map
+    }
+    override def apply(itemStack: ItemStack): Boolean = choices.contains(itemStack)
 }

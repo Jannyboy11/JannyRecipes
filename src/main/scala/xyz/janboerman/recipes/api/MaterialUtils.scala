@@ -123,11 +123,11 @@ object MaterialUtils {
                 || name.endsWith("BOOTS")))
     }
 
-    lazy val breakableItems = util.Arrays.stream(org.bukkit.Material.values())
+    lazy val breakableItems: util.List[org.bukkit.Material] = util.Arrays.stream(org.bukkit.Material.values())
         .filter(m => isTool(m)
             || isWeapon(m)
-            || isArmour(m))
-        .collect(Collectors.toList())
-
+            || isArmour(m)
+            || m == ELYTRA)
+        .collect(Collectors.toList[org.bukkit.Material])
 
 }

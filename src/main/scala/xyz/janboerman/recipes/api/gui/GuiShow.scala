@@ -9,6 +9,7 @@ import xyz.janboerman.guilib.api.ItemBuilder
 import xyz.janboerman.recipes.api.recipe._
 
 //TODO do I want/need this? probabaly not. It seemed nice in theory though.
+//TODO currently it's unused
 object GuiShow {
     implicit val itemstackShow = new GuiShow[ItemStack] {
         override def getRepresentation(thing: ItemStack): ItemStack = thing

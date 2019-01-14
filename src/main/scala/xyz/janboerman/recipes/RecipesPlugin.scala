@@ -65,8 +65,7 @@ object RecipesPlugin
     }
 
     override def onEnable(): Unit = {
-        getServer.getScheduler.runTaskLater(this, (_: org.bukkit.scheduler.BukkitTask) => getLogger.info("DEBUG - diamond max durability = " + org.bukkit.Material.DIAMOND .getMaxDurability), 100L)
-
+        //register classes for yaml serialization
         registerClass(classOf[NamespacedRecipeKey])
         registerClass(classOf[StringRecipeKey])
         registerClass(classOf[UUIDRecipeKey])

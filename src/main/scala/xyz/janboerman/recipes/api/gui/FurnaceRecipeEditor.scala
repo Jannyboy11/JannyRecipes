@@ -55,17 +55,16 @@ class FurnaceRecipeEditor(inventory: Inventory,
     def layoutButtons(): Unit = {
         val typeButton = new ItemButton[FurnaceRecipeEditor](new ItemBuilder(Material.FURNACE).name(TypeFurnace).enchant(Enchantment.DURABILITY, 1).build())
 
-        if (recipe != null) {
-            val cookingTimeButton = new ItemButton[FurnaceRecipeEditor](new ItemBuilder(Material.CLOCK)
-                .name(interactable("Cooking time" + (if (recipe != null) ": " + recipe.getCookingTime() else "")))
-                .build()) //TODO add functionality
-            val experienceButton = new ItemButton[FurnaceRecipeEditor](new ItemBuilder(Material.EXPERIENCE_BOTTLE)
-                .name(interactable("Experience" + (if (recipe != null) ": " + new DecimalFormat("#.##").format(recipe.getExperience()) else "")))
-                .build()) //TODO add functionality
+        val cookingTimeButton = new ItemButton[FurnaceRecipeEditor](new ItemBuilder(Material.CLOCK)
+            .name(interactable("Cooking time" + (if (recipe != null) ": " + recipe.getCookingTime() else "")))
+            .build()) //TODO add functionality
+        val experienceButton = new ItemButton[FurnaceRecipeEditor](new ItemBuilder(Material.EXPERIENCE_BOTTLE)
+            .name(interactable("Experience" + (if (recipe != null) ": " + new DecimalFormat("#.##").format(recipe.getExperience()) else "")))
+            .build()) //TODO add functionality
 
-            setButton(14, cookingTimeButton)
-            setButton(16, experienceButton)
-        }
+        setButton(14, cookingTimeButton)
+        setButton(16, experienceButton)
+
 
         val saveAndExitButton = new RedirectItemButton[FurnaceRecipeEditor](
             new ItemBuilder(Material.LIME_CONCRETE).name(SaveAndExit).build(),

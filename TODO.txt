@@ -1,5 +1,7 @@
 Fix all TODOs in the code
 
+use implicits for passing around the gui factory/mainmenu/plugin instances
+
 enige dingen die ik nog moet doen zijn saven en loaden implementeren,
 nog wat meer knoppen hun functionaliteit geven,
 checken of alles goed werkt met het recipe book van de client (zo nee, daar nog packets voor sturen en zo),
@@ -7,6 +9,9 @@ en modifiers (zoals nbt-specificness,
 ingrediënten met een bepaalde count),
 en de gui voor meerdere materials per ingrediënt.
 
-split project up into modules per server implementation
-use macros too: make a separate module for macros
+//not too sure about macro's
+//split project up into modules per server implementation
+//use macros too: make a separate module for macros
+
+(unit) tests for serialization. something like quick-check would be nice (to check wheter serializing and desserializing a recipe remain equal)
 

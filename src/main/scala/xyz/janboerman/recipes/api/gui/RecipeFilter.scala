@@ -36,6 +36,7 @@ object LocalizedNameSearchProperty extends SearchProperty {
 
 
 object RecipeFilter {
+
     val ShapedFilter = new ByTypeFilter(classOf[ShapedRecipe]) with SingleFilter {
         override def getIcon(): ItemStack = new ItemBuilder(Material.CRAFTING_TABLE).name(interactable("Type: Shaped")).build()
     }
@@ -48,6 +49,8 @@ object RecipeFilter {
     val ComplexFilter = new ByTypeFilter(classOf[ComplexRecipe]) with SingleFilter {
         override def getIcon(): ItemStack = new ItemBuilder(Material.CRAFTING_TABLE).name(interactable("Type: Complex")).build()
     }
+
+    //TODO use RecipeType.Values
 
     val TypeFilters = new mutable.HashSet[ByTypeFilter]
     TypeFilters.addAll(Seq(ShapedFilter, ShapelessFilter, FurnaceFilter, ComplexFilter))

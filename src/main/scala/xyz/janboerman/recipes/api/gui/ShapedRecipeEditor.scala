@@ -10,38 +10,17 @@ import org.bukkit.enchantments.Enchantment
 import xyz.janboerman.guilib.api.ItemBuilder
 import xyz.janboerman.guilib.api.menu.ItemButton
 
-class ShapedRecipeEditor(inventory: Inventory,
-                         shapedRecipe: ShapedRecipe,
-                         mainMenu: RecipesMenu,
-                         api: JannyRecipesAPI,
-                         plugin: Plugin)
-    extends CraftingRecipeEditor[ShapedRecipe](inventory, shapedRecipe, mainMenu, api, plugin) {
+class ShapedRecipeEditor[P <: Plugin](inventory: Inventory,
+                                      shapedRecipe: ShapedRecipe)
+                                     (implicit override val recipesMenu: RecipesMenu[P],
+                                      implicit override val api: JannyRecipesAPI,
+                                      implicit override val plugin: P)
+    extends CraftingRecipeEditor[P, ShapedRecipe](inventory, shapedRecipe) {
 
     override def getIcon(): Option[ItemStack] = Option(recipe).map(_.getResult())
 
-    def saveRecipe(): Boolean = {
-        //TODO
-
-        // make new ingredients and from itemstacks in the inventory
-        // be sure to apply modifiers as necessary
-        // if the namescape is 'minecraft' we should delete the original recipe and change the namespace to 'janny'
-
-        // save to config
-
-
-        false
-    }
-
-    def deleteRecipe(): Boolean = {
-        //TODO
-
-        // if the namespace is 'minecraft' we should save in a config that the vanilla recipe is deleted.
-
-        false
-    }
-
     override def layoutButtons(): Unit = {
-        setButton(49, new ItemButton[ShapedRecipeEditor](new ItemBuilder(Material.CRAFTING_TABLE).name(TypeShaped).enchant(Enchantment.DURABILITY, 1).build()))
+        setButton(49, new ItemButton[ShapedRecipeEditor[P]](new ItemBuilder(Material.CRAFTING_TABLE).name(TypeShaped).enchant(Enchantment.DURABILITY, 1).build()))
         super.layoutButtons()
     }
 

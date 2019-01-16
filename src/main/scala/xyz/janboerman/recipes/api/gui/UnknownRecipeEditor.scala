@@ -9,8 +9,10 @@ import xyz.janboerman.guilib.api.menu.{ItemButton, RedirectItemButton}
 import xyz.janboerman.recipes.api.JannyRecipesAPI
 import xyz.janboerman.recipes.api.recipe.Recipe
 
-class UnknownRecipeEditor(recipe: Recipe, mainMenu: RecipesMenu, api: JannyRecipesAPI, plugin: Plugin)
-    extends RecipeEditor[Recipe](recipe, mainMenu, api, plugin.getServer.createInventory(null, 54, "Edit Unknown Recipe"), plugin) {
+class UnknownRecipeEditor[P <: Plugin]()(implicit override val recipesMenu: RecipesMenu[P],
+                                         implicit override val api: JannyRecipesAPI,
+                                         implicit override val plugin: P)
+    extends RecipeEditor[P, Recipe](null, plugin.getServer.createInventory(null, 54, "Edit Unknown Recipe")) {
     override protected def layoutBorder(): Unit = {}
 
     override def onClick(event: InventoryClickEvent): Unit = {
@@ -27,24 +29,12 @@ class UnknownRecipeEditor(recipe: Recipe, mainMenu: RecipesMenu, api: JannyRecip
     }
 
     override protected def layoutButtons(): Unit = {
-        val exitButton = new RedirectItemButton[UnknownRecipeEditor](new ItemBuilder(Material.RED_CONCRETE).name(Exit).build(), () => mainMenu.getInventory)
+        val exitButton = new RedirectItemButton[UnknownRecipeEditor[P]](new ItemBuilder(Material.RED_CONCRETE).name(Exit).build(), () => recipesMenu.getInventory)
 
         setButton(53, exitButton)
 
-        val deleteButton = new ItemButton[UnknownRecipeEditor](
+        val deleteButton = new ItemButton[UnknownRecipeEditor[P]](
             new ItemBuilder(Material.BARRIER).name(Delete).build()) //TODO use RedirectItemButton, get the YesNoMenu from the guiFactory
-    }
-
-    override def saveRecipe(): Boolean = {
-        //TODO cannot really do this.
-
-        false
-    }
-
-    override def deleteRecipe(): Boolean = {
-        //TODO can do this if the recipe is keyed.
-
-        false
     }
 
     override def getIcon(): Option[ItemStack] = Some(RecipeEditor.UnknownRecipeIcon)

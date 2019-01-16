@@ -18,9 +18,14 @@ object RecipesMenu {
 }
 import RecipesMenu._
 
-//TODO add P <: Plugin type paramter, extends MenuHolder[P] instead.
-class RecipesMenu(private val api: JannyRecipesAPI, plugin: Plugin) extends MenuHolder[Plugin](plugin, RecipesPerPage + 9, "Manage Recipes") { self =>
-    import RecipesMenu._
+class RecipesMenu[P <: Plugin]()(implicit protected val api: JannyRecipesAPI, implicit protected val plugin: P)
+    extends MenuHolder[Plugin](plugin, RecipesPerPage + 9, "Manage Recipes") { self =>
+
+    private implicit val recipesMenu: RecipesMenu[_] = this
+    private implicit val recipesMenuP: RecipesMenu[P] = this
+    private implicit val mainMenu: RecipesMenu[Nothing] = this.asInstanceOf[RecipesMenu[Nothing]]
+
+    private implicit val implicitGuiFactory: RecipeGuiFactory[P] = api.getGuiFactory()
 
     private var recipeIterator: Iterator[_ <: Recipe] = api.iterateRecipes()
     private var currentPageNumber = 0
@@ -36,7 +41,7 @@ class RecipesMenu(private val api: JannyRecipesAPI, plugin: Plugin) extends Menu
     private val genericFilters = new mutable.HashMap[String, RecipeFilter]
     private var needsRefresh = true
 
-    private var pageButton: ItemButton[RecipesMenu] = _
+    private var pageButton: ItemButton[RecipesMenu[P]] = _
 
     def scheduleRefresh(): Unit = needsRefresh = true
 
@@ -85,12 +90,15 @@ class RecipesMenu(private val api: JannyRecipesAPI, plugin: Plugin) extends Menu
             val pageButtonIndex = filtersButtonIndex + 1
             val searchButtonIndex = pageButtonIndex + 1
 
-            val newButton = new ItemButton[RecipesMenu](new ItemBuilder(Material.NETHER_STAR).name(interactable("New...")).build()) //TODO
-            val refreshButton = new ItemButton[RecipesMenu](new ItemBuilder(Material.TOTEM_OF_UNDYING).name(interactable("Refresh")).build()) //TODO
-            val filtersButton = new RedirectItemButton[RecipesMenu](new ItemBuilder(Material.COBWEB).name(interactable("Filters...")).build(), () => {
-                new FilterMenu[Plugin](this, getPlugin, getSearch().map(x => (x, searchFilters)), typeFilters).getInventory()
-            })
-            this.pageButton = new AnvilButton[RecipesMenu]({ case (holder: RecipesMenu, event: InventoryClickEvent, input) =>
+            val newButton = new RedirectItemButton[RecipesMenu[P]](new ItemBuilder(Material.NETHER_STAR)
+                .name(interactable("New..."))
+                .build(), () => new NewMenu[P]().getInventory)
+
+            val refreshButton = new ItemButton[RecipesMenu[P]](new ItemBuilder(Material.TOTEM_OF_UNDYING).name(interactable("Refresh")).build()) //TODO
+            val filtersButton = new RedirectItemButton[RecipesMenu[P]](new ItemBuilder(Material.COBWEB).name(interactable("Filters...")).build(), () =>
+                new FilterMenu[P](getSearch().map(x => (x, searchFilters)), typeFilters).getInventory())
+
+            this.pageButton = new AnvilButton[RecipesMenu[P]]({ case (holder: RecipesMenu[P], event: InventoryClickEvent, input) =>
                 var newPageNr = Try { Integer.parseInt(input) }
                     .getOrElse({event.getWhoClicked().sendMessage(ChatColor.RED + "Please enter a positive integer number."); currentPageNumber}) - 1
                 //TODO don't hardcode the ChatFormat
@@ -98,13 +106,13 @@ class RecipesMenu(private val api: JannyRecipesAPI, plugin: Plugin) extends Menu
                 if (newPageNr < 0) newPageNr = 0
                 holder.setCurrentPage(newPageNr)
                 getPlugin.getServer.getScheduler.runTask(getPlugin, (_: BukkitTask) => event.getWhoClicked.openInventory(holder.getInventory))
-            }, "" + (currentPageNumber + 1), new ItemBuilder(Material.CLOCK).name(interactable("Page...")).build()) {
-            }
-            val searchButton = new AnvilButton[RecipesMenu]( { case (holder: RecipesMenu, event: InventoryClickEvent, input) =>
+            }, "" + (currentPageNumber + 1), new ItemBuilder(Material.CLOCK).name(interactable("Page...")).build())
+
+            val searchButton = new AnvilButton[RecipesMenu[P]]( { case (holder: RecipesMenu[P], event: InventoryClickEvent, input) =>
                 holder.setSearch(input)
                 getPlugin.getServer.getScheduler.runTask(getPlugin, (_: BukkitTask) => event.getWhoClicked.openInventory(holder.getInventory))
             }, "", new ItemBuilder(Material.COMPASS).name(interactable("Search...")).lore(lore("Right click to clear")).build()) {
-                override def onClick(holder: RecipesMenu, event: InventoryClickEvent): Unit = {
+                override def onClick(holder: RecipesMenu[P], event: InventoryClickEvent): Unit = {
                     if (event.isLeftClick) {
                         super.onClick(holder, event)
                     } else if (event.isRightClick) {
@@ -136,6 +144,7 @@ class RecipesMenu(private val api: JannyRecipesAPI, plugin: Plugin) extends Menu
         lastReachedRecipe = -1
 
         var filter: RecipeFilter = (_: Recipe) => true
+        //TODO can I generalize this so that it's usable for other plugins?
         if (typeFilters.nonEmpty) {
             filter = filter && typeFilters.iterator.foldLeft[RecipeFilter](_ => false)({case (p1, p2) => p1 || p2})
         }
@@ -177,8 +186,8 @@ class RecipesMenu(private val api: JannyRecipesAPI, plugin: Plugin) extends Menu
             if (recipeIndex < cachedRecipes.size) {
                 val recipe = cachedRecipes(recipeIndex)
 
-                val recipeEditor = guiFactory.newRecipeEditor(recipe, this)
-                setButton(slotIndex, new RedirectItemButton[RecipesMenu](recipeEditor.getIcon().getOrElse(RecipeEditor.UnknownRecipeIcon), () => recipeEditor.getInventory()))
+                val recipeEditor = guiFactory.newRecipeEditor(recipe)
+                setButton(slotIndex, new RedirectItemButton[RecipesMenu[P]](recipeEditor.getIcon().getOrElse(RecipeEditor.UnknownRecipeIcon), () => recipeEditor.getInventory()))
             } else {
                 unsetButton(slotIndex)
             }
@@ -189,8 +198,8 @@ class RecipesMenu(private val api: JannyRecipesAPI, plugin: Plugin) extends Menu
 
         val previousNextBuilder = new ItemBuilder(Material.MAGENTA_GLAZED_TERRACOTTA)
         if (hasPreviousPage()) {
-            setButton(RecipesPerPage, new ItemButton[RecipesMenu](previousNextBuilder.name("Previous page").build()) {
-                override def onClick(holder: RecipesMenu, event: InventoryClickEvent): Unit = {
+            setButton(RecipesPerPage, new ItemButton[RecipesMenu[P]](previousNextBuilder.name("Previous page").build()) {
+                override def onClick(holder: RecipesMenu[P], event: InventoryClickEvent): Unit = {
                     assert(holder == self, "Holder of the previous-page button is not the same holder of the opened inventory.")
                     holder.currentPageNumber -= 1
                     holder.fillPage()
@@ -200,8 +209,8 @@ class RecipesMenu(private val api: JannyRecipesAPI, plugin: Plugin) extends Menu
             unsetButton(RecipesPerPage)
         }
         if (hasNextPage()) {
-            setButton(RecipesPerPage + 8, new ItemButton[RecipesMenu](previousNextBuilder.name("Next page").build()) {
-                override def onClick(holder: RecipesMenu, event: InventoryClickEvent): Unit = {
+            setButton(RecipesPerPage + 8, new ItemButton[RecipesMenu[P]](previousNextBuilder.name("Next page").build()) {
+                override def onClick(holder: RecipesMenu[P], event: InventoryClickEvent): Unit = {
                     assert(holder == self, "Holder of the next-page button is not the same holder of the opened inventory.")
                     holder.currentPageNumber += 1
                     holder.fillPage()

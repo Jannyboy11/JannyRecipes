@@ -1,8 +1,10 @@
 package xyz.janboerman.recipes.api.gui
 
 import org.bukkit.event.inventory.InventoryOpenEvent
+import org.bukkit.inventory.ItemFlag
 import org.bukkit.plugin.Plugin
-import xyz.janboerman.guilib.api.menu.MenuHolder
+import xyz.janboerman.guilib.api.ItemBuilder
+import xyz.janboerman.guilib.api.menu.{MenuHolder, RedirectItemButton}
 import xyz.janboerman.recipes.api.recipe.RecipeType
 
 object NewMenu {
@@ -20,15 +22,20 @@ object NewMenu {
 }
 import NewMenu._
 
-class NewMenu[P <: Plugin](implicit plugin: P) extends MenuHolder[P](plugin, getInventorySize(), "Pick a type") {
-
-    //TODO how to do this? just open the editor for the chosen recipe type?
+class NewMenu[P <: Plugin](implicit plugin: P,
+                           implicit val mainMenu: RecipesMenu[P],
+                           implicit val recipeGuiFactory: RecipeGuiFactory[P])
+    extends MenuHolder[P](plugin, getInventorySize(), "Select a recipe type") {
 
     override def onOpen(event: InventoryOpenEvent): Unit = {
-        for ((i, recipeType) <- RecipeType.Values.zipWithIndex.take(getInventory.getSize)) {
+        for ((recipeType, i) <- RecipeType.Values.zipWithIndex.take(getInventory.getSize)) {
 
-            //TODO set the buttons.
+            val button = new RedirectItemButton[NewMenu[P]](new ItemBuilder(recipeType.getIcon)
+                .name(recipeType.getName)
+                .flags(ItemFlag.values(): _*)
+                .build(), () => recipeGuiFactory.newRecipeEditor(recipeType).getInventory)
 
+            setButton(i, button)
         }
     }
 

@@ -10,3 +10,4 @@
 #SBT/Maven
 target/*
 project/target/*
+project/project/target/*

@@ -10,17 +10,17 @@ import org.bukkit.enchantments.Enchantment
 import xyz.janboerman.guilib.api.ItemBuilder
 import xyz.janboerman.guilib.api.menu.ItemButton
 
-class ShapelessRecipeEditor(inventory: Inventory,
-                            shapelessRecipe: ShapelessRecipe,
-                            mainMenu: RecipesMenu,
-                            api: JannyRecipesAPI,
-                            plugin: Plugin)
-    extends CraftingRecipeEditor[ShapelessRecipe](inventory, shapelessRecipe, mainMenu, api, plugin) {
+class ShapelessRecipeEditor[P <: Plugin](inventory: Inventory,
+                            shapelessRecipe: ShapelessRecipe)
+                           (implicit override val recipesMenu: RecipesMenu[P],
+                            implicit override val api: JannyRecipesAPI,
+                            implicit override val plugin: P)
+    extends CraftingRecipeEditor[P, ShapelessRecipe](inventory, shapelessRecipe) {
 
     override def getIcon(): Option[ItemStack] = Option(recipe).map(_.getResult())
 
     override def layoutButtons(): Unit = {
-        setButton(49, new ItemButton[ShapedRecipeEditor](new ItemBuilder(Material.CRAFTING_TABLE).name(TypeShapeless).enchant(Enchantment.DURABILITY, 1).build()))
+        setButton(49, new ItemButton[ShapedRecipeEditor[P]](new ItemBuilder(Material.CRAFTING_TABLE).name(TypeShapeless).enchant(Enchantment.DURABILITY, 1).build()))
         super.layoutButtons()
     }
 
@@ -38,16 +38,5 @@ class ShapelessRecipeEditor(inventory: Inventory,
             inventory.setItem(ResultSlot, recipe.getResult())
         }
     }
-
-    override def saveRecipe(): Boolean = {
-        //TODO
-
-        false
-    }
-
-    override def deleteRecipe(): Boolean = {
-        //TODO
-
-        false
-    }
+    
 }

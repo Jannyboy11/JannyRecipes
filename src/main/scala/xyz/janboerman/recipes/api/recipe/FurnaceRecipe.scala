@@ -71,7 +71,7 @@ class SimpleFurnaceRecipe(private val namespacedKey: NamespacedKey,
     def this(namespacedKey: NamespacedKey, furnaceIngredient: FurnaceIngredient, result: ItemStack, cookingTime: Int) =
         this(namespacedKey, furnaceIngredient, result, cookingTime, 0F)
     def this(namespacedKey: NamespacedKey, furnaceIngredient: FurnaceIngredient, result: ItemStack, experience: Float) =
-        this(namespacedKey, furnaceIngredient, result, 200, 0F)
+        this(namespacedKey, furnaceIngredient, result, 200, experience)
 
     override def getIngredient(): FurnaceIngredient = furnaceIngredient
 

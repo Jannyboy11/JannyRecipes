@@ -13,18 +13,22 @@ import xyz.janboerman.recipes.api.gui.CraftingRecipeEditor._
 import scala.collection.mutable
 
 object ShapedRecipeEditor {
-    def apply(recipesMenu: RecipesMenu, shapedRecipe: ShapedRecipe): ShapedRecipeEditor = {
+    def apply(shapedRecipe: ShapedRecipe)(implicit recipesMenu: RecipesMenu[RecipesPlugin.type]): ShapedRecipeEditor[RecipesPlugin.type] = {
+        implicit val recipesPlugin = RecipesPlugin
+
         val nmsInventory = new CraftingRecipeNMSInventory("Edit Shaped Recipe")
-        val editor = new ShapedRecipeEditor(nmsInventory.bukkitInventory, shapedRecipe, recipesMenu, RecipesPlugin, RecipesPlugin)
+        val editor = new ShapedRecipeEditor(nmsInventory.bukkitInventory, shapedRecipe)
         nmsInventory.setInventoryHolder(editor)
         editor
     }
 }
 
 object ShapelessRecipeEditor {
-    def apply(recipesMenu: RecipesMenu, shapelessRecipe: ShapelessRecipe): ShapelessRecipeEditor = {
+    def apply(shapelessRecipe: ShapelessRecipe)(implicit recipesMenu: RecipesMenu[RecipesPlugin.type]): ShapelessRecipeEditor[RecipesPlugin.type] = {
+        implicit val recipesPlugin = RecipesPlugin
+
         val nmsInventory = new CraftingRecipeNMSInventory("Edit Shapeless Recipe")
-        val editor = new ShapelessRecipeEditor(nmsInventory.bukkitInventory, shapelessRecipe, recipesMenu, RecipesPlugin, RecipesPlugin)
+        val editor = new ShapelessRecipeEditor[RecipesPlugin.type](nmsInventory.bukkitInventory, shapelessRecipe)
         nmsInventory.setInventoryHolder(editor)
         editor
     }

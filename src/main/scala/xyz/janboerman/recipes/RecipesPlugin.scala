@@ -1,14 +1,12 @@
 package xyz.janboerman.recipes
 
 import org.bukkit.NamespacedKey
-import org.bukkit.configuration.serialization.{ConfigurationSerializable, ConfigurationSerialization, SerializableAs}
 import org.bukkit.permissions.PermissionDefault
-import org.bukkit.plugin.PluginLoadOrder
+import org.bukkit.plugin.{Plugin, PluginLoadOrder}
 import xyz.janboerman.guilib.api.GuiListener
 import xyz.janboerman.recipes.api.JannyRecipesAPI
 import xyz.janboerman.recipes.api.gui.RecipeGuiFactory
-import xyz.janboerman.recipes.api.persist.RecipeStorage
-import xyz.janboerman.recipes.api.persist.RecipeStorage.{SerializableList, SerializableMap}
+import xyz.janboerman.recipes.api.persist.{RecipeStorage, SimpleStorage}
 import xyz.janboerman.recipes.api.recipe._
 import xyz.janboerman.recipes.command.{ReEditCommandExecutor, ReOpenCommandExecutor, RecipesCommandExecutor}
 import xyz.janboerman.recipes.event.ImplementationEvent
@@ -34,6 +32,8 @@ object RecipesPlugin
         .addPermission(new Permission("jannyrecipes.command.reedit").description("Allows access to /reedit").permissionDefault(PermissionDefault.OP)))
     with JannyRecipesAPI {
 
+    implicit def getAPI(): JannyRecipesAPI = this
+
     private var implementation: JannyImplementation = null
     private var guiListener: GuiListener = null
 
@@ -50,39 +50,8 @@ object RecipesPlugin
         }
     }
 
-    def registerClass(clazz: Class[_ <: ConfigurationSerializable]): Unit = {
-        val option = getConfigurationAlias(clazz)
-        if (option.isDefined) {
-            ConfigurationSerialization.registerClass(clazz, option.get)
-        } else {
-            ConfigurationSerialization.registerClass(clazz)
-        }
-    }
-
-    private def getConfigurationAlias(clazz: Class[_ <: ConfigurationSerializable]): Option[String] = {
-        val serializableAs: SerializableAs = clazz.getAnnotation(classOf[SerializableAs])
-        Option(serializableAs).map(_.value())
-    }
 
     override def onEnable(): Unit = {
-        //register classes for yaml serialization
-        registerClass(classOf[NamespacedRecipeKey])
-        registerClass(classOf[StringRecipeKey])
-        registerClass(classOf[UUIDRecipeKey])
-
-        registerClass(classOf[SerializableList[_]])
-        registerClass(classOf[SerializableMap[_]])
-
-        registerClass(classOf[SimpleCraftingIngredient])
-        registerClass(classOf[ExactCraftingIngredient])
-        registerClass(classOf[SimpleFurnaceIngredient])
-
-        registerClass(classOf[SimpleShapedRecipe])
-        registerClass(classOf[SimpleShapelessRecipe])
-        registerClass(classOf[SimpleFurnaceRecipe])
-
-        //complex types registered by implementation
-
         if (!persist().init()) {
             getLogger.warning("Persistent storage layer failed to initialize correctly.")
         }
@@ -135,7 +104,7 @@ object RecipesPlugin
 
     override def iterateRecipes(): Iterator[_ <: Recipe] = implementation.iterateRecipes()
 
-    override def getGuiFactory(): RecipeGuiFactory = implementation.getGuiFactory()
+    override def getGuiFactory[P <: Plugin](): RecipeGuiFactory[P] = implementation.getGuiFactory()
 
     override def persist(): RecipeStorage = implementation.persist()
 

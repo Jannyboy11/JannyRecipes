@@ -1,27 +1,47 @@
 package xyz.janboerman.recipes.v1_13_R2.gui
 
 import xyz.janboerman.recipes.RecipesPlugin
-import xyz.janboerman.recipes.api.recipe.{FurnaceRecipe, Recipe, ShapedRecipe, ShapelessRecipe}
+import xyz.janboerman.recipes.api.recipe._
 import xyz.janboerman.recipes.api.gui.{RecipeEditor, RecipeGuiFactory, RecipesMenu, UnknownRecipeEditor}
-import xyz.janboerman.recipes.v1_13_R2.Impl
 
-object GuiFactory extends RecipeGuiFactory {
-    override def newRecipesMenu(): RecipesMenu = new RecipesMenu(Impl, RecipesPlugin)
+object GuiFactory extends RecipeGuiFactory[RecipesPlugin.type] {
+    private implicit val plugin: RecipesPlugin.type = RecipesPlugin
+    private type P = RecipesPlugin.type
 
-    override def newRecipeEditor(recipe: Recipe, mainMenu: RecipesMenu): RecipeEditor[_] = {
+    override def newRecipesMenu(): RecipesMenu[P] = new RecipesMenu[P]()
+
+    override def newRecipeEditor(recipe: Recipe)
+                                (implicit recipesMenu: RecipesMenu[P]): RecipeEditor[P, _] = {
+
         //TODO custom recipe types
 
+        //TODO actually call newRecipeEditor, then call setRecipe
+
         recipe match {
-            //TODO modified recipes
+            //TODO modified recipe
             //TODO complex recipes
 
-            case shaped: ShapedRecipe => ShapedRecipeEditor(mainMenu, shaped)
-            case shapeless: ShapelessRecipe => ShapelessRecipeEditor(mainMenu, shapeless)
-            case furnace: FurnaceRecipe => FurnaceRecipeEditor(mainMenu, furnace)
+            case shaped: ShapedRecipe => ShapedRecipeEditor(shaped)
+            case shapeless: ShapelessRecipe => ShapelessRecipeEditor(shapeless)
+            case furnace: FurnaceRecipe => FurnaceRecipeEditor(furnace)
 
-            case _ => new UnknownRecipeEditor(recipe, mainMenu, RecipesPlugin, RecipesPlugin)
+            case _ => new UnknownRecipeEditor()
         }
 
     }
 
+    override def newRecipeEditor(recipeType: RecipeType)(implicit mainMenu: RecipesMenu[P]): RecipeEditor[P, _] = {
+        //TODO custom recipes types
+
+        recipeType match {
+            //TODO modified type
+            //TODO complex types
+
+            case ShapedType => ShapedRecipeEditor(null)
+            case ShapelessType => ShapelessRecipeEditor(null)
+            case FurnaceType => FurnaceRecipeEditor(null)
+
+            case _ => new UnknownRecipeEditor()
+        }
+    }
 }

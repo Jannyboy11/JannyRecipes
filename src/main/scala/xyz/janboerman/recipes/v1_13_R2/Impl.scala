@@ -3,7 +3,9 @@ package xyz.janboerman.recipes.v1_13_R2
 import Conversions.{toJannyRecipe, toNMSKey, toNMSRecipe}
 import net.minecraft.server.v1_13_R2.{MinecraftKey, PotionBrewer, RecipeSerializer, RecipeSerializers}
 import org.bukkit.craftbukkit.v1_13_R2.util.CraftMagicNumbers
+import org.bukkit.plugin.Plugin
 import org.bukkit.{Bukkit, Keyed, NamespacedKey}
+import xyz.janboerman.recipes.api.JannyRecipesAPI
 import xyz.janboerman.recipes.{JannyImplementation, RecipesPlugin}
 import xyz.janboerman.recipes.api.gui.RecipeGuiFactory
 import xyz.janboerman.recipes.api.persist.RecipeStorage
@@ -27,11 +29,13 @@ object Impl extends JannyImplementation {
         if (mappingsVersion != "00ed8e5c39debc3ed194ad7c5645cc45") {
             val logger = RecipesPlugin.getLogger
 
-            logger.warning("\r\n============= WARNING =============")
+            logger.warning("")
+            logger.warning("====================== WARNING ======================")
             logger.warning("Found a possibly incompatible NMS version. " + RecipesPlugin.getName + " may not work as expected.")
             logger.warning("Compile-time version: 00ed8e5c39debc3ed194ad7c5645cc45")
             logger.warning("Run-time version: " + mappingsVersion)
-            logger.warning("============= WARNING =============\r\n")
+            logger.warning("====================== WARNING ======================")
+            logger.warning("")
 
             //TODO record metrics on the NMS version?
             //TODO if 1.13.2 ever gets new mappings we should create a Map<MappingsVersion, Map<FieldSemanticId, FieldName>>
@@ -104,11 +108,12 @@ object Impl extends JannyImplementation {
         .asScalaIterator(getCraftingManager().recipes.values().iterator())
         .map(Conversions.toJannyRecipe)
 
-    override def getGuiFactory(): RecipeGuiFactory = GuiFactory
+    //TODO I don't understand scala type parameters? when do I use RecipesPlugin, and when RecipesPlugin.type?
 
     override def persist(): RecipeStorage = Storage
 
     def removeRecipe(namespacedKey: NamespacedKey): Boolean = removeRecipe(toNMSKey(namespacedKey))
     def removeRecipe(minecraftKey: MinecraftKey): Boolean = getCraftingManager().recipes.remove(minecraftKey) != null
 
+    override def getGuiFactory[P <: Plugin](): RecipeGuiFactory[P] = GuiFactory.asInstanceOf[RecipeGuiFactory[P]] //TODO how to do this properly?
 }

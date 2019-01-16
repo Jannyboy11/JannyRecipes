@@ -18,12 +18,12 @@ object RecipeEditor {
     lazy val UnknownRecipeIcon = new ItemBuilder(Material.STRUCTURE_VOID).name(ChatColor.RED + "Unknown recipe").build()
 }
 
-abstract class RecipeEditor[R <: Recipe](protected var recipe: R,
-                                         protected val recipesMenu: RecipesMenu,
-                                         protected val api: JannyRecipesAPI,
-                                         inventory: Inventory,
-                                         plugin: Plugin)
-    extends MenuHolder(plugin, inventory) {
+abstract class RecipeEditor[P <: Plugin, R <: Recipe](protected var recipe: R,
+                                                      private val inventory: Inventory)
+                                                     (implicit protected val recipesMenu: RecipesMenu[P],
+                                                      implicit protected val api: JannyRecipesAPI,
+                                                      implicit protected val plugin: P)
+    extends MenuHolder[P](plugin, inventory) {
 
     private var firstTimeOpen = true
 
@@ -50,8 +50,9 @@ abstract class RecipeEditor[R <: Recipe](protected var recipe: R,
     protected def layoutRecipe(): Unit
     protected def layoutButtons(): Unit
 
-    def saveRecipe(): Boolean //TODO can i share some code here across implementations?
-    def deleteRecipe(): Boolean //TODO can i share some code here across implementations?
+    //TODO does this belong here? it doesn't have to
+//    def saveRecipe(): Boolean //TODO can i share some code here across implementations?
+//    def deleteRecipe(): Boolean //TODO can i share some code here across implementations?
 
     def getIcon(): Option[ItemStack] = None
     //TODO can FixedResult be a type-class? ShapedRecipe, FurnaceRecipe and ShapelessRecipes can all have instances defined

@@ -23,12 +23,12 @@ object FurnaceRecipeEditor {
 }
 import FurnaceRecipeEditor._
 
-class FurnaceRecipeEditor(inventory: Inventory,
-                          furnaceRecipe: FurnaceRecipe,
-                          mainMenu: RecipesMenu,
-                          api: JannyRecipesAPI,
-                          plugin: Plugin)
-    extends RecipeEditor[FurnaceRecipe](furnaceRecipe, mainMenu, api, inventory, plugin) {
+class FurnaceRecipeEditor[P <: Plugin](inventory: Inventory,
+                                       furnaceRecipe: FurnaceRecipe)
+                                      (implicit val mainMenu: RecipesMenu[P],
+                                       implicit override val api: JannyRecipesAPI,
+                                       implicit override val plugin: P)
+    extends RecipeEditor[P, FurnaceRecipe](furnaceRecipe, inventory) {
 
     override def getIcon(): Option[ItemStack] = Option(recipe).map(_.getResult())
 
@@ -53,12 +53,12 @@ class FurnaceRecipeEditor(inventory: Inventory,
     }
 
     def layoutButtons(): Unit = {
-        val typeButton = new ItemButton[FurnaceRecipeEditor](new ItemBuilder(Material.FURNACE).name(TypeFurnace).enchant(Enchantment.DURABILITY, 1).build())
+        val typeButton = new ItemButton[FurnaceRecipeEditor[P]](new ItemBuilder(Material.FURNACE).name(TypeFurnace).enchant(Enchantment.DURABILITY, 1).build())
 
-        val cookingTimeButton = new ItemButton[FurnaceRecipeEditor](new ItemBuilder(Material.CLOCK)
+        val cookingTimeButton = new ItemButton[FurnaceRecipeEditor[P]](new ItemBuilder(Material.CLOCK)
             .name(interactable("Cooking time" + (if (recipe != null) ": " + recipe.getCookingTime() else "")))
             .build()) //TODO add functionality
-        val experienceButton = new ItemButton[FurnaceRecipeEditor](new ItemBuilder(Material.EXPERIENCE_BOTTLE)
+        val experienceButton = new ItemButton[FurnaceRecipeEditor[P]](new ItemBuilder(Material.EXPERIENCE_BOTTLE)
             .name(interactable("Experience" + (if (recipe != null) ": " + new DecimalFormat("#.##").format(recipe.getExperience()) else "")))
             .build()) //TODO add functionality
 
@@ -66,30 +66,32 @@ class FurnaceRecipeEditor(inventory: Inventory,
         setButton(16, experienceButton)
 
 
-        val saveAndExitButton = new RedirectItemButton[FurnaceRecipeEditor](
+        //TODO use SaveButton instead?
+        val saveAndExitButton = new RedirectItemButton[FurnaceRecipeEditor[P]](
             new ItemBuilder(Material.LIME_CONCRETE).name(SaveAndExit).build(),
             () => recipesMenu.getInventory()) {
 
-            override def onClick(menuHolder: FurnaceRecipeEditor, event: InventoryClickEvent): Unit = {
-                saveRecipe()
+            override def onClick(menuHolder: FurnaceRecipeEditor[P], event: InventoryClickEvent): Unit = {
+                //saveRecipe() //TODO
                 super.onClick(menuHolder, event)
             }
         }
-        val exitButton = new RedirectItemButton[FurnaceRecipeEditor](
+
+        val exitButton = new RedirectItemButton[FurnaceRecipeEditor[P]](
             new ItemBuilder(Material.RED_CONCRETE).name(Exit).build(),
             () => recipesMenu.getInventory())
 
+        val renameButton = new ItemButton[FurnaceRecipeEditor[P]](new ItemBuilder(Material.NAME_TAG).name(Rename).build()) //TODO make this a RedirectItemButton as well
+        val setGroupButton = new ItemButton[FurnaceRecipeEditor[P]](new ItemBuilder(Material.CHEST).name(SetGroup).build()) //TODO Make this a RedirectItemButton as well
+        val modifiersButton = new ItemButton[FurnaceRecipeEditor[P]](new ItemBuilder(Material.HEART_OF_THE_SEA).name(Modifiers).build()) //TODO Make this a RedirectItemButton as well
 
-        val renameButton = new ItemButton[FurnaceRecipeEditor](new ItemBuilder(Material.NAME_TAG).name(Rename).build()) //TODO make this a RedirectItemButton as well
-        val setGroupButton = new ItemButton[FurnaceRecipeEditor](new ItemBuilder(Material.CHEST).name(SetGroup).build()) //TODO Make this a RedirectItemButton as well
-        val modifiersButton = new ItemButton[FurnaceRecipeEditor](new ItemBuilder(Material.HEART_OF_THE_SEA).name(Modifiers).build()) //TODO Make this a RedirectItemButton as well
-
-        val deleteButton = new RedirectItemButton[FurnaceRecipeEditor](
+        // TODO make a DeleteButton?
+        val deleteButton = new RedirectItemButton[FurnaceRecipeEditor[P]](
             new ItemBuilder(Material.BARRIER).name(Delete).build(), //TODO use YesNoMenu from GuiLib
             () => recipesMenu.getInventory()) {
 
-            override def onClick(menuHolder: FurnaceRecipeEditor, event: InventoryClickEvent): Unit = {
-                deleteRecipe()
+            override def onClick(menuHolder: FurnaceRecipeEditor[P], event: InventoryClickEvent): Unit = {
+                //deleteRecipe() //TODO
                 super.onClick(menuHolder, event)
             }
         }
@@ -103,13 +105,4 @@ class FurnaceRecipeEditor(inventory: Inventory,
         setButton(35, exitButton)
     }
 
-    override def saveRecipe(): Boolean = {
-        //TODO
-        false
-    }
-
-    override def deleteRecipe(): Boolean = {
-        //TODO
-        false
-    }
 }

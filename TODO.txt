@@ -5,8 +5,7 @@ use implicits for passing around the gui factory/mainmenu/plugin instances
 enige dingen die ik nog moet doen zijn saven en loaden implementeren,
 nog wat meer knoppen hun functionaliteit geven,
 checken of alles goed werkt met het recipe book van de client (zo nee, daar nog packets voor sturen en zo),
-en modifiers (zoals nbt-specificness,
-ingrediënten met een bepaalde count),
+en modifiers (zoals nbt-specificness, ingrediënten met een bepaalde count),
 en de gui voor meerdere materials per ingrediënt.
 
 //not too sure about macro's

@@ -13,9 +13,11 @@ import xyz.janboerman.recipes.api.recipe.FurnaceRecipe
 import scala.collection.mutable
 
 object FurnaceRecipeEditor {
-    def apply(recipesMenu: RecipesMenu, furnaceRecipe: FurnaceRecipe): FurnaceRecipeEditor = {
+    def apply(furnaceRecipe: FurnaceRecipe)(implicit recipesMenu: RecipesMenu[RecipesPlugin.type]): FurnaceRecipeEditor[RecipesPlugin.type] = {
+        implicit val recipesPlugin = RecipesPlugin
+
         val nmsInventory = new FurnaceRecipeNMSInventory("Edit Furnace Recipe")
-        val editor = new FurnaceRecipeEditor(nmsInventory.bukkitInventory, furnaceRecipe, recipesMenu, RecipesPlugin, RecipesPlugin)
+        val editor = new FurnaceRecipeEditor(nmsInventory.bukkitInventory, furnaceRecipe)
         nmsInventory.setInventoryHolder(editor)
         editor
     }

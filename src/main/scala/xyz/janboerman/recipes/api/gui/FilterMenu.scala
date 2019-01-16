@@ -13,16 +13,18 @@ import scala.collection.mutable
 object FilterMenu {
     val InventorySize = 5 * 9
 
-    val SearchProperties = new mutable.HashSet[SearchProperty]
+    val SearchProperties: mutable.Set[SearchProperty] = new mutable.LinkedHashSet()
     SearchProperties.addAll(Seq(IngredientSearchProperty, ResultSearchProperty, NamespaceSearchProperty, KeySearchProperty, LocalizedNameSearchProperty))
     //TODO remove NamespaceSearchProperty, change the semantic meaning of KeySearchProperty, add GroupSearchProperty
 }
 import FilterMenu._
 
-class FilterMenu[P <: Plugin](private val mainMenu: RecipesMenu,
-                              plugin: P,
-                              private val searchFilters: Option[(String, mutable.Map[SearchProperty, RecipeFilter])],
+
+//TODO use ToggleButtons instead
+class FilterMenu[P <: Plugin](private val searchFilters: Option[(String, mutable.Map[SearchProperty, RecipeFilter])],
                               private val typeFilters: mutable.Set[ByTypeFilter])
+                             (private implicit val mainMenu: RecipesMenu[P],
+                              private implicit val plugin: P)
     extends MenuHolder[P](plugin, InventorySize, "Select filters") {
 
     private val statusses: mutable.Map[RecipeFilter, Boolean] = new mutable.HashMap[RecipeFilter, Boolean]()
@@ -35,6 +37,7 @@ class FilterMenu[P <: Plugin](private val mainMenu: RecipesMenu,
 
     override def onOpen(event: InventoryOpenEvent): Unit = {
 
+        //TODO use RecipeType.Values instead. I can just use an inventory of 45, that's enough space for all the toggle buttons.
         var typeButtonIndex = 0
         for (typeFilter <- TypeFilters
             .filter(_.isInstanceOf[SingleFilter])

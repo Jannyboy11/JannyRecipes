@@ -83,10 +83,10 @@ trait RecipeStorage {
 
     def init(): Boolean
 
-    def saveRecipe(recipe: Recipe with ConfigurationSerializable): Try[Unit]
+    def saveRecipe(recipe: Recipe with ConfigurationSerializable): Either[String, Unit]
 
-    def loadRecipes(): Try[Iterator[_ <: Recipe with ConfigurationSerializable]]
+    def loadRecipes(): Either[String, Iterator[Recipe with ConfigurationSerializable]]
 
-    def deleteRecipe(recipe: Recipe with ConfigurationSerializable): Try[Unit]
+    def deleteRecipe(recipe: Recipe with ConfigurationSerializable): Either[String, Unit]
 
 }

@@ -8,7 +8,6 @@ import xyz.janboerman.recipes.RecipesPlugin
 import xyz.janboerman.recipes.api.persist.RecipeStorage
 import xyz.janboerman.recipes.api.persist.RecipeStorage._
 import xyz.janboerman.recipes.api.recipe.Recipe
-import RecipesPlugin.registerClass
 import net.minecraft.server.v1_13_R2.{ItemStack, MinecraftKey, NonNullList, RecipeItemStack}
 import net.minecraft.server.v1_13_R2.RecipeItemStack.StackProvider
 import xyz.janboerman.recipes.v1_13_R2.recipe.janny._
@@ -19,7 +18,6 @@ import xyz.janboerman.recipes.v1_13_R2.recipe.bukkit.{BukkitFurnaceToJanny, Bukk
 import xyz.janboerman.recipes.v1_13_R2.recipe.{BetterFurnaceRecipe, BetterShapedRecipe, BetterShapelessRecipe, Shape}
 
 import scala.collection.JavaConverters
-import scala.util.Try
 
 object Storage extends RecipeStorage {
 
@@ -27,6 +25,7 @@ object Storage extends RecipeStorage {
 
     override def init(): Boolean = {
         simpleStorage.init()
+        import simpleStorage.registerClass
 
         registerClass(classOf[JannyArmorDye])
         registerClass(classOf[JannyBannerAddPattern])
@@ -54,16 +53,33 @@ object Storage extends RecipeStorage {
         registerClass(classOf[BukkitShapelessToJanny])
         registerClass(classOf[BukkitFurnaceToJanny])
 
-        //TODO do dome files / folders setup?
-
         true
     }
 
-    override def saveRecipe(recipe: Recipe with ConfigurationSerializable): Try[Unit] = ???
+    override def saveRecipe(recipe: Recipe with ConfigurationSerializable): Either[String, Unit] = {
+        val simpleResult = simpleStorage.saveRecipe(recipe)
 
-    override def loadRecipes(): Try[Iterator[_ <: Recipe with ConfigurationSerializable]] = ???
+        if (simpleResult.isRight) {
+            return simpleResult
+        }
 
-    override def deleteRecipe(recipe: Recipe with ConfigurationSerializable): Try[Unit] = ???
+        //currently the there is nothing we can do that the simple implementation cannot do.
+        //because all the nms types are configurationserializable. which is pretty dope.
+
+        Left("Could not save recipe " + recipe)
+    }
+
+    override def loadRecipes(): Either[String, Iterator[Recipe with ConfigurationSerializable]] = {
+
+
+        ??? //TODO
+    }
+
+    override def deleteRecipe(recipe: Recipe with ConfigurationSerializable): Either[String, Unit] = {
+
+
+        ??? //TODO
+    }
 
 
     def serializeRecipeItemStack(nms: RecipeItemStack): util.Map[String, AnyRef] = {

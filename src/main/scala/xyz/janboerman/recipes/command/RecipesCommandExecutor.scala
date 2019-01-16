@@ -12,8 +12,11 @@ object RecipesCommandExecutor extends CommandExecutor {
             return true
         }
 
+        implicit val recipesPlugin = RecipesPlugin
+        implicit val api = RecipesPlugin.getAPI()
+
         val player = sender.asInstanceOf[Player]
-        player.openInventory(new RecipesMenu(RecipesPlugin, RecipesPlugin).getInventory)
+        player.openInventory(new RecipesMenu[RecipesPlugin.type]().getInventory)
 
         true
     }

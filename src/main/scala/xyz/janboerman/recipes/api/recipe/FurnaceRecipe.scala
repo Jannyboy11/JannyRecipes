@@ -30,6 +30,7 @@ trait FurnaceRecipe extends SmeltingRecipe
 
     override def getResultStack(): ItemStack = getResult()
     override def getIngredientStacks: Iterable[ItemStack] = Seq(getIngredient().getItemStack())
+    override def getType(): RecipeType = FurnaceType
 
     def getIngredient(): FurnaceIngredient
 

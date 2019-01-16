@@ -4,12 +4,13 @@ import java.text.DecimalFormat
 
 import org.bukkit.enchantments.Enchantment
 import org.bukkit.event.inventory.InventoryClickEvent
-import org.bukkit.{ChatColor, Material}
+import org.bukkit.{ChatColor, Material, NamespacedKey}
 import org.bukkit.inventory.{Inventory, ItemStack}
 import org.bukkit.plugin.Plugin
 import xyz.janboerman.guilib.api.ItemBuilder
 import xyz.janboerman.guilib.api.menu.{ItemButton, RedirectItemButton}
 import xyz.janboerman.recipes.api.JannyRecipesAPI
+import xyz.janboerman.recipes.api.gui.CraftingRecipeEditor.ResultSlot
 import xyz.janboerman.recipes.api.recipe.FurnaceRecipe
 
 object FurnaceRecipeEditor {
@@ -28,9 +29,23 @@ class FurnaceRecipeEditor[P <: Plugin](inventory: Inventory,
                                       (implicit val mainMenu: RecipesMenu[P],
                                        implicit override val api: JannyRecipesAPI,
                                        implicit override val plugin: P)
-    extends RecipeEditor[P, FurnaceRecipe](furnaceRecipe, inventory) {
+    extends RecipeEditor[P, FurnaceRecipe /*TODO generalise to SmeltingRecipe?*/](furnaceRecipe, inventory) {
 
     override def getIcon(): Option[ItemStack] = Option(recipe).map(_.getResult())
+
+    //TODO duplicate code (it's also in CraftingRecipeEditor)
+    protected def generateId(): NamespacedKey = {
+        val resultStack = getInventory.getItem(ResultSlot)
+
+        var uniqueString = recipe.getType().getName() + "_" + java.util.UUID.randomUUID().toString
+
+        if (resultStack != null) {
+            uniqueString = resultStack.getType.name() + "_" + uniqueString
+        }
+
+        new NamespacedKey(plugin, uniqueString)
+    }
+
 
     override protected def layoutBorder(): Unit = {
         val glassPaneStack = new ItemBuilder(Material.LIGHT_BLUE_STAINED_GLASS_PANE).name(Space).build()

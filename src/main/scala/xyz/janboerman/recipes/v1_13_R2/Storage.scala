@@ -57,6 +57,8 @@ object Storage extends RecipeStorage {
     }
 
     override def saveRecipe(recipe: Recipe with ConfigurationSerializable): Either[String, Unit] = {
+        //TODO check whether the recipe is vanilla? if so, do something different?
+
         val simpleResult = simpleStorage.saveRecipe(recipe)
 
         if (simpleResult.isRight) {

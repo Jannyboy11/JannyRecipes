@@ -36,6 +36,12 @@ trait RecipeType {
     def getIcon(): ItemStack
 }
 
+object UnknownType extends RecipeType {
+    override def getName(): String = "Unknown"
+    override def getIcon() = new ItemStack(Material.STRUCTURE_VOID)
+}
+
+
 case object ShapedType extends RecipeType {
     override def getName() = "Shaped"
     override def getIcon() = new ItemStack(CRAFTING_TABLE)

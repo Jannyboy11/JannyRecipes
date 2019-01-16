@@ -14,8 +14,9 @@ object RecipeEditor {
     //TODO create some kind of Map<Class<? extends Recipe>, Supplier<Option<ItemStack, ? extends RecipeEditor>>> to which other plugins can register their custom recipe types
     //TODO I might be able to use the type-class pattern here? yes but no cause I also want an UnkownRecipeEditor that just supports the delete operation for unknown recipes.
 
+    lazy val UnknownRecipeIcon: ItemStack = new ItemBuilder(Material.STRUCTURE_VOID).name(ChatColor.RED + "Unknown recipe").build()
 
-    lazy val UnknownRecipeIcon = new ItemBuilder(Material.STRUCTURE_VOID).name(ChatColor.RED + "Unknown recipe").build()
+
 }
 
 abstract class RecipeEditor[P <: Plugin, R <: Recipe](protected var recipe: R,
@@ -49,6 +50,13 @@ abstract class RecipeEditor[P <: Plugin, R <: Recipe](protected var recipe: R,
     protected def layoutBorder(): Unit
     protected def layoutRecipe(): Unit
     protected def layoutButtons(): Unit
+
+
+    def makeRecipe(): Option[R] = {
+        throw new NotImplementedError("The current editor (" + this + ") doesn't know how to make a new recipe from inventory contents (yet). it should override makeRecipeFromInventoryContents")
+    }
+
+
 
     //TODO does this belong here? it doesn't have to
 //    def saveRecipe(): Boolean //TODO can i share some code here across implementations?

@@ -3,7 +3,7 @@ package xyz.janboerman.recipes.api.gui
 import org.bukkit.inventory.{Inventory, ItemStack}
 import org.bukkit.plugin.Plugin
 import xyz.janboerman.recipes.api.JannyRecipesAPI
-import xyz.janboerman.recipes.api.recipe.ShapelessRecipe
+import xyz.janboerman.recipes.api.recipe.{CraftingIngredient, ShapelessRecipe, SimpleCraftingIngredient, SimpleShapelessRecipe}
 import CraftingRecipeEditor._
 import org.bukkit.Material
 import org.bukkit.enchantments.Enchantment
@@ -36,6 +36,31 @@ class ShapelessRecipeEditor[P <: Plugin](inventory: Inventory,
                 inventory.setItem(index, ingredient.getChoices().headOption.orNull)
             }
             inventory.setItem(ResultSlot, recipe.getResult())
+        }
+    }
+
+    override def makeRecipe(): Option[ShapelessRecipe] = {
+        //TODO because ingredients can have multiple materials (itemstacks actualy) called 'choices'
+        //TODO cache CraftingIngredients in the CraftingRecipeEditor field.
+
+        //TODO use that cache here.
+        //TODO for now just use the itemstacks that are in the editor
+        val ingredientStacks = (CornerY until CornerY + MaxHeight)
+            .flatMap(y => (CornerX until CornerX + MaxWidth)
+                .map(x => y * InventoryWidth + x)).map(getInventory.getItem(_))
+
+        if (ingredientStacks.nonEmpty) {
+            //there are ingredients - let's  create a recipe!
+            val result = getInventory.getItem(ResultSlot)
+            val key = generateId() //TODO if a key was set, use that one instead.
+            val group = "" //TODO
+            val ingredients = ingredientStacks.map(is => new SimpleCraftingIngredient(List(is))).toList //TODO use cached ingredients.
+
+            val recipe = new SimpleShapelessRecipe(key, Option(group), ingredients, result) //TODO doesn't actually seem to match the inventory. do we need to send stuff to the client?
+            Some(recipe)
+        } else {
+            //no ingredients - too bad
+            None
         }
     }
     

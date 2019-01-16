@@ -70,12 +70,12 @@ class SimpleStorage(val plugin: Plugin) extends RecipeStorage {
                 val saveFile = new File(folder, fileName)
                 if (!saveFile.exists()) saveFile.createNewFile()
                 fileConfiguration.save(saveFile)
+                return Right(())
             } catch {
                 case e: IOException =>
                     e.printStackTrace()
-                    Left("Error occured while saving a recipe to a file.")
+                    return Left("Error occured while saving a recipe to a file.")
             }
-
         }
 
         Left("The recipe hasn't got a key.")

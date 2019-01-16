@@ -230,6 +230,7 @@ object Conversions {
             //fallback //TODO throw an exception instead? or an empty shapeless recipe?
             case _ => new Recipe {
                 override def isHidden(): Boolean = true
+                override def getType(): RecipeType = UnknownType
             }
         }
     }

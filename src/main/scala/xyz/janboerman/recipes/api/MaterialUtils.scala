@@ -2,12 +2,13 @@ package xyz.janboerman.recipes.api
 
 import java.util
 import java.util.stream.Collectors
+import java.util.Arrays.{asList => list} //don't use java.util.List.of() as it throws an NPE when we check whether it .contains null!
 
 import org.bukkit.Material._
 
 object MaterialUtils {
 
-    lazy val dyesIngredient = util.List.of(
+    lazy val dyesIngredient = list(
         INK_SAC,
         ROSE_RED,
         CACTUS_GREEN,
@@ -25,7 +26,7 @@ object MaterialUtils {
         ORANGE_DYE,
         BONE_MEAL)
 
-    lazy val bannerIngredient = util.List.of(
+    lazy val bannerIngredient = list(
         WHITE_BANNER,
         ORANGE_BANNER,
         MAGENTA_BANNER,
@@ -44,7 +45,7 @@ object MaterialUtils {
         BLACK_BANNER
     )
 
-    lazy val fireworkShapesIngredient = util.List.of(
+    lazy val fireworkShapesIngredient = list(
         FIRE_CHARGE,
         FEATHER,
         GOLD_NUGGET,
@@ -56,7 +57,7 @@ object MaterialUtils {
         ZOMBIE_HEAD,
     )
 
-    lazy val shulkerBoxIngredient = util.List.of(
+    lazy val shulkerBoxIngredient = list(
         SHULKER_BOX,
         BLACK_SHULKER_BOX,
         BLUE_SHULKER_BOX,

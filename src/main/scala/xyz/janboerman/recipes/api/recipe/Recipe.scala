@@ -13,4 +13,6 @@ trait Recipe {
     //or should I remove this super type completely after all?
 
     //getKey: RecipeKey or NamespacedKey TODO do I want this? nah probably not I think. let's not think about it now when I'm not doing brewing recipes (yet).
+
+    def getType(): RecipeType
 }

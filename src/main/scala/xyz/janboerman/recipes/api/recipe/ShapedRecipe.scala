@@ -26,6 +26,7 @@ trait ShapedRecipe extends CraftingRecipe
 
     override def getResultStack(): ItemStack = getResult()
     override def getIngredientStacks: Iterable[ItemStack] = getIngredients().values.flatMap(_.getChoices())
+    override def getType(): RecipeType = ShapedType
 
     def getResult(): ItemStack
 

@@ -10,6 +10,8 @@ import xyz.janboerman.recipes.api.MaterialUtils
 
 import scala.collection.JavaConverters
 
+//TODO override getKey() as default methods?
+
 trait ComplexRecipe extends CraftingRecipe {
     override def isHidden(): Boolean = true
 }
@@ -31,6 +33,8 @@ trait ArmorDyeRecipe extends ComplexRecipe with ConfigurationSerializable with F
     override def getIngredientStacks(): Iterable[ItemStack] = new Iterable[ItemStack] {
         override def iterator: Iterator[ItemStack] = (JavaConverters.asScalaIterator[Material](materials.iterator()) ++ leathers.iterator).map(new ItemStack(_))
     }
+
+    override def getType(): RecipeType = ArmorDyeType
 }
 trait BannerAddPatternRecipe extends ComplexRecipe with ConfigurationSerializable with FixedResult with FixedIngredients {
     private val materials = util.EnumSet.noneOf(classOf[Material])
@@ -46,6 +50,8 @@ trait BannerAddPatternRecipe extends ComplexRecipe with ConfigurationSerializabl
     override def getIngredientStacks(): Iterable[ItemStack] = new Iterable[ItemStack](){
         override def iterator: Iterator[ItemStack] = JavaConverters.asScalaIterator(materials.iterator()).map(new ItemStack(_))
     }
+
+    override def getType(): RecipeType = BannerAddPatternType
 }
 trait BannerDuplicateRecipe extends ComplexRecipe with ConfigurationSerializable with FixedResult with FixedIngredients {
     private val materials = util.EnumSet.noneOf(classOf[Material])
@@ -61,6 +67,8 @@ trait BannerDuplicateRecipe extends ComplexRecipe with ConfigurationSerializable
     override def getIngredientStacks(): Iterable[ItemStack] = new Iterable[ItemStack](){
         override def iterator: Iterator[ItemStack] = JavaConverters.asScalaIterator(materials.iterator()).map(new ItemStack(_))
     }
+
+    override def getType(): RecipeType = BannerDuplicateType
 }
 trait BookCloneRecipe extends ComplexRecipe with ConfigurationSerializable with FixedResult with FixedIngredients {
     private val materials = util.EnumSet.of(WRITTEN_BOOK, WRITABLE_BOOK)
@@ -73,6 +81,8 @@ trait BookCloneRecipe extends ComplexRecipe with ConfigurationSerializable with 
     override def getIngredientStacks(): Iterable[ItemStack] = new Iterable[ItemStack]() {
         override def iterator: Iterator[ItemStack] = JavaConverters.asScalaIterator(materials.iterator()).map(new ItemStack(_))
     }
+
+    override def getType(): RecipeType = BookCloneType
 }
 trait FireworkRocketRecipe extends ComplexRecipe with ConfigurationSerializable with FixedResult with FixedIngredients {
     private val materials = util.EnumSet.of(PAPER, GUNPOWDER, FIREWORK_STAR, AIR)
@@ -85,6 +95,8 @@ trait FireworkRocketRecipe extends ComplexRecipe with ConfigurationSerializable 
     override def getIngredientStacks(): Iterable[ItemStack] = new Iterable[ItemStack]() {
         override def iterator: Iterator[ItemStack] = JavaConverters.asScalaIterator(materials.iterator()).map(new ItemStack(_))
     }
+
+    override def getType(): RecipeType = FireworkRocketType
 }
 trait FireworkStarFadeRecipe extends ComplexRecipe with ConfigurationSerializable with FixedResult with FixedIngredients {
     private val materials = util.EnumSet.noneOf[Material](classOf[Material])
@@ -100,6 +112,8 @@ trait FireworkStarFadeRecipe extends ComplexRecipe with ConfigurationSerializabl
     override def getIngredientStacks(): Iterable[ItemStack] = new Iterable[ItemStack]() {
         override def iterator: Iterator[ItemStack] = JavaConverters.asScalaIterator(materials.iterator()).map(new ItemStack(_))
     }
+
+    override def getType(): RecipeType = FireworkStarFadeType
 }
 trait FireworkStarRecipe extends ComplexRecipe with ConfigurationSerializable with FixedResult with FixedIngredients {
     private val materials = util.EnumSet.noneOf[Material](classOf[Material])
@@ -117,6 +131,8 @@ trait FireworkStarRecipe extends ComplexRecipe with ConfigurationSerializable wi
     override def getIngredientStacks(): Iterable[ItemStack] = new Iterable[ItemStack]() {
         override def iterator: Iterator[ItemStack] = JavaConverters.asScalaIterator(materials.iterator()).map(new ItemStack(_))
     }
+
+    override def getType(): RecipeType = FireworkStarType
 }
 trait MapCloneRecipe extends ComplexRecipe with ConfigurationSerializable with FixedResult with FixedIngredients {
     private val materials = util.EnumSet.of[Material](FILLED_MAP, MAP)
@@ -129,6 +145,8 @@ trait MapCloneRecipe extends ComplexRecipe with ConfigurationSerializable with F
     override def getIngredientStacks(): Iterable[ItemStack] = new Iterable[ItemStack]() {
         override def iterator: Iterator[ItemStack] = JavaConverters.asScalaIterator(materials.iterator()).map(new ItemStack(_))
     }
+
+    override def getType(): RecipeType = MapCloneType
 }
 trait MapExtendRecipe extends ShapedRecipe with ComplexRecipe with ConfigurationSerializable with FixedResult with FixedIngredients {
     private val materials = util.EnumSet.of[Material](FILLED_MAP, PAPER)
@@ -141,6 +159,8 @@ trait MapExtendRecipe extends ShapedRecipe with ComplexRecipe with Configuration
     override def getIngredientStacks(): Iterable[ItemStack] = new Iterable[ItemStack]() {
         override def iterator: Iterator[ItemStack] = JavaConverters.asScalaIterator(materials.iterator()).map(new ItemStack(_))
     }
+
+    override def getType(): RecipeType = MapExtendType
 }
 trait RepairItemRecipe extends ComplexRecipe with ConfigurationSerializable with FixedResult with FixedIngredients {
     override def getResultStack(): ItemStack = RepairItemType.getIcon()
@@ -151,6 +171,8 @@ trait RepairItemRecipe extends ComplexRecipe with ConfigurationSerializable with
     override def getIngredientStacks(): Iterable[ItemStack] = new Iterable[ItemStack]() {
         override def iterator: Iterator[ItemStack] = JavaConverters.asScalaIterator(MaterialUtils.breakableItems.iterator()).map(new ItemStack(_))
     }
+
+    override def getType(): RecipeType = RepairItemType
 }
 trait ShieldDecorationRecipe extends ComplexRecipe with ConfigurationSerializable with FixedResult with FixedIngredients {
     private val materials = util.EnumSet.copyOf[Material](MaterialUtils.bannerIngredient)
@@ -163,6 +185,8 @@ trait ShieldDecorationRecipe extends ComplexRecipe with ConfigurationSerializabl
     override def getIngredientStacks(): Iterable[ItemStack] = new Iterable[ItemStack]() {
         override def iterator: Iterator[ItemStack] = JavaConverters.asScalaIterator(materials.iterator()).map(new ItemStack(_))
     }
+
+    override def getType(): RecipeType = ShieldDecorationType
 }
 trait ShulkerBoxColorRecipe extends ComplexRecipe with ConfigurationSerializable with FixedResult with FixedIngredients {
     private val materials = util.EnumSet.noneOf[Material](classOf[Material])
@@ -179,6 +203,8 @@ trait ShulkerBoxColorRecipe extends ComplexRecipe with ConfigurationSerializable
     override def getIngredientStacks(): Iterable[ItemStack] = new Iterable[ItemStack]() {
         override def iterator: Iterator[ItemStack] = JavaConverters.asScalaIterator(materials.iterator()).map(new ItemStack(_))
     }
+
+    override def getType(): RecipeType = ShulkerBoxColorType
 }
 trait TippedArrowRecipe extends ComplexRecipe with ConfigurationSerializable with FixedResult with FixedIngredients {
     private val materials = util.EnumSet.of[Material](LINGERING_POTION, ARROW)
@@ -191,4 +217,6 @@ trait TippedArrowRecipe extends ComplexRecipe with ConfigurationSerializable wit
     override def getIngredientStacks(): Iterable[ItemStack] = new Iterable[ItemStack]() {
         override def iterator: Iterator[ItemStack] = JavaConverters.asScalaIterator(materials.iterator()).map(new ItemStack(_))
     }
+
+    override def getType(): RecipeType = TippedArrowType
 }

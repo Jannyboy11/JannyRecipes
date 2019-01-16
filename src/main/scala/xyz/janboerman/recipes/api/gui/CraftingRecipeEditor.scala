@@ -1,6 +1,6 @@
 package xyz.janboerman.recipes.api.gui
 
-import org.bukkit.Material
+import org.bukkit.{Material, NamespacedKey}
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.plugin.Plugin
@@ -31,6 +31,19 @@ abstract class CraftingRecipeEditor[P <: Plugin, R <: CraftingRecipe](inventory:
     extends RecipeEditor[P, R](craftingRecipe, inventory) { self =>
 
     private implicit val storage = api.persist()
+
+    //TODO duplicate code (it's also in FurnaceRecipeEditor)
+    protected def generateId(): NamespacedKey = {
+        val resultStack = getInventory.getItem(ResultSlot)
+
+        var uniqueString = java.util.UUID.randomUUID().toString
+
+        if (resultStack != null) {
+            uniqueString = resultStack.getType.name() + "_" + uniqueString
+        }
+
+        new NamespacedKey(plugin, uniqueString)
+    }
 
     def layoutBorder(): Unit = {
         val glassPaneStack = new ItemBuilder(Material.LIGHT_BLUE_STAINED_GLASS_PANE).name(Space).build()

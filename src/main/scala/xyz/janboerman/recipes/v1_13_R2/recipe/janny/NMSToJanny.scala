@@ -19,10 +19,12 @@ import scala.collection.JavaConverters
 //NMS wrappers that implement the janny recipe api. similar to craftbukkit
 
 object JannyRecipe {
-    def apply(nms: IRecipe): JannyRecipe            = new JannyRecipe(nms)
+    def apply(nms: IRecipe): JannyRecipe            = new JannyRecipe(nms) {
+        override def getType(): RecipeType = UnknownType
+    }
     def unapply(arg: JannyRecipe): Option[IRecipe]  = Some(arg.nms)
 }
-class JannyRecipe(val nms: IRecipe) extends Recipe {
+abstract class JannyRecipe(val nms: IRecipe) extends Recipe {
     override def equals(obj: scala.Any): Boolean = {
         if (obj == this) return true
         obj match {
@@ -35,10 +37,12 @@ class JannyRecipe(val nms: IRecipe) extends Recipe {
 }
 
 object JannyCrafting {
-    def apply(iRecipe: IRecipe): JannyCrafting          = new JannyCrafting(iRecipe)
+    def apply(iRecipe: IRecipe): JannyCrafting          = new JannyCrafting(iRecipe) {
+        override def getType(): RecipeType = UnknownType
+    }
     def unapply(arg: JannyCrafting): Option[IRecipe]    = Some(arg.nms)
 }
-class JannyCrafting(iRecipe: IRecipe) extends JannyRecipe(iRecipe) with CraftingRecipe {
+abstract class JannyCrafting(iRecipe: IRecipe) extends JannyRecipe(iRecipe) with CraftingRecipe {
     lazy val key = toBukkitKey(nms.getKey)
 
     override def tryCraft(craftingInventory: CraftingInventory, world: org.bukkit.World): Option[CraftingResult] = {

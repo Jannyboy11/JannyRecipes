@@ -24,6 +24,7 @@ trait ShapelessRecipe extends CraftingRecipe
 
     override def getResultStack(): ItemStack = getResult()
     override def getIngredientStacks: Iterable[ItemStack] = getIngredients().flatMap(_.getChoices())
+    override def getType(): RecipeType = ShapelessType
 
     def getResult(): ItemStack
 
@@ -32,6 +33,7 @@ trait ShapelessRecipe extends CraftingRecipe
     def getIngredients(): List[_ <: CraftingIngredient]
 
     override def tryCraft(craftingInventory: CraftingInventory, world: World): Option[CraftingResult] = {
+        //TODO does not seem to work. the error might be here, or in the wrapper class that wraps this recipe into an NMS recipe.
         val ingredients = getIngredients()
         val inputItems = craftingInventory.getMatrix.filter(_ != null)
 

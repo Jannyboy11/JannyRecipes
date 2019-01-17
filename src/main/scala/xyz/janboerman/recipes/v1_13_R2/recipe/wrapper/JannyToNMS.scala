@@ -18,14 +18,17 @@ abstract class JannyCraftingToNMS(janny: CraftingRecipe) extends IRecipe {
     private var lastCheck: Option[CraftingResult] = None
 
     override def a(iInventory: IInventory, world: World): Boolean = {
+        println("DEBUG JannyCraftingToNMS#matches")
         iInventory match {
             case inventoryCrafting: InventoryCrafting =>
                 val obcInventoryCrafting = new CraftInventoryCrafting(inventoryCrafting, inventoryCrafting.resultInventory)
                 val bukkitWorld = toBukkitWorld(world.asInstanceOf[WorldServer])
 
                 lastCheck = janny.tryCraft(obcInventoryCrafting, bukkitWorld)
-                lastCheck.isDefined
-            case _ => false
+                val result = lastCheck.isDefined
+                println("DEBUG JannyCraftingToNMS#matches result = " + result)
+                result
+            case _ => println("DEBUG JannyCraftingToNMS#defaultCase"); false
         }
     }
 
@@ -41,7 +44,7 @@ abstract class JannyCraftingToNMS(janny: CraftingRecipe) extends IRecipe {
             //forces minecraft to recompute the remaining item see SlotResult#a(EntityHuman, ItemStack)
             if (jannyRemainder.isDefined) {
                 val ingredientStack = iinventory.getItem(index)
-                ingredientStack.setCount(0)
+                if (!ingredientStack.isEmpty) ingredientStack.setCount(0)
                 iinventory.setItem(index, ingredientStack)
             }
 

@@ -48,6 +48,7 @@ class ShapelessRecipeEditor[P <: Plugin](inventory: Inventory,
         val ingredientStacks = (CornerY until CornerY + MaxHeight)
             .flatMap(y => (CornerX until CornerX + MaxWidth)
                 .map(x => y * InventoryWidth + x)).map(getInventory.getItem(_))
+            .filter(_ != null)
 
         if (ingredientStacks.nonEmpty) {
             //there are ingredients - let's  create a recipe!

@@ -33,19 +33,29 @@ trait ShapelessRecipe extends CraftingRecipe
     def getIngredients(): List[_ <: CraftingIngredient]
 
     override def tryCraft(craftingInventory: CraftingInventory, world: World): Option[CraftingResult] = {
-        //TODO does not seem to work. the error might be here, or in the wrapper class that wraps this recipe into an NMS recipe.
         val ingredients = getIngredients()
         val inputItems = craftingInventory.getMatrix.filter(_ != null)
+
+        println("\r\n")
+        println("DEBUG ShapelessRecipe tryCraft ingredients = " + ingredients)
+        println("DEBUG ShapelessRecipe tryCrafting inputItems = " + inputItems)
 
         if (ingredients.size != inputItems.length) return None
 
         val lazyListIterator = LazyList(ingredients: _*).permutations
         val matchingIngredientList = lazyListIterator.find(_.zip(inputItems).forall(p => p._1.apply(p._2)))
 
-        matchingIngredientList.map(ingredientList => {
+        //TODO remainders are not in the same slots as the input items. fix that pl0x
+        //TODO remainders are actually always put back in the inventory. that's probably a bug in the conversion of JannyCraftingToNMS
+        val result = matchingIngredientList.map(ingredientList => {
             val remainders = ingredientList.zip(inputItems).map(pair => pair._1.getRemainingStack(pair._2)).toList
             CraftingResult(getResult(), remainders)
         })
+
+        println("DEBUG default ShapelessRecipe tryCraft result = " + result)
+        println("\r\n")
+
+        result
     }
 }
 

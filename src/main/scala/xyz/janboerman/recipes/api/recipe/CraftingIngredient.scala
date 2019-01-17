@@ -37,19 +37,18 @@ trait CraftingIngredient extends Ingredient {
       *
       * @param itemStack the ingredient stack.
       * @return None if the item that remains is the same as the ingredient,
-      *         or Some ItemStack that remains in the inventory instead.
+      *         or Some ItemStack that new item remains in the inventory instead.
       */
     def getRemainingStack(itemStack: ItemStack): Option[_ <: ItemStack] = {
         if (itemStack == null) return None
 
-        import xyz.janboerman.recipes.Extensions.ItemStackExtensions
         itemStack.getType match {
             case Material.LAVA_BUCKET | Material.WATER_BUCKET | Material.MILK_BUCKET =>
-                Some(itemStack.clone()(Material.BUCKET))
+                Some({val clone = itemStack.clone(); clone.setType(Material.BUCKET); clone})
             case Material.DRAGON_BREATH =>
-                Some(itemStack.clone()(Material.GLASS_BOTTLE))
+                Some({val clone = itemStack.clone(); clone.setType(Material.GLASS_BOTTLE); clone})
 
-            case _ => Some(itemStack.clone())
+            case _ => Some({val clone = itemStack.clone(); clone.setAmount(clone.getAmount - 1); clone})
         }
     }
 
@@ -86,6 +85,13 @@ case class SimpleCraftingIngredient(private val choices: List[_ <: ItemStack]) e
         map.put(ChoicesString, new SerializableList(choices))
         map
     }
+
+    override def toString(): String = s"SimpleCraftingIngredient{choices=$choices}"
+    override def hashCode(): Int = java.util.Objects.hashCode(choices)
+    override def equals(obj: Any): Boolean = obj match {
+        case SimpleCraftingIngredient(thatChoices) => this.choices == thatChoices
+        case _ => false
+    }
 }
 
 object ExactCraftingIngredient {
@@ -107,4 +113,11 @@ case class ExactCraftingIngredient(private val choices: List[_ <: ItemStack]) ex
         map
     }
     override def apply(itemStack: ItemStack): Boolean = choices.contains(itemStack)
+
+    override def toString(): String = s"ExactCraftingIngredient{choices=$choices}"
+    override def hashCode(): Int = java.util.Objects.hashCode(choices)
+    override def equals(obj: Any): Boolean = obj match {
+        case ExactCraftingIngredient(thatChoices) => this.choices == thatChoices
+        case _ => false
+    }
 }

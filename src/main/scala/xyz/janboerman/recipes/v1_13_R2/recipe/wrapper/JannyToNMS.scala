@@ -25,21 +25,22 @@ abstract class JannyCraftingToNMS(janny: CraftingRecipe) extends IRecipe {
                 val bukkitWorld = toBukkitWorld(world.asInstanceOf[WorldServer])
 
                 lastCheck = janny.tryCraft(obcInventoryCrafting, bukkitWorld)
-                val result = lastCheck.isDefined
-                println("DEBUG JannyCraftingToNMS#matches result = " + result)
-                result
+                println("\r\n")
+                println("DEBUG JannyCraftingToNMS#matches lastCheck = " + lastCheck)
+                println("\r\n")
+                lastCheck.isDefined
             case _ => println("DEBUG JannyCraftingToNMS#defaultCase"); false
         }
     }
 
     override def b(iinventory: IInventory): NonNullList[ItemStack] = {
         var jannyRemainders: List[Option[_ <: org.bukkit.inventory.ItemStack]] = lastCheck.get.getRemainders()
-        val remainders: NonNullList[ItemStack] = NmsNonNullList.apply(iinventory.getSize, NmsStack.empty)
+        val remainders: NonNullList[ItemStack] = NmsNonNullList(iinventory.getSize, NmsStack.empty)
 
         var index = 0
         while (jannyRemainders.nonEmpty) {
             val jannyRemainder: Option[_ <: org.bukkit.inventory.ItemStack] = jannyRemainders.head
-            remainders.set(index, jannyRemainder.map(bukkitStack => toNMSStack(bukkitStack)).getOrElse(NmsStack.empty))
+            remainders.set(index, jannyRemainder.flatMap(bukkit => Option(toNMSStack(bukkit))).getOrElse(NmsStack.empty))
 
             //forces minecraft to recompute the remaining item see SlotResult#a(EntityHuman, ItemStack)
             if (jannyRemainder.isDefined) {

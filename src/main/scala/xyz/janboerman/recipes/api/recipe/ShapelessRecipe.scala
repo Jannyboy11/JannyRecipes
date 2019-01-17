@@ -36,26 +36,51 @@ trait ShapelessRecipe extends CraftingRecipe
         val ingredients = getIngredients()
         val inputItems = craftingInventory.getMatrix.filter(_ != null)
 
-        println("\r\n")
-        println("DEBUG ShapelessRecipe tryCraft ingredients = " + ingredients)
-        println("DEBUG ShapelessRecipe tryCrafting inputItems = " + inputItems)
-
         if (ingredients.size != inputItems.length) return None
 
         val lazyListIterator = LazyList(ingredients: _*).permutations
-        val matchingIngredientList = lazyListIterator.find(_.zip(inputItems).forall(p => p._1.apply(p._2)))
+        //val matchingIngredientList: Option[LazyList[CraftingIngredient]] = lazyListIterator.find(_.zip(inputItems).forall(p => p._1.apply(p._2)))
+        val matchingIngredients: Option[(LazyList[CraftingIngredient], LazyList[ItemStack])] = lazyListIterator.map((_, LazyList(inputItems: _*))).find({case (ingredients, inputs) => {
+            var ingrs = ingredients
+            var ins = inputs
+            var goingStrong = true
+            while (goingStrong && ingrs.nonEmpty && inputs.nonEmpty) {
+                val ingr = ingrs.head
+                val in = ins.head
+                if (!ingr(in)) {
+                    goingStrong = false
+                }
+                ingrs = ingrs.tail
+                ins = ins.tail
+            }
+            goingStrong && ingrs.isEmpty && ins.isEmpty
+        }})
 
-        //TODO remainders are not in the same slots as the input items. fix that pl0x
-        //TODO remainders are actually always put back in the inventory. that's probably a bug in the conversion of JannyCraftingToNMS
-        val result = matchingIngredientList.map(ingredientList => {
-            val remainders = ingredientList.zip(inputItems).map(pair => pair._1.getRemainingStack(pair._2)).toList
-            CraftingResult(getResult(), remainders)
-        })
 
-        println("DEBUG default ShapelessRecipe tryCraft result = " + result)
-        println("\r\n")
+        matchingIngredients match {
+            case Some((matches, theItemStacks)) =>
+                val matrix = craftingInventory.getMatrix
+                val ingrArray = matches.toArray
 
-        result
+                var remainders: List[Option[_ <: ItemStack]] = Nil
+                var ingrIndex = ingrArray.length - 1
+
+                for (i <- (matrix.length - 1) to (0, -1)) {
+                    val inputItem = matrix(i)
+                    val remainder = if (inputItem == null) None else {
+                        println(s"DEBUG input item = ${matrix(i)}")
+                        println(s"DEBUG ingredient = ${ingrArray(ingrIndex)}")
+
+                        val rem = ingrArray(ingrIndex).getRemainingStack(matrix(i))
+                        ingrIndex -= 1
+                        rem
+                    }
+                    remainders = remainder :: remainders
+                }
+
+                Some(CraftingResult(getResult(), remainders))
+            case None => None
+        }
     }
 }
 

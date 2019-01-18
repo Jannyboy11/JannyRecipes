@@ -83,7 +83,7 @@ object RecipesPlugin
         persistentStorage.loadRecipes() match {
             case Right(iterator) =>
                 for (recipe <- iterator) {
-                    val successfullyAdded = addRecipe(recipe) //TODO does not seem to work. the /reloadrecipes command DOES seem to work though. dafuq.
+                    val successfullyAdded = addRecipe(recipe) //TODO does not seem to work. the /reloadrecipes command DOES seem to work though. maybe we should load POST_WORLD?
                     if (!successfullyAdded) {
                         getLogger.warning("Could not register recipe: " + recipe)
                         if (recipe.isInstanceOf[Keyed]) {

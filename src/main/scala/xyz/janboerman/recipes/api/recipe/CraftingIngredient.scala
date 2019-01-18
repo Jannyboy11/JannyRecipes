@@ -5,7 +5,7 @@ import java.util
 import org.bukkit.Material
 import org.bukkit.configuration.serialization.{ConfigurationSerializable, SerializableAs}
 import org.bukkit.inventory.ItemStack
-import xyz.janboerman.recipes.api.persist.RecipeStorage.SerializableList
+import xyz.janboerman.recipes.api.persist.SerializableList
 import xyz.janboerman.recipes.api.persist.RecipeStorage._
 
 object CraftingIngredient {
@@ -32,7 +32,7 @@ trait CraftingIngredient extends Ingredient {
     /**
       * Get the stack that remains on the spot of the ingredient's ItemStack.
       * This method can be overridden for ingredients that need to leave an item behind with a different material from the ingredient.
-      * Vanilla minecraft uses this for lava buckets, water buckets, milk buckets and dragon breath potions.
+      * Vanilla Minecraft uses this for lava buckets, water buckets, milk buckets and dragon breath potions.
       * Ingredients that want to use this vanilla behaviour shouldn't override this method.
       *
       * @param itemStack the ingredient stack.
@@ -69,8 +69,10 @@ trait CraftingIngredient extends Ingredient {
 
 object SimpleCraftingIngredient {
     def valueOf(map: util.Map[String, AnyRef]): SimpleCraftingIngredient = {
-        val serializableList = map.get(ChoicesString).asInstanceOf[SerializableList[_ <: ItemStack]]
-        new SimpleCraftingIngredient(serializableList.list)
+        println("DEBUG HOW THE HELL DOES THIS MAP NOT CONTAIN CHOICES? " + map) //TODO have we found a bug in spigot?
+        val serializableList = map.get(ChoicesString).asInstanceOf[SerializableList]
+        println("\r\n DEBUG serializableList = " + serializableList)
+        new SimpleCraftingIngredient(serializableList.list.asInstanceOf[List[ItemStack]])
     }
 }
 
@@ -82,7 +84,8 @@ case class SimpleCraftingIngredient(private val choices: List[_ <: ItemStack]) e
     override def clone(): SimpleCraftingIngredient = new SimpleCraftingIngredient(choices.map(stack => if (stack == null) null else stack.clone()))
     override def serialize(): util.Map[String, AnyRef] = {
         val map = new util.HashMap[String, AnyRef]()
-        map.put(ChoicesString, new SerializableList(choices))
+        map.put(ChoicesString, new SerializableList(getChoices()))
+        println("DEBUG SERIALIZING DA MAP. MAP = " + map)
         map
     }
 
@@ -96,8 +99,8 @@ case class SimpleCraftingIngredient(private val choices: List[_ <: ItemStack]) e
 
 object ExactCraftingIngredient {
     def valueOf(map: util.Map[String, AnyRef]): ExactCraftingIngredient = {
-        val choices = map.get(ChoicesString).asInstanceOf[List[_ <: ItemStack]]
-        new ExactCraftingIngredient(choices)
+        val choices = map.get(ChoicesString).asInstanceOf[SerializableList]
+        new ExactCraftingIngredient(choices.list.asInstanceOf[List[ItemStack]])
     }
 }
 
@@ -109,7 +112,7 @@ case class ExactCraftingIngredient(private val choices: List[_ <: ItemStack]) ex
     override def clone(): ExactCraftingIngredient = new ExactCraftingIngredient(choices.map(stack => if (stack == null) null else stack.clone()))
     override def serialize(): util.Map[String, AnyRef] = {
         val map = new util.HashMap[String, AnyRef]()
-        map.put(ChoicesString, getChoices())
+        map.put(ChoicesString, new SerializableList(getChoices()))
         map
     }
     override def apply(itemStack: ItemStack): Boolean = choices.contains(itemStack)

@@ -1,6 +1,6 @@
 package xyz.janboerman.recipes
 
-import org.bukkit.NamespacedKey
+import org.bukkit.{Keyed, NamespacedKey}
 import org.bukkit.permissions.PermissionDefault
 import org.bukkit.plugin.{Plugin, PluginLoadOrder}
 import xyz.janboerman.guilib.api.GuiListener
@@ -8,7 +8,7 @@ import xyz.janboerman.recipes.api.JannyRecipesAPI
 import xyz.janboerman.recipes.api.gui.RecipeGuiFactory
 import xyz.janboerman.recipes.api.persist.{RecipeStorage, SimpleStorage}
 import xyz.janboerman.recipes.api.recipe._
-import xyz.janboerman.recipes.command.{ReEditCommandExecutor, ReOpenCommandExecutor, RecipesCommandExecutor}
+import xyz.janboerman.recipes.command.{ReEditCommandExecutor, ReOpenCommandExecutor, RecipesCommandExecutor, ReloadRecipesExecutor}
 import xyz.janboerman.recipes.event.ImplementationEvent
 import xyz.janboerman.recipes.listeners.GuiInventoryHolderListener
 import xyz.janboerman.scalaloader.plugin.ScalaPluginDescription.{Command, Permission}
@@ -27,12 +27,14 @@ object RecipesPlugin
         .addCommand(new Command("recipes").description("Open the recipes manager").permission("jannyrecipes.command.recipes"))
         .addCommand(new Command("reopen").description("Reopens the GUI").permission("jannyrecipes.command.reopen").aliases("re-open"))
         .addCommand(new Command("reedit").description("Reopens the last editor GUI").permission("jannyrecipes.command.reedit").aliases("re-edit"))
+        .addCommand(new Command("reloadrecipes").description("Reloads the recipes from the config files").permission("jannyrecipes.reload").aliases("rr", "reloadr", "rrecipes"))
         .addPermission(new Permission("jannyrecipes.command.recipes").description("Allows access to /recipes").permissionDefault(PermissionDefault.OP))
         .addPermission(new Permission("jannyrecipes.command.reopen").description("Allows access to /reopen").permissionDefault(PermissionDefault.OP))
         .addPermission(new Permission("jannyrecipes.command.reedit").description("Allows access to /reedit").permissionDefault(PermissionDefault.OP)))
     with JannyRecipesAPI {
 
     implicit def getAPI(): JannyRecipesAPI = this
+    private implicit val api: JannyRecipesAPI = this
 
     private var implementation: JannyImplementation = null
     private var guiListener: GuiListener = null
@@ -52,10 +54,6 @@ object RecipesPlugin
 
 
     override def onEnable(): Unit = {
-        if (!persist().init()) {
-            getLogger.warning("Persistent storage layer failed to initialize correctly.")
-        }
-
         val pluginManager = getServer.getPluginManager
         guiListener = GuiListener.getInstance()
         pluginManager.registerEvents(guiListener, this)
@@ -64,6 +62,7 @@ object RecipesPlugin
         getCommand("recipes").setExecutor(RecipesCommandExecutor)
         getCommand("reopen").setExecutor(ReOpenCommandExecutor)
         getCommand("reedit").setExecutor(ReEditCommandExecutor)
+        getCommand("reloadrecipes").setExecutor(ReloadRecipesExecutor)
 
         if (implementation == null) { //we couldn't find the right implementation ourselves.
             //let another plugin try it (it should have JannyRecipes in its load-before option in the plugin.yml!
@@ -76,6 +75,21 @@ object RecipesPlugin
                     pluginManager.disablePlugin(this)
             }
         }
+
+        val persistentStorage = persist()
+        if (!persistentStorage.init()) {
+            getLogger.warning("Persistent storage layer failed to initialize correctly.")
+        }
+        persistentStorage.loadRecipes().fold(getLogger.severe(_), iterator => for (recipe <- iterator) {
+            val succesfullyAdded = addRecipe(recipe)
+            if (!succesfullyAdded) {
+                getLogger.warning("Could not register recipe: " + recipe)
+                if (recipe.isInstanceOf[Keyed]) {
+                    val key = recipe.asInstanceOf[Keyed].getKey
+                    getLogger.warning("It's key is: " + key + ". Is that key already registered?")
+                }
+            }
+        })
     }
 
     def setImplementation(jannyImplementation: JannyImplementation): Boolean = {

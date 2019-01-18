@@ -6,6 +6,7 @@ import org.bukkit.configuration.serialization.{ConfigurationSerializable, Serial
 import org.bukkit.{NamespacedKey, World}
 import org.bukkit.inventory.{CraftingInventory, Inventory, ItemStack}
 import xyz.janboerman.recipes.api.persist.RecipeStorage._
+import xyz.janboerman.recipes.api.persist.{SerializableList, SerializableMap}
 
 import scala.collection.mutable.ListBuffer
 
@@ -61,7 +62,7 @@ trait ShapedRecipe extends CraftingRecipe
         None
     }
 
-    private def matrixMatch(craftingInventory: CraftingInventory, invWidth: Int, invHeight: Int, addX: Int, addY: Int, mirrored: Boolean): Option[List[Option[ItemStack]]] = {
+    protected def matrixMatch(craftingInventory: CraftingInventory, invWidth: Int, invHeight: Int, addX: Int, addY: Int, mirrored: Boolean): Option[List[Option[ItemStack]]] = {
         val shape = getShape()
         val ingredients = getIngredients()
 
@@ -101,16 +102,16 @@ object SimpleShapedRecipe {
     def valueOf(map: util.Map[String, AnyRef]): SimpleShapedRecipe = {
         val namespacedKey = map.get(KeyString).asInstanceOf[NamespacedRecipeKey].namespacedKey
         val group = Option(map.get(GroupString).asInstanceOf[String]).filter(_.nonEmpty)
-        val shape = map.get(ShapeString).asInstanceOf[SerializableList[String]].list.toIndexedSeq
+        val shape = map.get(ShapeString).asInstanceOf[SerializableList].list.asInstanceOf[List[String]].toIndexedSeq
         val ingredients: Map[Char, _<: CraftingIngredient] = map.get(IngredientsString)
-            .asInstanceOf[SerializableMap[_ <: CraftingIngredient]].map
-            .map({case (string, ingredient) => (string(0), ingredient)})
+            .asInstanceOf[SerializableMap].map
+            .map({case (string, ingredient: CraftingIngredient) => (string(0), ingredient)})
         val result = map.get(ItemStackString).asInstanceOf[ItemStack]
         new SimpleShapedRecipe(namespacedKey, group, shape, ingredients, result)
     }
 }
 
-@SerializableAs("SimpleShapedRecipe")
+@SerializableAs("SimpleShaped")
 class SimpleShapedRecipe(private val namespacedKey: NamespacedKey,
                          private val group: Option[String],
                          private val shape: IndexedSeq[String],
@@ -135,8 +136,8 @@ class SimpleShapedRecipe(private val namespacedKey: NamespacedKey,
         val map = new util.HashMap[String, AnyRef]()
         map.put(KeyString, new NamespacedRecipeKey(getKey))
         getGroup().foreach(map.put(GroupString, _))
-        map.put(ShapeString, new SerializableList[String](getShape().toList))
-        map.put(IngredientsString, new SerializableMap[CraftingIngredient](getIngredients().map({case (character, ingredient) => (character.toString, ingredient)})))
+        map.put(ShapeString, new SerializableList(getShape().toList))
+        map.put(IngredientsString, new SerializableMap(getIngredients().map({case (character, ingredient) => (character.toString, ingredient)})))
         map.put(ResultString, getResult())
         map
     }

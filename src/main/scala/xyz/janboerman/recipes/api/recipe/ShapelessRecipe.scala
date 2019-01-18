@@ -6,6 +6,7 @@ import org.bukkit.configuration.serialization.{ConfigurationSerializable, Serial
 import org.bukkit.{NamespacedKey, World}
 import org.bukkit.inventory.{CraftingInventory, ItemStack}
 import xyz.janboerman.recipes.api.persist.RecipeStorage._
+import xyz.janboerman.recipes.api.persist.SerializableList
 
 object ShapelessRecipe {
     def unapply(arg: ShapelessRecipe): Option[(NamespacedKey, Option[String], List[_ <: CraftingIngredient], ItemStack)] =
@@ -39,7 +40,6 @@ trait ShapelessRecipe extends CraftingRecipe
         if (ingredients.size != inputItems.length) return None
 
         val lazyListIterator = LazyList(ingredients: _*).permutations
-        //val matchingIngredientList: Option[LazyList[CraftingIngredient]] = lazyListIterator.find(_.zip(inputItems).forall(p => p._1.apply(p._2)))
         val matchingIngredients: Option[(LazyList[CraftingIngredient], LazyList[ItemStack])] = lazyListIterator.map((_, LazyList(inputItems: _*))).find({case (ingredients, inputs) => {
             var ingrs = ingredients
             var ins = inputs
@@ -68,9 +68,6 @@ trait ShapelessRecipe extends CraftingRecipe
                 for (i <- (matrix.length - 1) to (0, -1)) {
                     val inputItem = matrix(i)
                     val remainder = if (inputItem == null) None else {
-                        println(s"DEBUG input item = ${matrix(i)}")
-                        println(s"DEBUG ingredient = ${ingrArray(ingrIndex)}")
-
                         val rem = ingrArray(ingrIndex).getRemainingStack(matrix(i))
                         ingrIndex -= 1
                         rem
@@ -88,14 +85,14 @@ object SimpleShapelessRecipe {
     def valueOf(map: util.Map[String, AnyRef]): SimpleShapelessRecipe = {
         val namescapedKey = map.get(KeyString).asInstanceOf[NamespacedRecipeKey].namespacedKey
         val group = Option(map.get(GroupString).asInstanceOf[String]).filter(_.nonEmpty)
-        val ingredients = map.get(IngredientsString).asInstanceOf[SerializableList[_ <: CraftingIngredient]].list
+        val ingredients = map.get(IngredientsString).asInstanceOf[SerializableList].list.asInstanceOf[List[CraftingIngredient]] //TODO also this seems to not get deserialized. dafuq.
         val result = map.get(ResultString).asInstanceOf[ItemStack]
         new SimpleShapelessRecipe(namescapedKey, group, ingredients, result)
     }
 
 }
 
-@SerializableAs("SimpleShaped")
+@SerializableAs("SimpleShapeless")
 class SimpleShapelessRecipe(private val namespacedKey: NamespacedKey,
                             private val group: Option[String],
                             private val ingredients: List[_ <: CraftingIngredient],
@@ -114,7 +111,7 @@ class SimpleShapelessRecipe(private val namespacedKey: NamespacedKey,
         val map = new util.HashMap[String, AnyRef]()
         map.put(KeyString, new NamespacedRecipeKey(getKey))
         getGroup().foreach(map.put(GroupString, _))
-        map.put(IngredientsString, new SerializableList[CraftingIngredient](getIngredients()))
+        map.put(IngredientsString, new SerializableList(getIngredients()))
         map.put(ResultString, getResult())
         map
     }

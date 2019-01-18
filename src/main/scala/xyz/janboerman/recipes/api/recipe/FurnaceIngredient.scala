@@ -45,7 +45,7 @@ class SimpleFurnaceIngredient(private val matcher: ItemStack) extends FurnaceIng
 
     override def serialize(): util.Map[String, AnyRef] = {
         val map = new util.HashMap[String, AnyRef]()
-        map.put(ItemStackString, matcher)
+        map.put(ItemStackString, getItemStack())
         map
     }
 }

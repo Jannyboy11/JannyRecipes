@@ -1,15 +1,19 @@
 package xyz.janboerman.recipes.api.persist
 
 import java.io.{File, IOException}
+import java.nio.file.Files
 
 import org.bukkit.Keyed
-import org.bukkit.configuration.file.{FileConfiguration, YamlConfiguration}
+import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.configuration.serialization.{ConfigurationSerializable, ConfigurationSerialization, SerializableAs}
 import org.bukkit.plugin.Plugin
-import xyz.janboerman.recipes.api.persist.RecipeStorage.{SerializableList, SerializableMap}
+import xyz.janboerman.recipes.api.JannyRecipesAPI
 import xyz.janboerman.recipes.api.recipe._
 
-class SimpleStorage(val plugin: Plugin) extends RecipeStorage {
+import scala.collection.JavaConverters
+import scala.util.Try
+
+class SimpleStorage(val plugin: Plugin)(implicit api: JannyRecipesAPI) extends RecipeStorage {
 
     private var recipesFolder: File = _
 
@@ -42,8 +46,8 @@ class SimpleStorage(val plugin: Plugin) extends RecipeStorage {
         //registerClass(classOf[StringRecipeKey])
         //registerClass(classOf[UUIDRecipeKey])
 
-        registerClass(classOf[SerializableList[_]])
-        registerClass(classOf[SerializableMap[_]])
+        registerClass(classOf[SerializableList])
+        registerClass(classOf[SerializableMap])
 
         registerClass(classOf[SimpleCraftingIngredient])
         registerClass(classOf[ExactCraftingIngredient])
@@ -62,12 +66,12 @@ class SimpleStorage(val plugin: Plugin) extends RecipeStorage {
             val folder = getRecipesFolder()
 
             val fileName = key.toString.replaceAll("\\W", "_") + ".yml"
+            val saveFile = new File(folder, fileName)
 
-            val fileConfiguration = new YamlConfiguration()
+            val fileConfiguration = YamlConfiguration.loadConfiguration(saveFile) //TODO why not just use new YamlConfiguration() ?
             fileConfiguration.set("recipe", recipe)
 
             try {
-                val saveFile = new File(folder, fileName)
                 if (!saveFile.exists()) saveFile.createNewFile()
                 fileConfiguration.save(saveFile)
                 return Right(())
@@ -76,14 +80,22 @@ class SimpleStorage(val plugin: Plugin) extends RecipeStorage {
                     e.printStackTrace()
                     return Left("Error occured while saving a recipe to a file.")
             }
-        }
+        } else {
 
-        Left("The recipe hasn't got a key.")
+            Left("The recipe hasn't got a key.")
+        }
     }
 
     override def loadRecipes(): Either[String, Iterator[Recipe with ConfigurationSerializable]] = {
-
-        ???
+        val attempt = Try {
+            JavaConverters.asScalaIterator[File](Files.walk(recipesFolder.toPath).map[File](_.toFile).iterator())
+                .map(YamlConfiguration.loadConfiguration(_))
+                .map(_.get("recipe").asInstanceOf[Recipe with ConfigurationSerializable])
+        } //why is there no mapLeft on Try, nor on Either??!!
+        if (attempt.isSuccess) return Right(attempt.get)
+        val throwable = attempt.toEither.swap.getOrElse(null)
+        throwable.printStackTrace()
+        Left("Could not load recipes from disk.")
     }
 
     override def deleteRecipe(recipe: Recipe with ConfigurationSerializable): Either[String, Unit] = {

@@ -72,9 +72,8 @@ object Storage extends RecipeStorage {
     }
 
     override def loadRecipes(): Either[String, Iterator[Recipe with ConfigurationSerializable]] = {
-
-
-        ??? //TODO
+        //TODO can't do much else, can I?
+        simpleStorage.loadRecipes()
     }
 
     override def deleteRecipe(recipe: Recipe with ConfigurationSerializable): Either[String, Unit] = {

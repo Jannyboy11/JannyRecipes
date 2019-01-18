@@ -56,7 +56,7 @@ object SimpleFurnaceRecipe {
     }
 }
 
-@SerializableAs("SimpleFurnaceRecipe")
+@SerializableAs("SimpleFurnace")
 class SimpleFurnaceRecipe(private val namespacedKey: NamespacedKey,
                           private val group: Option[String],
                           private val furnaceIngredient: FurnaceIngredient,

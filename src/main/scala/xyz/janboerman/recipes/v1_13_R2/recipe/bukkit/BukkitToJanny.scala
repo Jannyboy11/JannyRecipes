@@ -11,9 +11,9 @@ import xyz.janboerman.recipes.api.recipe._
 import xyz.janboerman.recipes.v1_13_R2.Extensions.{NmsInventory, ObcCraftingInventory}
 
 import scala.collection.JavaConverters
-import scala.collection.mutable.ListBuffer
 import BukkitRecipeChoice._
 import xyz.janboerman.recipes.api.persist.RecipeStorage._
+import xyz.janboerman.recipes.api.persist.SerializableList
 
 object BukkitShapedToJanny {
     def valueOf(map: util.Map[String, AnyRef]): BukkitShapedToJanny = {
@@ -32,7 +32,7 @@ object BukkitShapedToJanny {
         BukkitShapedToJanny(bukkitRecipe)
     }
 }
-@SerializableAs("BukkitShapedRecipe")
+@SerializableAs("BukkitShaped")
 case class BukkitShapedToJanny(bukkit: org.bukkit.inventory.ShapedRecipe) extends ShapedRecipe with ConfigurationSerializable {
     override def getResult(): ItemStack = bukkit.getResult
 
@@ -62,6 +62,7 @@ case class BukkitShapedToJanny(bukkit: org.bukkit.inventory.ShapedRecipe) extend
             for (addY <- 0 until maxAddY) {
                 for (mirrored <- Seq(false, true)) {
                     val successResult = matrixMatch(craftingInventory, inventoryWidth, inventoryHeight, addX, addY, mirrored) match {
+                        //Scala can have protected methods in traits, unlinke java interfaces :)
                         case Some(remainders) => Some(CraftingResult(getResult, remainders))
                         case _ => None
                     }
@@ -72,33 +73,6 @@ case class BukkitShapedToJanny(bukkit: org.bukkit.inventory.ShapedRecipe) extend
         }
 
         None
-    }
-
-    private def matrixMatch(craftingInventory: CraftingInventory, invWidth: Int, invHeight: Int, addX: Int, addY: Int, mirrored: Boolean): Option[List[Option[ItemStack]]] = {
-        val shape = getShape()
-        val ingredients = getIngredients()
-
-        val shapeWidth = shape.head.length
-        val shapeHeight = shape.size
-
-        val remainders = new ListBuffer[Option[ItemStack]]()
-
-        for (y <- 0 until shapeHeight) {
-            for (x <- 0 until shapeWidth) {
-                val gridX = if (mirrored) shapeWidth - 1 - x + addX else x + addX
-                val gridY = y + addY
-
-                val key = shape(y)(x)
-                val ingredient = ingredients.getOrElse(key, CraftingIngredient.empty)
-
-                val inputStack = getItemStackFromInventory(gridX, gridY, invWidth, invHeight, craftingInventory)
-                if (!ingredient.apply(inputStack)) return None
-
-                remainders.addOne(ingredient.getRemainingStack(inputStack))
-            }
-        }
-
-        Some(remainders.toList)
     }
 
     override def getKey: NamespacedKey = bukkit.getKey
@@ -118,7 +92,7 @@ case class BukkitShapedToJanny(bukkit: org.bukkit.inventory.ShapedRecipe) extend
 object BukkitShapelessToJanny {
     def valueOf(map: util.Map[String, AnyRef]): BukkitShapelessToJanny = {
         val key = map.get(KeyString).asInstanceOf[NamespacedRecipeKey].namespacedKey
-        val ingredients = map.get(IngredientsString).asInstanceOf[List[BukkitRecipeChoiceToJannyCraftingIngredient]]
+        val ingredients = map.get(IngredientsString).asInstanceOf[SerializableList].list.asInstanceOf[List[BukkitRecipeChoiceToJannyCraftingIngredient]]
         val result = map.get(ResultString).asInstanceOf[ItemStack]
         val group = map.getOrDefault(GroupString, "").asInstanceOf[String]
         val bukkitRecipe = new inventory.ShapelessRecipe(key, result)
@@ -127,7 +101,7 @@ object BukkitShapelessToJanny {
         BukkitShapelessToJanny(bukkitRecipe)
     }
 }
-@SerializableAs("BukkitShapelessRecipe")
+@SerializableAs("BukkitShapeless")
 case class BukkitShapelessToJanny(bukkit: org.bukkit.inventory.ShapelessRecipe) extends ShapelessRecipe with ConfigurationSerializable {
     override def getResult(): ItemStack = bukkit.getResult
 
@@ -137,28 +111,13 @@ case class BukkitShapelessToJanny(bukkit: org.bukkit.inventory.ShapelessRecipe) 
             .toList
     }
 
-    override def tryCraft(craftingInventory: CraftingInventory, world: World): Option[CraftingResult] = {
-        val ingredients = getIngredients()
-        val inputItems = craftingInventory.getMatrix.filter(stack => stack != null)
-
-        if (ingredients.size != inputItems.length) return None
-
-        val lazyListIterator = LazyList(ingredients: _*).permutations
-        val matchingIngredientList = lazyListIterator.find(_.zip(inputItems).forall(p => p._1.apply(p._2)))
-
-        matchingIngredientList.map(ingredientList => {
-            val remainders = ingredientList.zip(inputItems).map(pair => pair._1.getRemainingStack(pair._2)).toList
-            CraftingResult(getResult(), remainders)
-        })
-    }
-
     override def getKey: NamespacedKey = bukkit.getKey
     override def getGroup(): Option[String] = Option(bukkit.getGroup).filter(_.nonEmpty)
 
     override def serialize(): util.Map[String, AnyRef] = {
         val map = new util.HashMap[String, AnyRef]()
         map.put(KeyString, new NamespacedRecipeKey(getKey))
-        map.put(IngredientsString, new SerializableList[BukkitRecipeChoiceToJannyCraftingIngredient](getIngredients()))
+        map.put(IngredientsString, new SerializableList(getIngredients()))
         map.put(ResultString, getResult())
         map.put(GroupString, getGroup().getOrElse(""))
         map
@@ -178,7 +137,7 @@ object BukkitFurnaceToJanny {
         BukkitFurnaceToJanny(bukkitRecipe)
     }
 }
-@SerializableAs("BukkitFurnaceRecipe")
+@SerializableAs("BukkitFurnace")
 case class BukkitFurnaceToJanny(bukkit: org.bukkit.inventory.FurnaceRecipe) extends FurnaceRecipe with ConfigurationSerializable { self =>
     override def getResult(): ItemStack = bukkit.getResult
 

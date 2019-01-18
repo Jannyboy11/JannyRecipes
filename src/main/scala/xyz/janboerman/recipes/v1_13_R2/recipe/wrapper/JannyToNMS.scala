@@ -18,18 +18,14 @@ abstract class JannyCraftingToNMS(janny: CraftingRecipe) extends IRecipe {
     private var lastCheck: Option[CraftingResult] = None
 
     override def a(iInventory: IInventory, world: World): Boolean = {
-        println("DEBUG JannyCraftingToNMS#matches")
         iInventory match {
             case inventoryCrafting: InventoryCrafting =>
                 val obcInventoryCrafting = new CraftInventoryCrafting(inventoryCrafting, inventoryCrafting.resultInventory)
                 val bukkitWorld = toBukkitWorld(world.asInstanceOf[WorldServer])
 
                 lastCheck = janny.tryCraft(obcInventoryCrafting, bukkitWorld)
-                println("\r\n")
-                println("DEBUG JannyCraftingToNMS#matches lastCheck = " + lastCheck)
-                println("\r\n")
                 lastCheck.isDefined
-            case _ => println("DEBUG JannyCraftingToNMS#defaultCase"); false
+            case _ => false
         }
     }
 

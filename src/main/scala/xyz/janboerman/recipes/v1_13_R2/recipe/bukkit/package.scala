@@ -1,6 +1,6 @@
 package xyz.janboerman.recipes.v1_13_R2.recipe
 
-import org.bukkit.inventory.RecipeChoice.MaterialChoice
+import org.bukkit.inventory.RecipeChoice.{ExactChoice, MaterialChoice}
 import org.bukkit.inventory.{Inventory, ItemStack, RecipeChoice}
 
 package object bukkit {
@@ -16,7 +16,8 @@ package object bukkit {
         recipeChoice match {
             case brc: BetterRecipeChoice => brc.clone()
             case mat: MaterialChoice => mat.clone()
-            case x => x //cannot call x.clone() because scalac is dumb. it thinks interface methods can be package-protected
+            case exact: ExactChoice => exact.clone()
+            case x => x //cannot call x.clone() because scalac is dumb. it thinks interface methods can be package-protected. lol.
         }
     }
 }

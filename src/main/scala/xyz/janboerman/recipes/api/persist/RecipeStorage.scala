@@ -3,10 +3,10 @@ package xyz.janboerman.recipes.api.persist
 import java.util
 
 import org.bukkit.configuration.serialization.{ConfigurationSerializable, SerializableAs}
+import xyz.janboerman.recipes.api.persist.RecipeStorage.ElementsString
 import xyz.janboerman.recipes.api.recipe.Recipe
 
-import scala.collection.{JavaConverters, mutable}
-import scala.util.Try
+import scala.collection.JavaConverters
 
 object RecipeStorage {
     val StringString = "string"
@@ -24,59 +24,58 @@ object RecipeStorage {
     val ElementsString = "elements"
     val CookingTimeString = "cooking-time"
     val ExperienceString = "experience"
+}
 
-    object SerializableList {
-        def valueOf[A](map: util.Map[String, AnyRef]): SerializableList[A] = {
-            val javaList = map.get(ElementsString).asInstanceOf[util.List[A]]
-            val scalaList = JavaConverters.asScalaBuffer(javaList)
-            new SerializableList[A](scalaList.toList)
-        }
+object SerializableList {
+    //TODO WHY ARE WE NOT CALLED?!
+    def valueOf(map: util.Map[String, AnyRef]): SerializableList = {
+        val javaList = map.get(ElementsString).asInstanceOf[util.List[_]]
+        val scalaList = JavaConverters.asScalaBuffer(javaList)
+        println("\r\n DEBUG SerializableList#valueOf scalaList = " + scalaList + "\r\n")
+        new SerializableList(scalaList.toList)
+    }
+}
+
+@SerializableAs("SerializableList")
+class SerializableList(val list: List[_] /*is appearantly null when deserialized using valueOf?*/) extends ConfigurationSerializable {
+    override def serialize(): util.Map[String, AnyRef] = {
+        val javaMap = new util.HashMap[String, AnyRef]()
+        val scalaList = list.toBuffer
+        javaMap.put(ElementsString, JavaConverters.bufferAsJavaList(scalaList))
+        println("DEBUG SERIALIZING THAT SWEET SERIALIZABLE_LIST THING TO " + javaMap)
+        javaMap
     }
 
-    @SerializableAs("SerializableList")
-    implicit class SerializableList[+A](val list: List[A]) extends ConfigurationSerializable {
-        override def serialize(): util.Map[String, AnyRef] = {
-            val javaMap = new util.HashMap[String, AnyRef]()
-            val scalaList = new mutable.ListBuffer[A]()
-            scalaList.addAll(list)
-            javaMap.put(ElementsString, JavaConverters.bufferAsJavaList(scalaList))
-            javaMap
-        }
+    override def toString: String = list.toString()
+    override def equals(obj: Any): Boolean = obj match {
+        case sl: SerializableList => sl.list == this.list
+        case _ => false
+    }
+    override def hashCode(): Int = list.hashCode()
+}
 
-        override def toString: String = list.toString()
-        override def equals(obj: Any): Boolean = obj match {
-            case sl: SerializableList[A] => sl.list == this.list
-            case _ => false
-        }
-        override def hashCode(): Int = list.hashCode()
+object SerializableMap {
+    def valueOf(map: util.Map[String, AnyRef]): SerializableMap = {
+        val javaMap = map.get(ElementsString).asInstanceOf[util.Map[String, _]]
+        val scalaMap = JavaConverters.mapAsScalaMap(javaMap)
+        new SerializableMap(scalaMap.toMap)
+    }
+}
+
+@SerializableAs("SerializableMap")
+class SerializableMap(val map: Map[String, _]) extends ConfigurationSerializable {
+    override def serialize(): util.Map[String, AnyRef] = {
+        val map = new util.HashMap[String, AnyRef]()
+        map.put(ElementsString, JavaConverters.mapAsJavaMap(this.map))
+        map
     }
 
-    object SerializableMap {
-        def valueOf[V](map: util.Map[String, AnyRef]): SerializableMap[V] = {
-            val javaMap = map.get(ElementsString).asInstanceOf[util.Map[String, V]]
-            val scalaMap = JavaConverters.mapAsScalaMap(javaMap)
-            new SerializableMap[V](scalaMap.toMap)
-        }
+    override def toString: String = map.toString()
+    override def equals(obj: Any): Boolean = obj match {
+        case sm: SerializableMap => sm.map == this.map
+        case _ => false
     }
-
-    //TODO the ShapedRecipe (de)serializers should convert their characters to strings and vice versa.
-    @SerializableAs("SeriazableMap")
-    implicit class SerializableMap[+V](val map: Map[String, V]) extends ConfigurationSerializable {
-        override def serialize(): util.Map[String, AnyRef] = {
-            val javaMap = new util.HashMap[String, AnyRef]()
-            val scalaMap = new mutable.HashMap[String, V]
-            scalaMap.addAll(map)
-            javaMap.put(ElementsString, JavaConverters.mapAsJavaMap(map))
-            javaMap
-        }
-
-        override def toString: String = map.toString()
-        override def equals(obj: Any): Boolean = obj match {
-            case sm: SerializableMap[V] => sm.map == this.map
-            case _ => false
-        }
-        override def hashCode(): Int = map.hashCode()
-    }
+    override def hashCode(): Int = map.hashCode()
 }
 
 trait RecipeStorage {

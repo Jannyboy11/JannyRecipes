@@ -80,16 +80,20 @@ object RecipesPlugin
         if (!persistentStorage.init()) {
             getLogger.warning("Persistent storage layer failed to initialize correctly.")
         }
-        persistentStorage.loadRecipes().fold(getLogger.severe(_), iterator => for (recipe <- iterator) {
-            val succesfullyAdded = addRecipe(recipe)
-            if (!succesfullyAdded) {
-                getLogger.warning("Could not register recipe: " + recipe)
-                if (recipe.isInstanceOf[Keyed]) {
-                    val key = recipe.asInstanceOf[Keyed].getKey
-                    getLogger.warning("It's key is: " + key + ". Is that key already registered?")
+        persistentStorage.loadRecipes() match {
+            case Right(iterator) =>
+                for (recipe <- iterator) {
+                    val successfullyAdded = addRecipe(recipe) //TODO does not seem to work. the /reloadrecipes command DOES seem to work though. dafuq.
+                    if (!successfullyAdded) {
+                        getLogger.warning("Could not register recipe: " + recipe)
+                        if (recipe.isInstanceOf[Keyed]) {
+                            val key = recipe.asInstanceOf[Keyed].getKey
+                            getLogger.warning("It's key is: " + key + ". Is that key already registered?")
+                        }
+                    }
                 }
-            }
-        })
+            case Left(errorMessage) => getLogger.severe(errorMessage)
+        }
     }
 
     def setImplementation(jannyImplementation: JannyImplementation): Boolean = {

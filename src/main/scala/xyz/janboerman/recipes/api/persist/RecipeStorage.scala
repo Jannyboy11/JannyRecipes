@@ -31,7 +31,6 @@ object SerializableList {
     def valueOf(map: util.Map[String, AnyRef]): SerializableList = {
         val javaList = map.get(ElementsString).asInstanceOf[util.List[_]]
         val scalaList = JavaConverters.asScalaBuffer(javaList)
-        println("\r\n DEBUG SerializableList#valueOf scalaList = " + scalaList + "\r\n")
         new SerializableList(scalaList.toList)
     }
 }
@@ -42,7 +41,6 @@ class SerializableList(val list: List[_] /*is appearantly null when deserialized
         val javaMap = new util.HashMap[String, AnyRef]()
         val scalaList = list.toBuffer
         javaMap.put(ElementsString, JavaConverters.bufferAsJavaList(scalaList))
-        println("DEBUG SERIALIZING THAT SWEET SERIALIZABLE_LIST THING TO " + javaMap)
         javaMap
     }
 

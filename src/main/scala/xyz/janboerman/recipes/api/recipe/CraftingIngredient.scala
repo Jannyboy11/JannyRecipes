@@ -69,9 +69,7 @@ trait CraftingIngredient extends Ingredient {
 
 object SimpleCraftingIngredient {
     def valueOf(map: util.Map[String, AnyRef]): SimpleCraftingIngredient = {
-        println("DEBUG HOW THE HELL DOES THIS MAP NOT CONTAIN CHOICES? " + map) //TODO have we found a bug in spigot?
         val serializableList = map.get(ChoicesString).asInstanceOf[SerializableList]
-        println("\r\n DEBUG serializableList = " + serializableList)
         new SimpleCraftingIngredient(serializableList.list.asInstanceOf[List[ItemStack]])
     }
 }
@@ -85,7 +83,6 @@ case class SimpleCraftingIngredient(private val choices: List[_ <: ItemStack]) e
     override def serialize(): util.Map[String, AnyRef] = {
         val map = new util.HashMap[String, AnyRef]()
         map.put(ChoicesString, new SerializableList(getChoices()))
-        println("DEBUG SERIALIZING DA MAP. MAP = " + map)
         map
     }
 

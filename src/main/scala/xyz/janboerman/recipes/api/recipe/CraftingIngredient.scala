@@ -69,8 +69,8 @@ trait CraftingIngredient extends Ingredient {
 
 object SimpleCraftingIngredient {
     def valueOf(map: util.Map[String, AnyRef]): SimpleCraftingIngredient = {
-        val serializableList = map.get(ChoicesString).asInstanceOf[SerializableList]
-        new SimpleCraftingIngredient(serializableList.list.asInstanceOf[List[ItemStack]])
+        val serializableList = map.get(ChoicesString).asInstanceOf[SerializableList[ItemStack]]
+        new SimpleCraftingIngredient(serializableList.list)
     }
 }
 
@@ -96,7 +96,7 @@ case class SimpleCraftingIngredient(private val choices: List[_ <: ItemStack]) e
 
 object ExactCraftingIngredient {
     def valueOf(map: util.Map[String, AnyRef]): ExactCraftingIngredient = {
-        val choices = map.get(ChoicesString).asInstanceOf[SerializableList]
+        val choices = map.get(ChoicesString).asInstanceOf[SerializableList[ItemStack]]
         new ExactCraftingIngredient(choices.list.asInstanceOf[List[ItemStack]])
     }
 }
@@ -109,7 +109,7 @@ case class ExactCraftingIngredient(private val choices: List[_ <: ItemStack]) ex
     override def clone(): ExactCraftingIngredient = new ExactCraftingIngredient(choices.map(stack => if (stack == null) null else stack.clone()))
     override def serialize(): util.Map[String, AnyRef] = {
         val map = new util.HashMap[String, AnyRef]()
-        map.put(ChoicesString, new SerializableList(getChoices()))
+        map.put(ChoicesString, new SerializableList[ItemStack](getChoices()))
         map
     }
     override def apply(itemStack: ItemStack): Boolean = choices.contains(itemStack)

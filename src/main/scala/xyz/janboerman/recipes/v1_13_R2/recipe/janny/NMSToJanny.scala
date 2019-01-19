@@ -147,7 +147,7 @@ object JannyArmorDye {
 }
 @SerializableAs("JannyArmorDye")
 case class JannyArmorDye()           extends JannyComplex(armorDye)                  with ArmorDyeRecipe {
-    override def serialize(): util.Map[String, AnyRef] = util.Map.of()
+    override def serialize(): util.Map[String, AnyRef] = util.Collections.emptyMap()
 }
 
 
@@ -156,7 +156,7 @@ object JannyBannerAddPattern {
 }
 @SerializableAs("JannyBannerAddPattern")
 case class JannyBannerAddPattern()  extends JannyComplex(bannerAddPattern)          with BannerAddPatternRecipe {
-    override def serialize(): util.Map[String, AnyRef] = util.Map.of()
+    override def serialize(): util.Map[String, AnyRef] = util.Collections.emptyMap()
 }
 
 
@@ -165,7 +165,7 @@ object JannyBannerDuplicate {
 }
 @SerializableAs("JannyBannerDuplicate")
 case class JannyBannerDuplicate()   extends JannyComplex(bannerDuplicate)           with BannerDuplicateRecipe {
-    override def serialize(): util.Map[String, AnyRef] = util.Map.of()
+    override def serialize(): util.Map[String, AnyRef] = util.Collections.emptyMap()
 }
 
 
@@ -174,7 +174,7 @@ object JannyBookClone {
 }
 @SerializableAs("JannyBookClone")
 case class JannyBookClone()         extends JannyComplex(bookClone)           with BookCloneRecipe {
-    override def serialize(): util.Map[String, AnyRef] = util.Map.of()
+    override def serialize(): util.Map[String, AnyRef] = util.Collections.emptyMap()
 }
 
 
@@ -183,7 +183,7 @@ object JannyFireworkRocket {
 }
 @SerializableAs("JannyFireworkRocket")
 case class JannyFireworkRocket()    extends JannyComplex(fireworkRocket)            with FireworkRocketRecipe {
-    override def serialize(): util.Map[String, AnyRef] = util.Map.of()
+    override def serialize(): util.Map[String, AnyRef] = util.Collections.emptyMap()
 }
 
 
@@ -192,7 +192,7 @@ object JannyFireworkStar {
 }
 @SerializableAs("JannyFireworkStar")
 case class JannyFireworkStar()      extends JannyComplex(fireworkStar)              with FireworkStarRecipe {
-    override def serialize(): util.Map[String, AnyRef] = util.Map.of()
+    override def serialize(): util.Map[String, AnyRef] = util.Collections.emptyMap()
 }
 
 
@@ -201,7 +201,7 @@ object JannyFireworkStarFade {
 }
 @SerializableAs("JannyFireworkStarFade")
 case class JannyFireworkStarFade()  extends JannyComplex(fireworkStarFade)          with FireworkStarFadeRecipe {
-    override def serialize(): util.Map[String, AnyRef] = util.Map.of()
+    override def serialize(): util.Map[String, AnyRef] = util.Collections.emptyMap()
 }
 
 
@@ -210,7 +210,7 @@ object JannyMapClone {
 }
 @SerializableAs("JannyMapClone")
 case class JannyMapClone()          extends JannyComplex(mapClone)                  with MapCloneRecipe {
-    override def serialize(): util.Map[String, AnyRef] = util.Map.of()
+    override def serialize(): util.Map[String, AnyRef] = util.Collections.emptyMap()
 }
 
 
@@ -219,7 +219,7 @@ object JannyMapExtend {
 }
 @SerializableAs("JannyMapExtend")
 case class JannyMapExtend()         extends JannyShaped(BetterMapExtendRecipe())    with MapExtendRecipe {
-    override def serialize(): util.Map[String, AnyRef] = util.Map.of()
+    override def serialize(): util.Map[String, AnyRef] = util.Collections.emptyMap()
 }
 
 
@@ -228,7 +228,7 @@ object JannyRepairItem {
 }
 @SerializableAs("JannyRepairItem")
 case class JannyRepairItem()        extends JannyComplex(repairItem)                with RepairItemRecipe {
-    override def serialize(): util.Map[String, AnyRef] = util.Map.of()
+    override def serialize(): util.Map[String, AnyRef] = util.Collections.emptyMap()
 }
 
 
@@ -237,7 +237,7 @@ object JannyShieldDecoration {
 }
 @SerializableAs("JannyShieldDecoration")
 case class JannyShieldDecoration()  extends JannyComplex(shieldDecoration)          with ShieldDecorationRecipe {
-    override def serialize(): util.Map[String, AnyRef] = util.Map.of()
+    override def serialize(): util.Map[String, AnyRef] = util.Collections.emptyMap()
 }
 
 
@@ -246,7 +246,7 @@ object JannyShulkerBoxColor {
 }
 @SerializableAs("JannyShulkerBoxColor")
 case class JannyShulkerBoxColor()   extends JannyComplex(shulkerBoxColor)           with ShulkerBoxColorRecipe {
-    override def serialize(): util.Map[String, AnyRef] = util.Map.of()
+    override def serialize(): util.Map[String, AnyRef] = util.Collections.emptyMap()
 }
 
 
@@ -255,5 +255,5 @@ object JannyTippedArrow {
 }
 @SerializableAs("JannyTippedArrow")
 case class JannyTippedArrow()       extends JannyShaped(BetterTippedArrowRecipe())  with TippedArrowRecipe {
-    override def serialize(): util.Map[String, AnyRef] = util.Map.of()
+    override def serialize(): util.Map[String, AnyRef] = util.Collections.emptyMap()
 }

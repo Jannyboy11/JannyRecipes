@@ -27,16 +27,15 @@ object RecipeStorage {
 }
 
 object SerializableList {
-    //TODO WHY ARE WE NOT CALLED?!
-    def valueOf(map: util.Map[String, AnyRef]): SerializableList = {
-        val javaList = map.get(ElementsString).asInstanceOf[util.List[_]]
+    def valueOf[A](map: util.Map[String, AnyRef]): SerializableList[A] = {
+        val javaList = map.get(ElementsString).asInstanceOf[util.List[A]]
         val scalaList = JavaConverters.asScalaBuffer(javaList)
         new SerializableList(scalaList.toList)
     }
 }
 
 @SerializableAs("SerializableList")
-class SerializableList(val list: List[_] /*is appearantly null when deserialized using valueOf?*/) extends ConfigurationSerializable {
+class SerializableList[+A](val list: List[A] /*is appearantly null when deserialized using valueOf?*/) extends ConfigurationSerializable {
     override def serialize(): util.Map[String, AnyRef] = {
         val javaMap = new util.HashMap[String, AnyRef]()
         val scalaList = list.toBuffer
@@ -46,22 +45,22 @@ class SerializableList(val list: List[_] /*is appearantly null when deserialized
 
     override def toString: String = list.toString()
     override def equals(obj: Any): Boolean = obj match {
-        case sl: SerializableList => sl.list == this.list
+        case sl: SerializableList[_] => sl.list == this.list
         case _ => false
     }
     override def hashCode(): Int = list.hashCode()
 }
 
 object SerializableMap {
-    def valueOf(map: util.Map[String, AnyRef]): SerializableMap = {
-        val javaMap = map.get(ElementsString).asInstanceOf[util.Map[String, _]]
+    def valueOf[A](map: util.Map[String, AnyRef]): SerializableMap[A] = {
+        val javaMap = map.get(ElementsString).asInstanceOf[util.Map[String, A]]
         val scalaMap = JavaConverters.mapAsScalaMap(javaMap)
         new SerializableMap(scalaMap.toMap)
     }
 }
 
 @SerializableAs("SerializableMap")
-class SerializableMap(val map: Map[String, _]) extends ConfigurationSerializable {
+class SerializableMap[+A](val map: Map[String, A]) extends ConfigurationSerializable {
     override def serialize(): util.Map[String, AnyRef] = {
         val map = new util.HashMap[String, AnyRef]()
         map.put(ElementsString, JavaConverters.mapAsJavaMap(this.map))
@@ -70,7 +69,7 @@ class SerializableMap(val map: Map[String, _]) extends ConfigurationSerializable
 
     override def toString: String = map.toString()
     override def equals(obj: Any): Boolean = obj match {
-        case sm: SerializableMap => sm.map == this.map
+        case sm: SerializableMap[_] => sm.map == this.map
         case _ => false
     }
     override def hashCode(): Int = map.hashCode()

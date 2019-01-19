@@ -3,6 +3,7 @@ package xyz.janboerman.recipes
 import org.bukkit.{Keyed, NamespacedKey}
 import org.bukkit.permissions.PermissionDefault
 import org.bukkit.plugin.{Plugin, PluginLoadOrder}
+import org.bukkit.scheduler.BukkitTask
 import xyz.janboerman.guilib.api.GuiListener
 import xyz.janboerman.recipes.api.JannyRecipesAPI
 import xyz.janboerman.recipes.api.gui.RecipeGuiFactory
@@ -80,20 +81,31 @@ object RecipesPlugin
         if (!persistentStorage.init()) {
             getLogger.warning("Persistent storage layer failed to initialize correctly.")
         }
-        persistentStorage.loadRecipes() match {
-            case Right(iterator) =>
-                for (recipe <- iterator) {
-                    val successfullyAdded = addRecipe(recipe) //TODO does not seem to work. the /reloadrecipes command DOES seem to work though. maybe we should load POST_WORLD?
-                    if (!successfullyAdded) {
-                        getLogger.warning("Could not register recipe: " + recipe)
-                        if (recipe.isInstanceOf[Keyed]) {
-                            val key = recipe.asInstanceOf[Keyed].getKey
-                            getLogger.warning("It's key is: " + key + ". Is that key already registered?")
+        getServer().getScheduler.runTask(this, (_: BukkitTask) => {
+            //in a bukkit task because minecraft's datapack clear the recipes on startup. lol.
+            //TODO find out how to 'implement' a datapack? can I wrap my 'Impl' or 'JannyRecipesAPI' class?
+            persistentStorage.loadRecipes() match {
+                case Right(iterator) =>
+                    var successes = 0
+                    var errors = 0
+                    for (recipe <- iterator) {
+                        val successfullyAdded = addRecipe(recipe)
+                        if (!successfullyAdded) {
+                            getLogger.warning("Could not register recipe: " + recipe)
+                            if (recipe.isInstanceOf[Keyed]) {
+                                val key = recipe.asInstanceOf[Keyed].getKey
+                                getLogger.warning("It's key is: " + key + ". Is that key already registered?")
+                            }
+                            errors += 1
+                        } else {
+                            successes += 1
                         }
                     }
-                }
-            case Left(errorMessage) => getLogger.severe(errorMessage)
-        }
+                    if (successes > 0) getLogger.info(s"Loaded $successes recipes.")
+                    if (errors > 0) getLogger.severe(s"$errors recipes failed to load.")
+                case Left(errorMessage) => getLogger.severe(errorMessage)
+            }
+        })
     }
 
     def setImplementation(jannyImplementation: JannyImplementation): Boolean = {

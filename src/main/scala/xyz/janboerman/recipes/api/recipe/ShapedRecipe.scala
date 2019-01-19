@@ -102,10 +102,10 @@ object SimpleShapedRecipe {
     def valueOf(map: util.Map[String, AnyRef]): SimpleShapedRecipe = {
         val namespacedKey = map.get(KeyString).asInstanceOf[NamespacedRecipeKey].namespacedKey
         val group = Option(map.get(GroupString).asInstanceOf[String]).filter(_.nonEmpty)
-        val shape = map.get(ShapeString).asInstanceOf[SerializableList].list.asInstanceOf[List[String]].toIndexedSeq
+        val shape = map.get(ShapeString).asInstanceOf[SerializableList[String]].list.toIndexedSeq
         val ingredients: Map[Char, _<: CraftingIngredient] = map.get(IngredientsString)
-            .asInstanceOf[SerializableMap].map
-            .map({case (string, ingredient: CraftingIngredient) => (string(0), ingredient)})
+            .asInstanceOf[SerializableMap[CraftingIngredient]].map
+            .map({case (string, ingredient) => (string(0), ingredient)})
         val result = map.get(ItemStackString).asInstanceOf[ItemStack]
         new SimpleShapedRecipe(namespacedKey, group, shape, ingredients, result)
     }

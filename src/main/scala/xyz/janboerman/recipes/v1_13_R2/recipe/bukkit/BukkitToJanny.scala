@@ -92,7 +92,7 @@ case class BukkitShapedToJanny(bukkit: org.bukkit.inventory.ShapedRecipe) extend
 object BukkitShapelessToJanny {
     def valueOf(map: util.Map[String, AnyRef]): BukkitShapelessToJanny = {
         val key = map.get(KeyString).asInstanceOf[NamespacedRecipeKey].namespacedKey
-        val ingredients = map.get(IngredientsString).asInstanceOf[SerializableList].list.asInstanceOf[List[BukkitRecipeChoiceToJannyCraftingIngredient]]
+        val ingredients = map.get(IngredientsString).asInstanceOf[SerializableList[BukkitRecipeChoiceToJannyCraftingIngredient]].list
         val result = map.get(ResultString).asInstanceOf[ItemStack]
         val group = map.getOrDefault(GroupString, "").asInstanceOf[String]
         val bukkitRecipe = new inventory.ShapelessRecipe(key, result)
@@ -237,8 +237,8 @@ object BukkitRecipeChoice {
     def serializeRecipeChoice(recipeChoice: RecipeChoice): java.util.Map[String, AnyRef] = {
         val (ingredientType, choices) = recipeChoice match {
             case mc: MaterialChoice => (MaterialChoice, mc.getChoices.stream.map[ItemStack](new ItemStack(_)).collect(Collectors.toList[ItemStack]))
-            case ec: ExactChoice    => (ExactChoice, util.List.of[ItemStack](ec.getItemStack))
-            case _                  => (Empty, util.List.of())
+            case ec: ExactChoice    => (ExactChoice, util.Collections.singletonList[ItemStack](ec.getItemStack))
+            case _                  => (Empty, util.Collections.emptyList())
         }
         val map = new util.HashMap[String, AnyRef]()
         map.put(IngredientType, ingredientType)

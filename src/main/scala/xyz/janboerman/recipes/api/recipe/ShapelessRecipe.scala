@@ -85,7 +85,7 @@ object SimpleShapelessRecipe {
     def valueOf(map: util.Map[String, AnyRef]): SimpleShapelessRecipe = {
         val namescapedKey = map.get(KeyString).asInstanceOf[NamespacedRecipeKey].namespacedKey
         val group = Option(map.get(GroupString).asInstanceOf[String]).filter(_.nonEmpty)
-        val ingredients = map.get(IngredientsString).asInstanceOf[SerializableList].list.asInstanceOf[List[CraftingIngredient]] //TODO also this seems to not get deserialized. dafuq.
+        val ingredients = map.get(IngredientsString).asInstanceOf[SerializableList[CraftingIngredient]].list
         val result = map.get(ResultString).asInstanceOf[ItemStack]
         new SimpleShapelessRecipe(namescapedKey, group, ingredients, result)
     }

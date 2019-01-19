@@ -1,7 +1,7 @@
 package xyz.janboerman.recipes.api.persist
 
 import java.io.{File, IOException}
-import java.nio.file.Files
+import java.nio.file.{Files, Paths}
 
 import org.bukkit.Keyed
 import org.bukkit.configuration.file.YamlConfiguration
@@ -46,8 +46,8 @@ class SimpleStorage(val plugin: Plugin)(implicit api: JannyRecipesAPI) extends R
         //registerClass(classOf[StringRecipeKey])
         //registerClass(classOf[UUIDRecipeKey])
 
-        registerClass(classOf[SerializableList])
-        registerClass(classOf[SerializableMap])
+        registerClass(classOf[SerializableList[_]])
+        registerClass(classOf[SerializableMap[_]])
 
         registerClass(classOf[SimpleCraftingIngredient])
         registerClass(classOf[ExactCraftingIngredient])
@@ -68,7 +68,7 @@ class SimpleStorage(val plugin: Plugin)(implicit api: JannyRecipesAPI) extends R
             val fileName = key.toString.replaceAll("\\W", "_") + ".yml"
             val saveFile = new File(folder, fileName)
 
-            val fileConfiguration = YamlConfiguration.loadConfiguration(saveFile) //TODO why not just use new YamlConfiguration() ?
+            val fileConfiguration = new YamlConfiguration()
             fileConfiguration.set("recipe", recipe)
 
             try {
@@ -88,7 +88,7 @@ class SimpleStorage(val plugin: Plugin)(implicit api: JannyRecipesAPI) extends R
 
     override def loadRecipes(): Either[String, Iterator[Recipe with ConfigurationSerializable]] = {
         val attempt = Try {
-            JavaConverters.asScalaIterator[File](Files.walk(recipesFolder.toPath).map[File](_.toFile).iterator())
+            JavaConverters.asScalaIterator[File](java.util.Arrays.asList(recipesFolder.listFiles((file: File) => file.isFile && file.getName.endsWith(".yml")): _*).iterator())
                 .map(YamlConfiguration.loadConfiguration(_))
                 .map(_.get("recipe").asInstanceOf[Recipe with ConfigurationSerializable])
         } //why is there no mapLeft on Try, nor on Either??!!
@@ -100,7 +100,7 @@ class SimpleStorage(val plugin: Plugin)(implicit api: JannyRecipesAPI) extends R
 
     override def deleteRecipe(recipe: Recipe with ConfigurationSerializable): Either[String, Unit] = {
 
-        ???
+        ??? //TODO
     }
 
 }

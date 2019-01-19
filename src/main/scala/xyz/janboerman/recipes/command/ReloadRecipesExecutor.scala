@@ -1,26 +1,32 @@
 package xyz.janboerman.recipes.command
 
-import org.bukkit.ChatColor
+import org.bukkit.{ChatColor, Keyed}
 import org.bukkit.command.{Command, CommandExecutor, CommandSender}
 import xyz.janboerman.recipes.RecipesPlugin
+import xyz.janboerman.recipes.RecipesPlugin.{addRecipe, getLogger}
 
 object ReloadRecipesExecutor extends CommandExecutor {
     override def onCommand(sender: CommandSender, command: Command, label: String, args: Array[String]): Boolean = {
         RecipesPlugin.persist().loadRecipes() match {
             case Right(iterator) =>
-                var allSuccess = true
+                var successes = 0
+                var errors = 0
                 for (recipe <- iterator) {
-                    allSuccess |= RecipesPlugin.addRecipe(recipe)
+                    val successfullyAdded = addRecipe(recipe)
+                    if (!successfullyAdded) {
+                        getLogger.warning("Could not register recipe: " + recipe)
+                        if (recipe.isInstanceOf[Keyed]) {
+                            val key = recipe.asInstanceOf[Keyed].getKey
+                            getLogger.warning("It's key is: " + key + ". Is that key already registered?")
+                        }
+                        errors += 1
+                    } else {
+                        successes += 1
+                    }
                 }
-
-                if (allSuccess) {
-                    sender.sendMessage(ChatColor.GREEN + "Reloaded custom recipes!")
-                } else {
-                    //TODO HOW THE FUCK IS THIS BRANCH TAKEN WHEN WE DON'T EVEN HAVE RECIPES IN THE CONFIGS?!
-                    sender.sendMessage(ChatColor.RED + "Something went wrong when loading recipes. Please check your console for errors.")
-                }
-            case Left(errorMessage) =>
-                sender.sendMessage(ChatColor.RED + errorMessage)
+                if (successes > 0) getLogger.info(ChatColor.GREEN + s"Loaded $successes recipes.")
+                if (errors > 0) getLogger.severe(ChatColor.RED + s"$errors recipes failed to load.")
+            case Left(errorMessage) => sender.sendMessage(ChatColor.RED + errorMessage)
         }
 
         true

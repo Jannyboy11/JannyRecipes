@@ -5,7 +5,8 @@ import org.bukkit.command.{Command, CommandExecutor, CommandSender}
 import org.bukkit.entity.Player
 import xyz.janboerman.recipes.RecipesPlugin
 import xyz.janboerman.recipes.api.JannyRecipesAPI
-import xyz.janboerman.recipes.api.gui.RecipeGuiFactory
+import xyz.janboerman.recipes.api.gui.{ByResultFilter, IngredientSearchProperty, RecipeGuiFactory, ResultSearchProperty}
+import xyz.janboerman.recipes.api.recipe.{FixedIngredients, FixedResult}
 
 object EditRecipeCommandExecutor extends CommandExecutor {
 
@@ -27,7 +28,14 @@ object EditRecipeCommandExecutor extends CommandExecutor {
         implicit val guiFactory: RecipeGuiFactory[RecipesPlugin.type] = api.getGuiFactory[RecipesPlugin.type]()
 
         val mainMenu = guiFactory.newRecipesMenu()
-        mainMenu.setSearch(itemInMainHand.getType.name())
+        mainMenu.addSearchFilter(ResultSearchProperty, {
+            case recipe: FixedResult => recipe.hasResultType(itemInMainHand.getType)
+            case _ => false
+        })
+        mainMenu.addSearchFilter(IngredientSearchProperty, {
+            case recipe: FixedIngredients => recipe.hasIngredient(itemInMainHand.getType)
+            case _ => false
+        })
         player.openInventory(mainMenu.getInventory)
 
         true

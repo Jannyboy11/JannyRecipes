@@ -112,7 +112,7 @@ class ByKeyFilter(private val key: String) extends RecipeFilter {
 
     override def hashCode(): Int = key.hashCode
 
-    //TODO use RecipeKey instead
+    //TODO merge with ByNamespaceFilter?
     override def apply(recipe: Recipe): Boolean = recipe match {
         case keyedRecipe: Keyed => keyedRecipe.getKey.getKey.equalsIgnoreCase(key)
         case _ => false

@@ -9,7 +9,7 @@ scalaVersion := "2.13.0-M5"
 scalacOptions += "-language:implicitConversions"
 
 packageOptions in (Compile, packageBin) +=
-    Package.ManifestAttributes("Automatic-Module-Name" -> "xyz.janboerman.recipes".toLowerCase)
+    Package.ManifestAttributes("Automatic-Module-Name" -> "xyz.janboerman.recipes")
 
 //resolvers += "spigot-repo" at "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
 resolvers += Resolver.jcenterRepo

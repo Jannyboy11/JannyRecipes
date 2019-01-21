@@ -5,7 +5,7 @@ import org.bukkit.command.{Command, CommandExecutor, CommandSender}
 import org.bukkit.entity.Player
 import xyz.janboerman.recipes.RecipesPlugin
 import xyz.janboerman.recipes.api.JannyRecipesAPI
-import xyz.janboerman.recipes.api.gui.{ByResultFilter, IngredientSearchProperty, RecipeGuiFactory, ResultSearchProperty}
+import xyz.janboerman.recipes.api.gui.{IngredientSearchProperty, RecipeGuiFactory, ResultSearchProperty}
 import xyz.janboerman.recipes.api.recipe.{FixedIngredients, FixedResult}
 
 object EditRecipeCommandExecutor extends CommandExecutor {

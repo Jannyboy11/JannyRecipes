@@ -19,7 +19,7 @@ object ShapelessRecipe {
         new SimpleShapelessRecipe(namespacedKey, ingredients, result)
 }
 
-trait ShapelessRecipe extends CraftingRecipe
+trait ShapelessRecipe extends CraftingRecipe with Grouped
     with FixedIngredients
     with FixedResult {
 
@@ -28,8 +28,6 @@ trait ShapelessRecipe extends CraftingRecipe
     override def getType(): RecipeType = ShapelessType
 
     def getResult(): ItemStack
-
-    def getGroup(): Option[String] = None
 
     def getIngredients(): List[_ <: CraftingIngredient]
 
@@ -94,10 +92,12 @@ object SimpleShapelessRecipe {
 
 @SerializableAs("SimpleShapeless")
 class SimpleShapelessRecipe(private val namespacedKey: NamespacedKey,
-                            private val group: Option[String],
+                            optionGroup: Option[String],
                             private val ingredients: List[_ <: CraftingIngredient],
                             private val result: ItemStack)
     extends ShapelessRecipe with ConfigurationSerializable {
+
+    this.group = optionGroup.orNull
 
     def this(namespacedKey: NamespacedKey, ingredients: List[_ <: CraftingIngredient], result: ItemStack) = this(namespacedKey, None, ingredients, result)
 

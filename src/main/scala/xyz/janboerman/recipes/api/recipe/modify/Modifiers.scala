@@ -1,11 +1,12 @@
 package xyz.janboerman.recipes.api.recipe.modify
 
-import org.bukkit.{NamespacedKey, World}
-import org.bukkit.inventory.{CraftingInventory, ItemStack}
-import xyz.janboerman.recipes.api.recipe.{CraftingRecipe, CraftingResult, Recipe, RecipeType}
+import xyz.janboerman.recipes.api.recipe.Recipe
 
 //TODO can I use typeclasses/implicits here?
 trait ModifiedRecipe[R <: Recipe] extends Recipe {
+    type T <: Recipe
+
+
 
     def getBaseRecipe(): R
 

@@ -6,7 +6,7 @@ import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import xyz.janboerman.guilib.api.GuiInventoryHolder
 import xyz.janboerman.recipes.RecipesPlugin
-import xyz.janboerman.recipes.api.gui.{FilterMenu, RecipeEditor, RecipesMenu}
+import xyz.janboerman.recipes.api.gui.{FilterMenu, NewMenu, RecipeEditor, RecipesMenu}
 import xyz.janboerman.recipes.api.recipe.Recipe
 
 import scala.collection.mutable
@@ -31,6 +31,7 @@ object GuiInventoryHolderListener extends Listener {
             case recipesMenu: RecipesMenu[_] => recipesMenu
             case recipeEditor: RecipeEditor[_, _] => recipeEditor
             case filterMenu: FilterMenu[_] => filterMenu
+            case newMenu: NewMenu[_] => newMenu
             case _ => null
         }
 

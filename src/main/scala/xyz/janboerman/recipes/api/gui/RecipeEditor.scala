@@ -47,15 +47,19 @@ abstract class RecipeEditor[P <: Plugin, R <: Recipe](protected var recipe: R,
         PlayerUtils.updateInventory(event.getWhoClicked, getPlugin) //needed to update the client's bad shift-click predictions
     }
 
+    def getCachedRecipe(): Option[R] = {
+        Option(recipe)
+    }
+
     protected def layoutBorder(): Unit
     protected def layoutRecipe(): Unit
     protected def layoutButtons(): Unit
 
 
     def makeRecipe(): Option[R] = {
-        throw new NotImplementedError("The current editor (" + this + ") doesn't know how to make a new recipe from inventory contents (yet). it should override makeRecipeFromInventoryContents")
+        throw new NotImplementedError("The current editor (" + this + ") doesn't know how to make a new recipe from inventory contents (yet). it should override makeRecipe")
     }
-
+    //TODO let ShapedEditor, FurnaceEditor override this method.
 
 
     //TODO does this belong here? it doesn't have to

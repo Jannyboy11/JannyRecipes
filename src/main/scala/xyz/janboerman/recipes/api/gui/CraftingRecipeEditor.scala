@@ -1,13 +1,16 @@
 package xyz.janboerman.recipes.api.gui
 
-import org.bukkit.{Material, NamespacedKey}
+import java.util.Collections
+
+import org.bukkit.{ChatColor, Material, NamespacedKey}
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.plugin.Plugin
+import org.bukkit.scheduler.BukkitTask
 import xyz.janboerman.guilib.api.ItemBuilder
 import xyz.janboerman.guilib.api.menu.{ItemButton, RedirectItemButton}
 import xyz.janboerman.recipes.api.JannyRecipesAPI
-import xyz.janboerman.recipes.api.recipe.CraftingRecipe
+import xyz.janboerman.recipes.api.recipe.{CraftingRecipe, Grouped}
 
 object CraftingRecipeEditor {
     val CornerX = 1
@@ -31,6 +34,18 @@ abstract class CraftingRecipeEditor[P <: Plugin, R <: CraftingRecipe](inventory:
     extends RecipeEditor[P, R](craftingRecipe, inventory) { self =>
 
     private implicit val storage = api.persist()
+
+    protected var group: String = ""
+    protected var key: NamespacedKey = null
+
+    if (recipe != null) {
+        key = recipe.getKey
+        if (recipe.isInstanceOf[Grouped]) {
+            val groupedRecipe = recipe.asInstanceOf[R with Grouped]
+            this.group = groupedRecipe.getGroup().getOrElse("")
+        }
+    }
+
 
     //TODO duplicate code (it's also in FurnaceRecipeEditor)
     protected def generateId(): NamespacedKey = {
@@ -66,9 +81,41 @@ abstract class CraftingRecipeEditor[P <: Plugin, R <: CraftingRecipe](inventory:
             new ItemBuilder(Material.RED_CONCRETE).name(Exit).build(),
             () => recipesMenu.getInventory())
 
+        val renameButton = new AnvilButton[self.type]({case (menuHolder, event, input) =>
+            val player = event.getWhoClicked
+            val split = input.split(":")
+            if (split.exists(s => s.isEmpty || !s.matches("[a-z0-9._-]+"))) {
+                player.sendMessage(ChatColor.RED + "Recipe names can only contain lowercase alphanumeric characters, underscores and dashes.")
+            } else {
+                this.key = if (split.length > 1) {
+                    val namespace = split(0)
+                    val rest = String.join("_", split.tail: _*)
+                    new NamespacedKey(namespace, rest)
+                } else {
+                    new NamespacedKey(menuHolder.getPlugin, split(0))
+                }
+            }
+            menuHolder.getPlugin.getServer.getScheduler.runTask(menuHolder.getPlugin, (_: BukkitTask) => player.openInventory(menuHolder.getInventory))
+        }, if (this.key == null) "" else this.key.toString, new ItemBuilder(Material.NAME_TAG).name(Rename).lore({
+            if (this.key == null)
+                Collections.emptyList[String]()
+            else
+                Collections.singletonList(lore(key.toString))
+        }).build())
 
-        val renameButton = new ItemButton[self.type](new ItemBuilder(Material.NAME_TAG).name(Rename).build()) //TODO make this a RedirectItemButton as well
-        val setGroupButton = new ItemButton[self.type](new ItemBuilder(Material.CHEST).name(SetGroup).build()) //TODO Make this a RedirectItemButton as well
+        val setGroupButton = new AnvilButton[self.type]({case (menuHolder, event, input) =>
+            val player = event.getWhoClicked
+            this.group = input
+
+            menuHolder.getPlugin.getServer.getScheduler.runTask(menuHolder.getPlugin, (_: BukkitTask) => player.openInventory(menuHolder.getInventory))
+        }, if (this.group == null) "" else this.group, new ItemBuilder(Material.CHEST).name(SetGroup).lore({
+            if (this.group == null || this.group.isEmpty) {
+                Collections.emptyList[String]()
+            } else {
+                Collections.singletonList(lore(group))
+            }
+        }).build())
+
         val modifiersButton = new ItemButton[self.type](new ItemBuilder(Material.HEART_OF_THE_SEA).name(Modifiers).build()) //TODO Make this a RedirectItemButton as well
 
         //TODO

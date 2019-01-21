@@ -3,7 +3,7 @@ package xyz.janboerman.recipes.api.persist
 import java.io.{File, IOException}
 import java.nio.file.{Files, Paths}
 
-import org.bukkit.Keyed
+import org.bukkit.{Keyed, NamespacedKey}
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.configuration.serialization.{ConfigurationSerializable, ConfigurationSerialization, SerializableAs}
 import org.bukkit.plugin.Plugin
@@ -60,13 +60,14 @@ class SimpleStorage(val plugin: Plugin)(implicit api: JannyRecipesAPI) extends R
         true
     }
 
+    private def saveFileName(key: NamespacedKey): String = key.toString.replaceAll("\\W", "_") + ".yml"
+
     override def saveRecipe(recipe: Recipe with ConfigurationSerializable): Either[String, Unit] = {
         if (recipe.isInstanceOf[Keyed]) {
             val key = recipe.asInstanceOf[Keyed].getKey
             val folder = getRecipesFolder()
 
-            val fileName = key.toString.replaceAll("\\W", "_") + ".yml"
-            val saveFile = new File(folder, fileName)
+            val saveFile = new File(folder, saveFileName(key))
 
             val fileConfiguration = new YamlConfiguration()
             fileConfiguration.set("recipe", recipe)
@@ -99,8 +100,24 @@ class SimpleStorage(val plugin: Plugin)(implicit api: JannyRecipesAPI) extends R
     }
 
     override def deleteRecipe(recipe: Recipe with ConfigurationSerializable): Either[String, Unit] = {
+        if (recipe.isInstanceOf[Keyed]) {
+            val r = recipe.asInstanceOf[Recipe with ConfigurationSerializable with Keyed]
+            val key = r.getKey
 
-        ??? //TODO
+            val saveFile = new File(recipesFolder, saveFileName(key));
+            if (saveFile.exists()) {
+                if (saveFile.delete()) {
+                    Right(())
+                } else {
+                    Left(s"Could not delete save file of recipe $recipe")
+                }
+            } else {
+                //saveFile doesn't exist. nothing to do here.
+                Right(())
+            }
+        } else {
+            Left("The recipe hasn't got a key.");
+        }
     }
 
 }

@@ -53,11 +53,12 @@ class ShapelessRecipeEditor[P <: Plugin](inventory: Inventory,
         if (ingredientStacks.nonEmpty) {
             //there are ingredients - let's  create a recipe!
             val result = getInventory.getItem(ResultSlot)
-            val key = generateId() //TODO if a key was set, use that one instead.
-            val group = "" //TODO
+            val key = if (this.key == null) generateId() else this.key
+            val group = this.group //TODO does not seem to work? might be due to the other bug //TODO test this again.
+            println("DEBUG simple group = " + group)
             val ingredients = ingredientStacks.map(is => new SimpleCraftingIngredient(List(is))).toList //TODO use cached ingredients.
 
-            val recipe = new SimpleShapelessRecipe(key, Option(group), ingredients, result) //TODO doesn't actually seem to match the inventory. do we need to send stuff to the client?
+            val recipe = new SimpleShapelessRecipe(key, Option(group), ingredients, result)
             Some(recipe)
         } else {
             //no ingredients - too bad

@@ -21,7 +21,7 @@ object ShapedRecipe {
         new SimpleShapedRecipe(namespacedKey, shape, ingredients, result)
 }
 
-trait ShapedRecipe extends CraftingRecipe
+trait ShapedRecipe extends CraftingRecipe with Grouped
     with FixedIngredients
     with FixedResult {
 
@@ -30,8 +30,6 @@ trait ShapedRecipe extends CraftingRecipe
     override def getType(): RecipeType = ShapedType
 
     def getResult(): ItemStack
-
-    def getGroup(): Option[String] = None
 
     def getShape(): IndexedSeq[String]
 
@@ -113,11 +111,13 @@ object SimpleShapedRecipe {
 
 @SerializableAs("SimpleShaped")
 class SimpleShapedRecipe(private val namespacedKey: NamespacedKey,
-                         private val group: Option[String],
+                         optionGroup: Option[String],
                          private val shape: IndexedSeq[String],
                          private val ingredients: Map[Char, _ <: CraftingIngredient],
-                         private val result: ItemStack) extends ShapedRecipe
-    with ConfigurationSerializable {
+                         private val result: ItemStack)
+    extends ShapedRecipe with ConfigurationSerializable {
+
+    this.group = optionGroup.orNull
 
     def this(namespacedKey: NamespacedKey, shape: IndexedSeq[String], ingredients: Map[Char, _ <: CraftingIngredient], result: ItemStack) =
         this(namespacedKey, None, shape, ingredients, result)
@@ -129,8 +129,6 @@ class SimpleShapedRecipe(private val namespacedKey: NamespacedKey,
     override def getIngredients(): Map[Char, _ <: CraftingIngredient] = ingredients
 
     override def getKey: NamespacedKey = namespacedKey
-
-    override def getGroup(): Option[String] = group
 
     override def serialize(): util.Map[String, AnyRef] = {
         val map = new util.HashMap[String, AnyRef]()

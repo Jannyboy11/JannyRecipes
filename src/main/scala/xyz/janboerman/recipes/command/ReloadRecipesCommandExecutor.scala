@@ -5,7 +5,7 @@ import org.bukkit.command.{Command, CommandExecutor, CommandSender}
 import xyz.janboerman.recipes.RecipesPlugin
 import xyz.janboerman.recipes.RecipesPlugin.{addRecipe, getLogger}
 
-object ReloadRecipesExecutor extends CommandExecutor {
+object ReloadRecipesCommandExecutor extends CommandExecutor {
     override def onCommand(sender: CommandSender, command: Command, label: String, args: Array[String]): Boolean = {
         RecipesPlugin.persist().loadRecipes() match {
             case Right(iterator) =>
@@ -28,6 +28,8 @@ object ReloadRecipesExecutor extends CommandExecutor {
                 if (errors > 0) getLogger.severe(ChatColor.RED + s"$errors recipes failed to load.")
             case Left(errorMessage) => sender.sendMessage(ChatColor.RED + errorMessage)
         }
+
+        //TODO re-add and disable vanilla recipes too.
 
         true
     }

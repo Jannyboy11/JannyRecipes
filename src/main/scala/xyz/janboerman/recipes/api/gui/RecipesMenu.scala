@@ -101,7 +101,6 @@ class RecipesMenu[P <: Plugin]()(implicit protected val api: JannyRecipesAPI, im
             this.pageButton = new AnvilButton[RecipesMenu[P]]({ case (holder: RecipesMenu[P], event: InventoryClickEvent, input) =>
                 var newPageNr = Try { Integer.parseInt(input) }
                     .getOrElse({event.getWhoClicked().sendMessage(ChatColor.RED + "Please enter a positive integer number."); currentPageNumber}) - 1
-                //TODO don't hardcode the ChatFormat
 
                 if (newPageNr < 0) newPageNr = 0
                 holder.setCurrentPage(newPageNr)

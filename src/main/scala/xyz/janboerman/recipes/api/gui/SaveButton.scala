@@ -32,7 +32,7 @@ class SaveButton[P <: Plugin, R <: Recipe, RE <: RecipeEditor[P, R]](icon: ItemS
 
     override def onClick(recipeEditor: RE, event: InventoryClickEvent): Unit = {
         recipeEditor.makeRecipe() match {
-            case Some(recipe) => //TODO match on Some(recipe: R with ConfigurationSerializable) or something :P
+            case Some(recipe) => //TODO match on Some(recipe: R with ConfigurationSerializable) or something?
                 val player = event.getWhoClicked
 
                 val cachedRecipe: Recipe = recipeEditor.getCachedRecipe() match {
@@ -45,7 +45,7 @@ class SaveButton[P <: Plugin, R <: Recipe, RE <: RecipeEditor[P, R]](icon: ItemS
                     val cachedKeyedRecipe = cachedRecipe.asInstanceOf[Recipe with Keyed]
                     val newKeyedRecipe = recipe.asInstanceOf[Recipe with Keyed]
 
-                    if (newKeyedRecipe.getKey == cachedKeyedRecipe.getKey) {
+                    if (cachedKeyedRecipe.getKey == newKeyedRecipe.getKey) {
                         //remove from cache.
                         api.removeRecipe(cachedKeyedRecipe)
                     }

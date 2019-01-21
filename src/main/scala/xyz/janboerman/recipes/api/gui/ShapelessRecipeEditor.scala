@@ -17,6 +17,30 @@ class ShapelessRecipeEditor[P <: Plugin](inventory: Inventory,
                             implicit override val plugin: P)
     extends CraftingRecipeEditor[P, ShapelessRecipe](inventory, shapelessRecipe) {
 
+    protected var shouldUpdateIngredients = false
+    protected var oldIngredientContents = (CornerY until CornerY + MaxHeight)
+        .flatMap(y => (CornerX until CornerX + MaxWidth)
+            .map(x => y * InventoryWidth + x)).map(getInventory.getItem(_))
+    private var ingredients: List[_ <: CraftingIngredient] = null
+
+    if (recipe != null) {
+        this.ingredients = recipe.getIngredients()
+    }
+
+    protected def  hasIngredientContentsChanged(): Boolean = {
+        ingredients == null || shouldUpdateIngredients || oldIngredientContents != (CornerY until CornerY + MaxHeight)
+            .flatMap(y => (CornerX until CornerX + MaxWidth)
+                .map(x => y * InventoryWidth + x)).map(getInventory.getItem(_))
+    }
+
+    def setNewIngredients(ingredients: List[_ <: CraftingIngredient]): Unit = {
+        this.ingredients = ingredients
+        for ((index, ingredient) <- IngredientIndices.zip(ingredients)) {
+            getInventory.setItem(index, ingredient.getChoices().headOption.orNull)
+        }
+        shouldUpdateIngredients = false
+    }
+
     override def getIcon(): Option[ItemStack] = Option(recipe).map(_.getResult())
 
     override def layoutButtons(): Unit = {
@@ -40,11 +64,6 @@ class ShapelessRecipeEditor[P <: Plugin](inventory: Inventory,
     }
 
     override def makeRecipe(): Option[ShapelessRecipe] = {
-        //TODO because ingredients can have multiple materials (itemstacks actualy) called 'choices'
-        //TODO cache CraftingIngredients in the CraftingRecipeEditor field.
-
-        //TODO use that cache here.
-        //TODO for now just use the itemstacks that are in the editor
         val ingredientStacks = (CornerY until CornerY + MaxHeight)
             .flatMap(y => (CornerX until CornerX + MaxWidth)
                 .map(x => y * InventoryWidth + x)).map(getInventory.getItem(_))
@@ -54,9 +73,12 @@ class ShapelessRecipeEditor[P <: Plugin](inventory: Inventory,
             //there are ingredients - let's  create a recipe!
             val result = getInventory.getItem(ResultSlot)
             val key = if (this.key == null) generateId() else this.key
-            val group = this.group //TODO does not seem to work? might be due to the other bug //TODO test this again.
-            println("DEBUG simple group = " + group)
-            val ingredients = ingredientStacks.map(is => new SimpleCraftingIngredient(List(is))).toList //TODO use cached ingredients.
+            val group = this.group
+            val ingredients = if (hasIngredientContentsChanged()) {
+                ingredientStacks.map(is => new SimpleCraftingIngredient(List(is))).toList
+            } else {
+                this.ingredients
+            }
 
             val recipe = new SimpleShapelessRecipe(key, Option(group), ingredients, result)
             Some(recipe)

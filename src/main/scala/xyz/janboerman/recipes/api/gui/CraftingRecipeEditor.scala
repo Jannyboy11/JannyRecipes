@@ -20,6 +20,10 @@ object CraftingRecipeEditor {
     val MaxWidth = 3
     val MaxHeight = 3
 
+    val IngredientIndices = (CornerY until CornerY + MaxHeight)
+        .flatMap(y => (CornerX until CornerX + MaxWidth)
+            .map(x => y * InventoryWidth + x))
+
     val InventoryWidth = 9
     val InventoryHeight = 6
     val HotbarSize = InventoryWidth
@@ -76,6 +80,13 @@ abstract class CraftingRecipeEditor[P <: Plugin, R <: CraftingRecipe](inventory:
     }
 
     def layoutButtons(): Unit = {
+        val saveAndExitIndex = 45
+        val renameIndex = 47
+        val setGroupIndex = 48
+        val modifiersIndex = 50
+        val deleteIndex = 51
+        val exitIndex = 53
+
         val saveAndExitButton = new SaveButton[P, R, self.type](() => recipesMenu.getInventory)
         val exitButton = new RedirectItemButton[self.type](
             new ItemBuilder(Material.RED_CONCRETE).name(Exit).build(),
@@ -94,6 +105,9 @@ abstract class CraftingRecipeEditor[P <: Plugin, R <: CraftingRecipe](inventory:
                 } else {
                     new NamespacedKey(menuHolder.getPlugin, split(0))
                 }
+
+                val anvilButton = getButton(renameIndex).asInstanceOf[AnvilButton[_]]
+                anvilButton.setIcon(new ItemBuilder(anvilButton.getIcon).lore(lore(this.key.toString)).build())
             }
             menuHolder.getPlugin.getServer.getScheduler.runTask(menuHolder.getPlugin, (_: BukkitTask) => player.openInventory(menuHolder.getInventory))
         }, if (this.key == null) "" else this.key.toString, new ItemBuilder(Material.NAME_TAG).name(Rename).lore({
@@ -106,6 +120,8 @@ abstract class CraftingRecipeEditor[P <: Plugin, R <: CraftingRecipe](inventory:
         val setGroupButton = new AnvilButton[self.type]({case (menuHolder, event, input) =>
             val player = event.getWhoClicked
             this.group = input
+            val anvilButton = getButton(setGroupIndex).asInstanceOf[AnvilButton[_]]
+            anvilButton.setIcon(new ItemBuilder(anvilButton.getIcon).lore(lore(this.group)).build())
 
             menuHolder.getPlugin.getServer.getScheduler.runTask(menuHolder.getPlugin, (_: BukkitTask) => player.openInventory(menuHolder.getInventory))
         }, if (this.group == null) "" else this.group, new ItemBuilder(Material.CHEST).name(SetGroup).lore({
@@ -129,13 +145,13 @@ abstract class CraftingRecipeEditor[P <: Plugin, R <: CraftingRecipe](inventory:
             }
         }
 
-        setButton(45, saveAndExitButton)
-        setButton(47, renameButton)
-        setButton(48, setGroupButton)
+        setButton(saveAndExitIndex, saveAndExitButton)
+        setButton(renameIndex, renameButton)
+        setButton(setGroupIndex, setGroupButton)
         //49: type button
-        setButton(50, modifiersButton)
-        setButton(51, deleteButton)
-        setButton(53, exitButton)
+        setButton(modifiersIndex, modifiersButton)
+        setButton(deleteIndex, deleteButton)
+        setButton(exitIndex, exitButton)
     }
 
 }

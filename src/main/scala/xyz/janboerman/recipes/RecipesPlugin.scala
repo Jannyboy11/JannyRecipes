@@ -9,7 +9,7 @@ import xyz.janboerman.recipes.api.JannyRecipesAPI
 import xyz.janboerman.recipes.api.gui.RecipeGuiFactory
 import xyz.janboerman.recipes.api.persist.{RecipeStorage, SimpleStorage}
 import xyz.janboerman.recipes.api.recipe._
-import xyz.janboerman.recipes.command.{ReEditCommandExecutor, ReOpenCommandExecutor, RecipesCommandExecutor, ReloadRecipesCommandExecutor}
+import xyz.janboerman.recipes.command._
 import xyz.janboerman.recipes.event.ImplementationEvent
 import xyz.janboerman.recipes.listeners.GuiInventoryHolderListener
 import xyz.janboerman.scalaloader.plugin.ScalaPluginDescription.{Command, Permission}
@@ -27,6 +27,7 @@ object RecipesPlugin
         .loadOrder(PluginLoadOrder.STARTUP)
         .addCommand(new Command("recipes").description("Open the recipes manager").permission("jannyrecipes.command.recipes"))
         .addCommand(new Command("addrecipe").description("Shortcut command to open the new-recipe wizard").permission("jannyrecipes.command.recipes"))
+        .addCommand(new Command("editrecipe").description("Edit a recipe that uses the item in your hand").permission("jannyrecipes.command.recipes"))
         .addCommand(new Command("reopen").description("Reopens the GUI").permission("jannyrecipes.command.reopen").aliases("re-open"))
         .addCommand(new Command("reedit").description("Reopens the last editor GUI").permission("jannyrecipes.command.reedit").aliases("re-edit"))
         .addCommand(new Command("reloadrecipes").description("Reloads the recipes from the config files").permission("jannyrecipes.reload").aliases("rr", "reloadr", "rrecipes"))
@@ -66,6 +67,8 @@ object RecipesPlugin
         getCommand("reopen").setExecutor(ReOpenCommandExecutor)
         getCommand("reedit").setExecutor(ReEditCommandExecutor)
         getCommand("reloadrecipes").setExecutor(ReloadRecipesCommandExecutor)
+        getCommand("addrecipe").setExecutor(AddRecipeCommandExecutor)
+        getCommand("editrecipe").setExecutor(EditRecipeCommandExecutor)
 
         if (implementation == null) { //we couldn't find the right implementation ourselves.
             //let another plugin try it (it should have JannyRecipes in its load-before option in the plugin.yml!
@@ -91,8 +94,6 @@ object RecipesPlugin
                     var successes = 0
                     var errors = 0
                     for (recipe <- iterator) {
-                        //TODO remove debug
-                        getLogger.warning("DEBUG loaded recipe: " + recipe)
                         val successfullyAdded = addRecipe(recipe)
                         if (!successfullyAdded) {
                             getLogger.warning("Could not register recipe: " + recipe)

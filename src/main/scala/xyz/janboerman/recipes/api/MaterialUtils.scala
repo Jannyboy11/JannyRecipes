@@ -103,9 +103,8 @@ object MaterialUtils {
         val name = material.name()
 
         (isMadeOfToolMaterial(material) &&  name.endsWith("SWORD")) ||
-            name.endsWith("BOW") ||
+            name.endsWith("BOW") /*also includes crossbow*/ ||
             material == TRIDENT
-            //TODO crossbow
     }
 
     private def isArmour(material: org.bukkit.Material): Boolean = {

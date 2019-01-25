@@ -29,7 +29,7 @@ trait ShapelessRecipe extends CraftingRecipe with Grouped
 
     def getResult(): ItemStack
 
-    def getIngredients(): List[_ <: CraftingIngredient]
+    def getIngredients(): List[_ <: CraftingIngredient] //TODO return List[CraftingIngredient] now that I learned about Scala's (in/co/contra)variance
 
     override def tryCraft(craftingInventory: CraftingInventory, world: World): Option[CraftingResult] = {
         val ingredients = getIngredients()

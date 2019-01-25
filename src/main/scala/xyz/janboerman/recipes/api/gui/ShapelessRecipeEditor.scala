@@ -38,6 +38,7 @@ class ShapelessRecipeEditor[P <: Plugin](inventory: Inventory,
         for ((index, ingredient) <- IngredientIndices.zip(ingredients)) {
             getInventory.setItem(index, ingredient.getChoices().headOption.orNull)
         }
+
         shouldUpdateIngredients = false
     }
 
@@ -75,7 +76,8 @@ class ShapelessRecipeEditor[P <: Plugin](inventory: Inventory,
             val key = if (this.key == null) generateId() else this.key
             val group = this.group
             val ingredients = if (hasIngredientContentsChanged()) {
-                ingredientStacks.map(is => new SimpleCraftingIngredient(List(is))).toList
+                //TODO only 'replace' the ingredients of the slots where the itemstack actually changed?
+                ingredientStacks.map(CraftingIngredient(_)).toList
             } else {
                 this.ingredients
             }

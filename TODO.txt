@@ -1,6 +1,6 @@
 Fix all TODOs in the code
 
-use implicits for passing around the gui factory/mainmenu/plugin instances
+fix shaped recipe editor gui, fix furnace recipe eidtor gui, editors per complex recipe,
 
 enige dingen die ik nog moet doen zijn saven en loaden implementeren,
 nog wat meer knoppen hun functionaliteit geven,

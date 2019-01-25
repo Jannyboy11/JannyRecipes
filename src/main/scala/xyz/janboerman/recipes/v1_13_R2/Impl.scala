@@ -5,7 +5,6 @@ import net.minecraft.server.v1_13_R2.{MinecraftKey, PotionBrewer, RecipeSerializ
 import org.bukkit.craftbukkit.v1_13_R2.util.CraftMagicNumbers
 import org.bukkit.plugin.Plugin
 import org.bukkit.{Bukkit, Keyed, NamespacedKey}
-import xyz.janboerman.recipes.api.JannyRecipesAPI
 import xyz.janboerman.recipes.{JannyImplementation, RecipesPlugin}
 import xyz.janboerman.recipes.api.gui.RecipeGuiFactory
 import xyz.janboerman.recipes.api.persist.RecipeStorage
@@ -25,15 +24,17 @@ object Impl extends JannyImplementation {
         if (!Bukkit.getServer.getClass.getName.equals("org.bukkit.craftbukkit.v1_13_R2.CraftServer"))
             return false
 
+        val compileTimeMappingsVersion = "00ed8e5c39debc3ed194ad7c5645cc45"
+
         val mappingsVersion: String = CraftMagicNumbers.INSTANCE.asInstanceOf[CraftMagicNumbers].getMappingsVersion
-        if (mappingsVersion != "00ed8e5c39debc3ed194ad7c5645cc45") {
+        if (mappingsVersion != compileTimeMappingsVersion) {
             val logger = RecipesPlugin.getLogger
 
             logger.warning("")
             logger.warning("====================== WARNING ======================")
-            logger.warning("Found a possibly incompatible NMS version. " + RecipesPlugin.getName + " may not work as expected.")
-            logger.warning("Compile-time version: 00ed8e5c39debc3ed194ad7c5645cc45")
-            logger.warning("Run-time version: " + mappingsVersion)
+            logger.warning(s"Found possibly incompatible NMS mappings. ${RecipesPlugin.getName} may not work as expected.")
+            logger.warning(s"Compile-time version: $compileTimeMappingsVersion" )
+            logger.warning(s"Run-time version: $mappingsVersion")
             logger.warning("====================== WARNING ======================")
             logger.warning("")
 

@@ -26,7 +26,7 @@ object RecipesPlugin
         .description("Plugin and library for managing crafting and smelting recipes")
         .loadOrder(PluginLoadOrder.STARTUP)
         .addCommand(new Command("recipes").description("Open the recipes manager").permission("jannyrecipes.command.recipes"))
-        .addCommand(new Command("addrecipe").description("Shortcut command to open the new-recipe wizard").permission("jannyrecipes.command.recipes"))
+        .addCommand(new Command("addrecipe").description("Shortcut command to open the new-recipe wizard").permission("jannyrecipes.command.recipes").aliases("newrecipe"))
         .addCommand(new Command("editrecipe").description("Edit a recipe that uses the item in your hand").permission("jannyrecipes.command.recipes"))
         .addCommand(new Command("reopen").description("Reopens the GUI").permission("jannyrecipes.command.reopen").aliases("re-open"))
         .addCommand(new Command("reedit").description("Reopens the last editor GUI").permission("jannyrecipes.command.reedit").aliases("re-edit"))

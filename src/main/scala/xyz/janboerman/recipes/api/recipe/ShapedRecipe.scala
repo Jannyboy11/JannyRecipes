@@ -33,7 +33,7 @@ trait ShapedRecipe extends CraftingRecipe with Grouped
 
     def getShape(): IndexedSeq[String]
 
-    def getIngredients(): Map[Char, _ <: CraftingIngredient]
+    def getIngredients(): Map[Char, _ <: CraftingIngredient] //TODO return Map[Char, CraftingIngredient] now that I learned about Scala's (in/co/contra)variance
 
     override def tryCraft(craftingInventory: CraftingInventory, world: World): Option[CraftingResult] = {
         val (inventoryWidth, inventoryHeight) = (3, 3)
@@ -51,6 +51,8 @@ trait ShapedRecipe extends CraftingRecipe with Grouped
                             if (resultStack != null) resultStack = resultStack.clone()
                             CraftingResult(resultStack, remainders)
                         })
+
+                    println("DEBUG ShapedRecipe#tryCraft matrixMatch outcome = " + successResult)
 
                     if (successResult.isDefined) return successResult
                 }

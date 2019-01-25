@@ -10,12 +10,15 @@ import scala.collection.JavaConverters
 
 trait JannyRecipesAPI {
 
+    //TODO overloads for shaped, shapeless and furnace recipes only instead of this type-unsafe method?
     def fromBukkitRecipe(bukkit: org.bukkit.inventory.Recipe): Recipe
 
+    //TODO overloads for shaped, shapeless and furnace recipes only instead of this type-unsafe method?
     def toBukkitRecipe(janny: Recipe): org.bukkit.inventory.Recipe
 
     def getRecipe(key: NamespacedKey): Recipe
 
+    //TODO overloads for crafting recipes / smelting recipes? (later brewing recipes?)
     def addRecipe(recipe: Recipe): Boolean
 
     def removeRecipe(recipe: Recipe): Boolean

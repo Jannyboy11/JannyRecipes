@@ -62,12 +62,6 @@ abstract class RecipeEditor[P <: Plugin, R <: Recipe](protected var recipe: R,
     //TODO let ShapedEditor, FurnaceEditor override this method.
 
 
-    //TODO does this belong here? it doesn't have to
-//    def saveRecipe(): Boolean //TODO can i share some code here across implementations?
-//    def deleteRecipe(): Boolean //TODO can i share some code here across implementations?
-
     def getIcon(): Option[ItemStack] = None
-    //TODO can FixedResult be a type-class? ShapedRecipe, FurnaceRecipe and ShapelessRecipes can all have instances defined
-    //TODO then maybe modified recipes can implement FixedResult if their base recipes implement it.
 
 }

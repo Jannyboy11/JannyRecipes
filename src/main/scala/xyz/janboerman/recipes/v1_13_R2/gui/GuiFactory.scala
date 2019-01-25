@@ -15,7 +15,7 @@ object GuiFactory extends RecipeGuiFactory[RecipesPlugin.type] {
 
         //TODO custom recipe types
 
-        //TODO actually call newRecipeEditor, then call setRecipe
+        //TODO actually call newRecipeEditor, then call setRecipe?
 
         recipe match {
             //TODO modified recipe

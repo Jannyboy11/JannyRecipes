@@ -41,10 +41,12 @@ case class JannyFurnaceToBukkit(janny: ApiFurnaceRecipe) extends FurnaceRecipe (
 
 case class JannyShapedToBukkit(janny: ApiShapedRecipe) extends ShapedRecipe(janny.getKey, janny.getResult()) with CraftRecipe {
 
+    //TODO fix java.lang.IllegalArgumentException: Symbol does not appear in the shape:66
     shape(janny.getShape: _*)
     for ((key, ingredient) <- janny.getIngredients()) {
         setIngredient(key, JannyCraftingIngredientToRecipeChoice(ingredient))
     }
+    //TODO why are we even called??
 
     override def getKey: NamespacedKey = janny.getKey
     override def getGroup: String = janny.getGroup.getOrElse("")

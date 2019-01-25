@@ -24,9 +24,6 @@ abstract class JannyCraftingToNMS(janny: CraftingRecipe) extends IRecipe {
                 val bukkitWorld = toBukkitWorld(world.asInstanceOf[WorldServer])
 
                 lastCheck = janny.tryCraft(obcInventoryCrafting, bukkitWorld)
-
-                println("DEBUG JannyCraftingToNMS#matches lastCheck = " + lastCheck)
-
                 lastCheck.isDefined
             case _ => false
         }

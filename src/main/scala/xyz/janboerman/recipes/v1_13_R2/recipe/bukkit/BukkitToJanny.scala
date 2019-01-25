@@ -58,11 +58,11 @@ case class BukkitShapedToJanny(bukkit: org.bukkit.inventory.ShapedRecipe) extend
         val maxAddX = inventoryWidth - shape.head.length
         val maxAddY = inventoryHeight - shape.size
 
-        for (addX <- 0 until maxAddX) {
-            for (addY <- 0 until maxAddY) {
+        for (addX <- 0 to maxAddX) {
+            for (addY <- 0 to maxAddY) {
                 for (mirrored <- Seq(false, true)) {
                     val successResult = matrixMatch(craftingInventory, inventoryWidth, inventoryHeight, addX, addY, mirrored) match {
-                        //Scala can have protected methods in traits, unlinke java interfaces :)
+                        //Scala can have protected methods in traits, unlike java interfaces :)
                         case Some(remainders) => Some(CraftingResult(getResult, remainders))
                         case _ => None
                     }

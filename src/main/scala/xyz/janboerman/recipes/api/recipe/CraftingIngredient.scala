@@ -13,14 +13,15 @@ object CraftingIngredient {
         override def getChoices(): List[_ <: ItemStack] = Nil
         override def apply(input: ItemStack): Boolean = input == null
         override def clone(): CraftingIngredient = this
+        override def toString: String = "EmptyIngredient"
     }
 
     def empty(): CraftingIngredient = EmptyIngredient
 
     def apply(firstChoice: ItemStack, choices: ItemStack*): CraftingIngredient = if (choices.isEmpty) apply(firstChoice) else new SimpleCraftingIngredient(firstChoice :: choices.toList)
     def apply(firstChoice: Material, choices: Material*): CraftingIngredient = if (choices.isEmpty) apply(firstChoice) else new SimpleCraftingIngredient((firstChoice :: choices.toList).map(new ItemStack(_)))
-    def apply(ingredient: ItemStack): CraftingIngredient = if (ingredient == null) EmptyIngredient else new SimpleCraftingIngredient(ingredient :: Nil)
-    def apply(ingredient: Material): CraftingIngredient = if (ingredient == null) EmptyIngredient else new SimpleCraftingIngredient(new ItemStack(ingredient) :: Nil)
+    def apply(ingredient: ItemStack): CraftingIngredient = if (ingredient == null) empty() else new SimpleCraftingIngredient(ingredient :: Nil)
+    def apply(ingredient: Material): CraftingIngredient = if (ingredient == null) empty() else new SimpleCraftingIngredient(new ItemStack(ingredient) :: Nil)
 
     def unapply(arg: CraftingIngredient): Option[List[_ <: ItemStack]] = Some(arg.getChoices())
 }

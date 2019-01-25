@@ -10,8 +10,8 @@ object JannyImplementation {
     private val implementations = new mutable.ListBuffer[() => JannyImplementation]()
     registerImplementation(() => Impl)
 
-    def registerImplementation(implementationSupplier: () => JannyImplementation): Unit = {
-        implementations += implementationSupplier
+    def registerImplementation(implementationFactory: () => JannyImplementation): Unit = {
+        implementations += implementationFactory
     }
 
     def apply(server: Server): Option[JannyImplementation] = {

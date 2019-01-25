@@ -4,7 +4,7 @@ import java.util
 
 import org.bukkit.configuration.serialization.{ConfigurationSerializable, SerializableAs}
 import org.bukkit.{NamespacedKey, World}
-import org.bukkit.inventory.{CraftingInventory, Inventory, ItemStack}
+import org.bukkit.inventory.{CraftingInventory, ItemStack}
 import xyz.janboerman.recipes.api.persist.RecipeStorage._
 import xyz.janboerman.recipes.api.persist.{SerializableList, SerializableMap}
 
@@ -42,8 +42,8 @@ trait ShapedRecipe extends CraftingRecipe with Grouped
         val maxAddX = inventoryWidth - shape.head.length
         val maxAddY = inventoryHeight - shape.size
 
-        for (addX <- 0 until maxAddX) {
-            for (addY <- 0 until maxAddY) {
+        for (addX <- 0 to maxAddX) {
+            for (addY <- 0 to maxAddY) {
                 for (mirrored <- Seq(false, true)) {
                     val successResult = matrixMatch(craftingInventory, inventoryWidth, inventoryHeight, addX, addY, mirrored)
                         .map(remainders => {
@@ -51,8 +51,6 @@ trait ShapedRecipe extends CraftingRecipe with Grouped
                             if (resultStack != null) resultStack = resultStack.clone()
                             CraftingResult(resultStack, remainders)
                         })
-
-                    println("DEBUG ShapedRecipe#tryCraft matrixMatch outcome = " + successResult)
 
                     if (successResult.isDefined) return successResult
                 }
@@ -89,12 +87,12 @@ trait ShapedRecipe extends CraftingRecipe with Grouped
         Some(remainders.toList)
     }
 
-    private def getItemStackFromInventory(x: Int, y: Int, invWidth: Int, invHeight: Int, inventory: Inventory): ItemStack = {
+    private def getItemStackFromInventory(x: Int, y: Int, invWidth: Int, invHeight: Int, inventory: CraftingInventory): ItemStack = {
         if (x < 0 || x >= invWidth) return null
         if (y < 0 || y >= invHeight) return null
 
         val index = y * invWidth + x
-        inventory.getItem(index)
+        inventory.getMatrix()(index)
     }
 }
 

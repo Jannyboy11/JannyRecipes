@@ -83,63 +83,52 @@ class ShapedRecipeEditor[P <: Plugin](inventory: Inventory,
 
             val shape: IndexedSeq[String] = if (ingredientContentsChanged) {
 
-                val coordinates = new mutable.ListBuffer[mutable.ListBuffer[Int]]()
+                val coordinates = new mutable.ListBuffer[(Int, mutable.ListBuffer[Int])]()
                 for (h <- 0 until MaxHeight) {
                     val row = new mutable.ListBuffer[Int]()
                     for (w <- 0 until MaxWidth) {
                         row.addOne(w)
                     }
-                    coordinates.addOne(row)
+                    coordinates.addOne((h, row))
                 }
 
-                val isLineEmpty: Seq[Int] => Boolean = indices => indices.forall(i => {
-                    val stack = getInventory.getItem(i)
-
-                    println("DEBUG ShapedRecipeEditor#makeRecipe stack at index " + i + " = " + stack)
-
-                    getInventory.getItem(i) == null
-                })
+                val isLineEmpty: Seq[Int] => Boolean = _.forall(getInventory.getItem(_) == null)
                 val toIndex: (Int, Int) => Int = (y, x) => y * InventoryWidth + x
                 val coord: (Int, Int) => Int = (ry, rx) => toIndex(CornerY + ry, CornerX + rx)
 
-                val removeCoordinates: Seq[(Int, Int)] => Unit = _.foreach { case (y, x) =>
-                    val row = coordinates.applyOrElse(y, (_: Int) => new mutable.ListBuffer[Int])
+                val removeCoordinates: Seq[(Int, Int)] => Unit = _.foreach { case (y: Int, x: Int) =>
+                    val tup: (Int, mutable.ListBuffer[Int]) = coordinates.applyOrElse(y, (uwot: Int) => (uwot, new mutable.ListBuffer[Int]()))
+                    val row = tup._2
                     row -= x
                     if (row.isEmpty) {
-                        coordinates -= row
+                        coordinates.-=((y, row))
                     }
                 }
 
                 if (isLineEmpty(Seq(coord(0, 1), coord(1, 1), coord(2, 1))) &&
                     (isLineEmpty(Seq(coord(0, 0), coord(1, 0), coord(2, 0))) ||
                         isLineEmpty(Seq(coord(0, 2), coord(1, 2), coord(2, 2))))) {
-                    println("DEBUG ShapedRecipeEditor#makeRecipe decrementing width 1")
                     removeCoordinates(Seq((0, 1), (1, 1), (2, 1)))
                 }
                 if (isLineEmpty(Seq(coord(0, 2), coord(1, 2), coord(2, 2)))) {
-                    println("DEBUG ShapedRecipeEditor#makeRecipe decrementing width 2")
                     removeCoordinates(Seq((0, 2), (1, 2), (2, 2)))
                 }
                 if (isLineEmpty(Seq(coord(0, 0), coord(1, 0), coord(2, 0)))) {
-                    println("DEBUG ShapedRecipeEditor#makeRecipe decrementing width 3")
                     removeCoordinates(Seq((0, 0), (1, 0), (2, 0)))
                 }
                 if (isLineEmpty(Seq(coord(1, 0), coord(1, 1), coord(1, 2))) &&
                     (isLineEmpty(Seq(coord(0, 0), coord(0, 1), coord(0, 2))) ||
                         isLineEmpty(Seq(coord(2, 0), coord(2, 1), coord(2, 2))))) {
-                    println("DEBUG ShapedRecipeEditor#makeRecipe decrementing height 1")
                     removeCoordinates(Seq((1, 0), (1, 1), (1, 2)))
                 }
                 if (isLineEmpty(Seq(coord(0, 0), coord(0, 1), coord(0, 2)))) {
-                    println("DEBUG ShapedRecipeEditor#makeRecipe decrementing height 2")
                     removeCoordinates(Seq((0, 0), (0, 1), (0, 2)))
                 }
                 if (isLineEmpty(Seq(coord(2, 0), coord(2, 1), coord(2, 2)))) {
-                    println("DEBUG ShapedRecipeEditor#makeRecipe decrementing height 3")
                     removeCoordinates(Seq((2, 0), (2, 1), (2, 2)))
                 }
 
-                coordinates.zipWithIndex.map { case (row, y) => {
+                coordinates.map { case (y, row) => {
                     row.map(x => {
                         val i = coord(y, x)
                         val itemStack = getInventory.getItem(i)

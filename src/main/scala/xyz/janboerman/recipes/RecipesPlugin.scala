@@ -94,8 +94,6 @@ object RecipesPlugin
                     var successes = 0
                     var errors = 0
                     for (recipe <- iterator) {
-                        println("DEBUG loading recipe: " + recipe)
-
                         val successfullyAdded = addRecipe(recipe)
                         if (!successfullyAdded) {
                             getLogger.warning("Could not register recipe: " + recipe)

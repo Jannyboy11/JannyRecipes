@@ -7,8 +7,6 @@ import xyz.janboerman.recipes.RecipesPlugin.{addRecipe, getLogger}
 
 object ReloadRecipesCommandExecutor extends CommandExecutor {
     override def onCommand(sender: CommandSender, command: Command, label: String, args: Array[String]): Boolean = {
-        sender.sendMessage("HELLO, WORLD!")
-
         RecipesPlugin.persist().loadRecipes() match {
             case Right(iterator) =>
                 var successes = 0

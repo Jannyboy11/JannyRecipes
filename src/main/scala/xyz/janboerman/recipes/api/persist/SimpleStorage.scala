@@ -89,7 +89,6 @@ class SimpleStorage(val plugin: Plugin)(implicit api: JannyRecipesAPI) extends R
 
     override def loadRecipes(): Either[String, Iterator[Recipe with ConfigurationSerializable]] = {
         //TODO also load 'removed' vanilla recipes
-        //TODO shaped recipes don't seem to get loaded?
 
         val attempt = Try {
             JavaConverters.asScalaIterator[File](java.util.Arrays.asList(recipesFolder.listFiles((file: File) => file.isFile && file.getName.endsWith(".yml")): _*).iterator())

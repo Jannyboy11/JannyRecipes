@@ -8,8 +8,6 @@ import org.bukkit.inventory.{CraftingInventory, ItemStack}
 import xyz.janboerman.recipes.api.persist.RecipeStorage._
 import xyz.janboerman.recipes.api.persist.{SerializableList, SerializableMap}
 
-import scala.collection.mutable.ListBuffer
-
 object ShapedRecipe {
     def unapply(arg: ShapedRecipe): Option[(NamespacedKey, Option[String], IndexedSeq[String], Map[Char, _ <: CraftingIngredient], ItemStack)] =
         Some((arg.getKey, arg.getGroup(), arg.getShape(), arg.getIngredients(), arg.getResult()))
@@ -150,5 +148,5 @@ class SimpleShapedRecipe(private val namespacedKey: NamespacedKey,
         map
     }
 
-    override def toString(): String = s"SimpleShapelessRecipe{key=${getKey()},group=${getGroup()},shape=${getShape()},ingredients=${getIngredients()},result=${getResult()}}"
+    override def toString(): String = s"SimpleShapedRecipe{key=${getKey()},group=${getGroup()},shape=${getShape()},ingredients=${getIngredients()},result=${getResult()}}"
 }

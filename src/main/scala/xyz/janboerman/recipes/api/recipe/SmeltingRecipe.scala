@@ -3,7 +3,7 @@ package xyz.janboerman.recipes.api.recipe
 import org.bukkit.Keyed
 import org.bukkit.inventory.{FurnaceInventory, ItemStack}
 
-trait SmeltingRecipe extends Recipe with Keyed {
+trait SmeltingRecipe extends Recipe with Keyed with Grouped {
 
     def getResult(): ItemStack
 
@@ -14,8 +14,6 @@ trait SmeltingRecipe extends Recipe with Keyed {
 
     //sadly, TileEntityFurnace doesn't ever call the method in IRecipe that returns the remaining items.
     //in the future I might just override TileEntityFurnace with my own implementation.
-
-    def getGroup(): Option[String] = None
 
     def getCookingTime(): Int = 200
     def getExperience(): Float = 0F

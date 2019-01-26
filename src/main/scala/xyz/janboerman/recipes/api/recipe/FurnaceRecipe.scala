@@ -58,12 +58,14 @@ object SimpleFurnaceRecipe {
 
 @SerializableAs("SimpleFurnace")
 class SimpleFurnaceRecipe(private val namespacedKey: NamespacedKey,
-                          private val group: Option[String],
+                          optionGroup: Option[String],
                           private val furnaceIngredient: FurnaceIngredient,
                           private val result: ItemStack,
                           private val cookingTime: Int,
                           private val experience: Float)
     extends FurnaceRecipe with ConfigurationSerializable {
+
+    this.group = optionGroup.orNull
 
     def this(namespacedKey: NamespacedKey, furnaceIngredient: FurnaceIngredient, result: ItemStack, cookingTme: Int, experience: Float) =
         this(namespacedKey, None, furnaceIngredient, result, cookingTme, experience)
@@ -78,9 +80,7 @@ class SimpleFurnaceRecipe(private val namespacedKey: NamespacedKey,
 
     override def getResult(): ItemStack = if (result == null) null else result.clone()
 
-    override def getKey: NamespacedKey = namespacedKey
-
-    override def getGroup(): Option[String] = group
+    override def getKey(): NamespacedKey = namespacedKey
 
     override def serialize(): util.Map[String, AnyRef] = {
         val map = new util.HashMap[String, AnyRef]()
@@ -92,4 +92,11 @@ class SimpleFurnaceRecipe(private val namespacedKey: NamespacedKey,
         map.put(ExperienceString, java.lang.Float.valueOf(getExperience()))     //Int to java.lang.Integer and Float to java.lang.Float
         map
     }
+
+    override def toString(): String = s"SimpleFurnaceRecipe{key=${getKey()}," +
+        s"group=${getGroup()}," +
+        s"ingredient=${getIngredient()}," +
+        s"result=${getResult()}," +
+        s"cookingTime=${getCookingTime()}," +
+        s"experience=${getExperience()}}"
 }

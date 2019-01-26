@@ -60,6 +60,7 @@ trait ShapedRecipe extends CraftingRecipe with Grouped
         None
     }
 
+    //TODO document this method. it's not completely trivial what it does from its name and its signature.
     protected def matrixMatch(craftingInventory: CraftingInventory, invWidth: Int, invHeight: Int, addX: Int, addY: Int, mirrored: Boolean): Option[List[Option[ItemStack]]] = {
         val shape = getShape()
         val ingredients = getIngredients()
@@ -113,7 +114,7 @@ object SimpleShapedRecipe {
         val ingredients: Map[Char, _<: CraftingIngredient] = map.get(IngredientsString)
             .asInstanceOf[SerializableMap[CraftingIngredient]].map
             .map({case (string, ingredient) => (string(0), ingredient)})
-        val result = map.get(ItemStackString).asInstanceOf[ItemStack]
+        val result = map.get(ResultString).asInstanceOf[ItemStack]
         new SimpleShapedRecipe(namespacedKey, group, shape, ingredients, result)
     }
 }
@@ -137,7 +138,7 @@ class SimpleShapedRecipe(private val namespacedKey: NamespacedKey,
 
     override def getIngredients(): Map[Char, _ <: CraftingIngredient] = ingredients
 
-    override def getKey: NamespacedKey = namespacedKey
+    override def getKey(): NamespacedKey = namespacedKey
 
     override def serialize(): util.Map[String, AnyRef] = {
         val map = new util.HashMap[String, AnyRef]()
@@ -148,4 +149,6 @@ class SimpleShapedRecipe(private val namespacedKey: NamespacedKey,
         map.put(ResultString, getResult())
         map
     }
+
+    override def toString(): String = s"SimpleShapelessRecipe{key=${getKey()},group=${getGroup()},shape=${getShape()},ingredients=${getIngredients()},result=${getResult()}}"
 }

@@ -108,7 +108,7 @@ class SimpleShapelessRecipe(private val namespacedKey: NamespacedKey,
 
     override def getIngredients(): List[_ <: CraftingIngredient] = ingredients
 
-    override def getKey: NamespacedKey = namespacedKey
+    override def getKey(): NamespacedKey = namespacedKey
 
     override def serialize(): util.Map[String, AnyRef] = {
         val map = new util.HashMap[String, AnyRef]()
@@ -118,4 +118,6 @@ class SimpleShapelessRecipe(private val namespacedKey: NamespacedKey,
         map.put(ResultString, getResult())
         map
     }
+
+    override def toString(): String = s"SimpleShapelessRecipe{key=${getKey()},group=${getGroup()},ingredients=${getIngredients()},result=${getResult()}}"
 }

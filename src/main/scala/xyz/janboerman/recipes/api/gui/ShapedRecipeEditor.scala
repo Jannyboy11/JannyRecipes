@@ -105,6 +105,7 @@ class ShapedRecipeEditor[P <: Plugin](inventory: Inventory,
                     }
                 }
 
+                //TODO don't hardcode all these coordinates? it can be done with 4 loops (after one another, not nested)
                 if (isLineEmpty(Seq(coord(0, 1), coord(1, 1), coord(2, 1))) &&
                     (isLineEmpty(Seq(coord(0, 0), coord(1, 0), coord(2, 0))) ||
                         isLineEmpty(Seq(coord(0, 2), coord(1, 2), coord(2, 2))))) {
@@ -172,7 +173,7 @@ class ShapedRecipeEditor[P <: Plugin](inventory: Inventory,
             val width = Math.min(MaxWidth, shapedRecipe.getShape()(0).length)
 
             for (h <- 0 until height) {
-                val y = CornerY + h + (if (height == 1) 1 else 0)
+                val y = CornerY + h + (if (height < 3) 1 else 0)
                 val row = shapedRecipe.getShape()(h)
 
                 for (w <- 0 until width) {

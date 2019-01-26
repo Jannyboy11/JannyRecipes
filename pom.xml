@@ -6,7 +6,7 @@
 
     <groupId>xyz.janboerman</groupId>
     <artifactId>JannyRecipes</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>3.0.0-ALPHA</version>
 
     <properties>
         <scala.version>2.13.0-M5</scala.version>

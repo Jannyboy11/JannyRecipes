@@ -1,5 +1,5 @@
 val Name = "JannyRecipes"
-val Version = "3.0.0-SNAPSHOT"
+val Version = "3.0.0-ALPHA"
 
 name := Name
 version := Version

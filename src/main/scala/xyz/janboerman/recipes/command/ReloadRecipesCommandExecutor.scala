@@ -7,6 +7,8 @@ import xyz.janboerman.recipes.RecipesPlugin.{addRecipe, getLogger}
 
 object ReloadRecipesCommandExecutor extends CommandExecutor {
     override def onCommand(sender: CommandSender, command: Command, label: String, args: Array[String]): Boolean = {
+        sender.sendMessage("HELLO, WORLD!")
+
         RecipesPlugin.persist().loadRecipes() match {
             case Right(iterator) =>
                 var successes = 0
@@ -27,6 +29,8 @@ object ReloadRecipesCommandExecutor extends CommandExecutor {
                 if (successes > 0) getLogger.info(ChatColor.GREEN + s"Loaded $successes recipes.")
                 if (errors > 0) getLogger.severe(ChatColor.RED + s"$errors recipes failed to load.")
             case Left(errorMessage) => sender.sendMessage(ChatColor.RED + errorMessage)
+
+            case _ => sender.sendMessage("SHOULD NOT OCCUR!!!") //TODO remove
         }
 
         //TODO re-add and disable vanilla recipes too.

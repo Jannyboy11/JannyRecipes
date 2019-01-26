@@ -19,7 +19,7 @@ import xyz.janboerman.scalaloader.plugin.{ScalaPlugin, ScalaPluginDescription}
 @Api(value = ApiVersion.v1_13)
 @Scala(version = ScalaVersion.v2_13_0_M5)
 object RecipesPlugin
-    extends ScalaPlugin(new ScalaPluginDescription("JannyRecipes", "3.0.0-SNAPSHOT")
+    extends ScalaPlugin(new ScalaPluginDescription("JannyRecipes", "3.0.0-ALPHA")
         .authors("Jannyboy11")
         .website("https://www.github.com/Jannyboy11/JannyRecipes")
         .prefix("CustomRecipes")
@@ -94,6 +94,8 @@ object RecipesPlugin
                     var successes = 0
                     var errors = 0
                     for (recipe <- iterator) {
+                        println("DEBUG loading recipe: " + recipe)
+
                         val successfullyAdded = addRecipe(recipe)
                         if (!successfullyAdded) {
                             getLogger.warning("Could not register recipe: " + recipe)

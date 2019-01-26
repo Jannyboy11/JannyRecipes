@@ -38,7 +38,10 @@ trait ShapelessRecipe extends CraftingRecipe with Grouped
         if (ingredients.size != inputItems.length) return None
 
         val lazyListIterator = LazyList(ingredients: _*).permutations
-        val matchingIngredients: Option[(LazyList[CraftingIngredient], LazyList[ItemStack])] = lazyListIterator.map((_, LazyList(inputItems: _*))).find({case (ingredients, inputs) => {
+        val matchingIngredients: Option[(LazyList[CraftingIngredient], LazyList[ItemStack])] = lazyListIterator
+            .map((_, LazyList(inputItems: _*)))
+            .find({ case (ingredients, inputs) =>
+
             var ingrs = ingredients
             var ins = inputs
             var goingStrong = true
@@ -52,7 +55,7 @@ trait ShapelessRecipe extends CraftingRecipe with Grouped
                 ins = ins.tail
             }
             goingStrong && ingrs.isEmpty && ins.isEmpty
-        }})
+        })
 
 
         matchingIngredients match {

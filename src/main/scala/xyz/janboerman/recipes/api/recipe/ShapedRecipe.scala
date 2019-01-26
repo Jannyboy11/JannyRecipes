@@ -67,24 +67,33 @@ trait ShapedRecipe extends CraftingRecipe with Grouped
         val shapeWidth = shape.head.length
         val shapeHeight = shape.size
 
-        val remainders = new ListBuffer[Option[ItemStack]]()
+        val matrix = new Array[Array[Option[ItemStack]]](invHeight)
+        for (y <- 0 until invHeight) {
+            val row =  new Array[Option[ItemStack]](invWidth)
+            for (x <- 0 until invWidth) {
+                row(x) = None
+            }
+            matrix(y) = row
+        }
 
-        for (y <- 0 until shapeHeight) {
-            for (x <- 0 until shapeWidth) {
+        for (y <- 0 until invHeight) {
+            for (x <- 0 until invWidth) {
                 val gridX = if (mirrored) shapeWidth - 1 - x + addX else x + addX
                 val gridY = y + addY
 
-                val key = shape(y)(x)
-                val ingredient = ingredients.getOrElse(key, CraftingIngredient.empty)
+                val key = if (y < shapeHeight && x < shapeWidth) shape(y)(x) else ' '
+                val ingredient = ingredients.getOrElse(key, CraftingIngredient.empty())
 
                 val inputStack = getItemStackFromInventory(gridX, gridY, invWidth, invHeight, craftingInventory)
                 if (!ingredient.apply(inputStack)) return None
 
-                remainders.addOne(ingredient.getRemainingStack(inputStack))
+                if (0 <= gridX && gridX < invWidth && 0 <= gridY && gridY < invHeight) {
+                    matrix(gridY)(gridX) = ingredient.getRemainingStack(inputStack)
+                } //else: none remains in the array
             }
         }
 
-        Some(remainders.toList)
+        Some(matrix.toList.flatten)
     }
 
     private def getItemStackFromInventory(x: Int, y: Int, invWidth: Int, invHeight: Int, inventory: CraftingInventory): ItemStack = {

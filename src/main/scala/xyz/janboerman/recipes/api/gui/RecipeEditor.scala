@@ -1,6 +1,6 @@
 package xyz.janboerman.recipes.api.gui
 
-import org.bukkit.{ChatColor, Material}
+import org.bukkit.{ChatColor, Material, NamespacedKey}
 import org.bukkit.event.inventory.{InventoryClickEvent, InventoryOpenEvent}
 import org.bukkit.inventory.{Inventory, ItemStack}
 import org.bukkit.plugin.Plugin
@@ -64,4 +64,33 @@ abstract class RecipeEditor[P <: Plugin, R <: Recipe](protected var recipe: R,
 
     def getIcon(): Option[ItemStack] = None
 
+}
+
+trait KeyedRecipeEditor { this: RecipeEditor[_, _/*TODO require that the Recipe implements Keyed?*/] =>
+    private var key: NamespacedKey = _
+
+    def getKey(): NamespacedKey = key
+    def setKey(key: NamespacedKey): Unit = this.key = key
+
+    def getResultItemSlot(): Int //In Scala 3, I would use a parameterized trait to pass this number.
+
+    protected def generateId(): NamespacedKey = {
+        val resultStack = getInventory.getItem(getResultItemSlot())
+
+        //theoretically not unique, but I'm not going to bother.
+        var uniqueString = java.util.UUID.randomUUID().toString
+
+        if (resultStack != null) {
+            uniqueString = resultStack.getType.name() + "_" + uniqueString
+        }
+
+        new NamespacedKey(this.getPlugin.asInstanceOf[Plugin], uniqueString)
+    }
+}
+
+trait GroupedRecipeEditor { this: RecipeEditor[_, _/*TODO require that the Recipe implements Grouped?*/] =>
+    private var group: String = _
+
+    def getGroup: String = group
+    def setGroup(group: String): Unit = this.group = group
 }

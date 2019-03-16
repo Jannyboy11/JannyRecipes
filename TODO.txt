@@ -1,13 +1,16 @@
 Fix all TODOs in the code
 
+refactor duplicate code
+make type parameters more scala-idiomatic (no more Foo[_ <: SomeType] as in Java)
 fix furnace recipe eidtor gui, editors per complex recipe,
 
+vanilla recipes disablen (genereer een disable-knop in plaats van een delete knop)
 nog wat meer knoppen hun functionaliteit geven,
 checken of alles goed werkt met het recipe book van de client (zo nee, gebruik maken van Player#(un)discoverRecipe(s))
 en modifiers (zoals nbt-specificness (ga ik doen met itemmeta), ingrediënten met een bepaalde count),
 en de gui voor meerdere materials per ingrediënt.
 
-//not too sure about macro's
+//not too sure about macros
 //split project up into modules per server implementation
 //use macros too: make a separate module for macros
 

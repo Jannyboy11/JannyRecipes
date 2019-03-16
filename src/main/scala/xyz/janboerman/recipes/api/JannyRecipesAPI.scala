@@ -8,7 +8,7 @@ import xyz.janboerman.recipes.api.recipe.Recipe
 
 import scala.collection.JavaConverters
 
-trait JannyRecipesAPI {
+trait JannyRecipesAPI /*TODO plugin type parameter? so that I don't have to parameterize getGuiFactory*/ {
 
     //TODO overloads for shaped, shapeless and furnace recipes only instead of this type-unsafe method?
     def fromBukkitRecipe(bukkit: org.bukkit.inventory.Recipe): Recipe

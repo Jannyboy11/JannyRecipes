@@ -7,7 +7,7 @@ import org.bukkit.inventory.Recipe
 import xyz.janboerman.recipes.api.recipe._
 import xyz.janboerman.recipes.v1_13_R2.Conversions._
 import xyz.janboerman.recipes.v1_13_R2.Extensions.NmsRecipe.Group
-import xyz.janboerman.recipes.v1_13_R2.Extensions.{NmsNonNullList, NmsStack}
+import xyz.janboerman.recipes.v1_13_R2.Extensions.{NmsIngredient, NmsNonNullList, NmsStack}
 import xyz.janboerman.recipes.v1_13_R2.recipe._
 import xyz.janboerman.recipes.v1_13_R2.recipe.CraftingIngredient
 import xyz.janboerman.recipes.v1_13_R2.recipe.bukkit.{JannyFurnaceToBukkit, JannyShapedToBukkit, JannyShapelessToBukkit}
@@ -93,7 +93,22 @@ class JannyFurnaceToNMS(override val janny: xyz.janboerman.recipes.api.recipe.Fu
     override def toBukkitRecipe: Recipe = JannyFurnaceToBukkit(janny)
 }
 
-case class JannySmeltingToNMS(janny: SmeltingRecipe) extends IRecipe {
+case class JannySmeltingToNMS(janny: SmeltingRecipe)
+    // actually this should extend nms.IRecipe instead of nms.FurnaceRecipe,
+    // but unfortunately the furnace tile entities throw ClassCastExceptions then.
+    extends net.minecraft.server.v1_13_R2.FurnaceRecipe(toNMSKey(janny.getKey),
+        janny.getGroup().getOrElse(""),
+        // can't really do this for a generic smelting recipe since we can't extend the class
+        // and override the RecipeItemStack#test(ItemStack) method. Hello ByteBuddy agent? :)
+        { janny match {
+            case jf: xyz.janboerman.recipes.api.recipe.FurnaceRecipe =>
+                toRecipeItemStack(toNMSIngredient(jf.getIngredient()))
+            case _ => NmsIngredient.empty
+        }},
+        toNMSStack(janny.getResult()),
+        janny.getExperience(),
+        janny.getCookingTime()) {
+
     type BukkitResult = org.bukkit.inventory.ItemStack
     private var lastCheck: Option[BukkitResult] = None
 

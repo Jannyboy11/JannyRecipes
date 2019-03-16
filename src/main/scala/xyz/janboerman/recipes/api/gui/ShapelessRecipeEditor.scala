@@ -73,8 +73,8 @@ class ShapelessRecipeEditor[P <: Plugin](inventory: Inventory,
         if (ingredientStacks.nonEmpty) {
             //there are ingredients - let's  create a recipe!
             val result = getInventory.getItem(ResultSlot)
-            val key = if (this.key == null) generateId() else this.key
-            val group = this.group
+            val key = if (this.getKey() == null) generateId() else this.getKey()
+            val group = Option(this.getGroup).filter(_.nonEmpty)
             val ingredients = if (hasIngredientContentsChanged()) {
                 //TODO only 'replace' the ingredients of the slots where the itemstack actually changed?
                 ingredientStacks.map(CraftingIngredient(_)).toList
@@ -82,7 +82,7 @@ class ShapelessRecipeEditor[P <: Plugin](inventory: Inventory,
                 this.ingredients
             }
 
-            val recipe = new SimpleShapelessRecipe(key, Option(group), ingredients, result)
+            val recipe = new SimpleShapelessRecipe(key, group, ingredients, result)
             Some(recipe)
         } else {
             //no ingredients - too bad

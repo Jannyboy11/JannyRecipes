@@ -24,7 +24,7 @@ object JannyImplementation {
     }
 }
 
-trait JannyImplementation extends JannyRecipesAPI {
+trait JannyImplementation extends JannyRecipesAPI /*TODO plugin type parameter*/ {
 
     /**
       * Detects the server runtime and checks whether this implementation works on the server runtime.

@@ -71,8 +71,8 @@ class ShapedRecipeEditor[P <: Plugin](inventory: Inventory,
         if (ingredientStacks.nonEmpty) {
             //there are ingredients - let's  create a recipe!
             val result = getInventory.getItem(ResultSlot)
-            val key = if (this.key == null) generateId() else this.key
-            val group = this.group
+            val key = if (this.getKey() == null) generateId() else this.getKey()
+            val group = Option(this.getGroup).filter(_.nonEmpty)
 
             val ingredientContentsChanged = hasIngredientContentsChanged()
 
@@ -148,7 +148,7 @@ class ShapedRecipeEditor[P <: Plugin](inventory: Inventory,
                 this.ingredients
             }
 
-            val recipe = new SimpleShapedRecipe(key, Option(group), shape, ingredients, result)
+            val recipe = new SimpleShapedRecipe(key, group, shape, ingredients, result)
             Some(recipe)
         } else {
             //no ingredients - too bad
@@ -164,9 +164,7 @@ class ShapedRecipeEditor[P <: Plugin](inventory: Inventory,
         super.layoutButtons()
     }
 
-
-
-    def layoutRecipe(): Unit = {
+    override def layoutRecipe(): Unit = {
         if (shapedRecipe != null) {
 
             val height = Math.min(MaxHeight, shapedRecipe.getShape().size)

@@ -4,18 +4,19 @@ import java.text.DecimalFormat
 
 import org.bukkit.enchantments.Enchantment
 import org.bukkit.event.inventory.InventoryClickEvent
-import org.bukkit.{ChatColor, Material, NamespacedKey}
+import org.bukkit.{ChatColor, Material}
 import org.bukkit.inventory.{Inventory, ItemStack}
 import org.bukkit.plugin.Plugin
 import xyz.janboerman.guilib.api.ItemBuilder
 import xyz.janboerman.guilib.api.menu.{ItemButton, RedirectItemButton}
 import xyz.janboerman.recipes.api.JannyRecipesAPI
-import xyz.janboerman.recipes.api.gui.CraftingRecipeEditor.ResultSlot
-import xyz.janboerman.recipes.api.recipe.FurnaceRecipe
+import xyz.janboerman.recipes.api.recipe.{FurnaceIngredient, FurnaceRecipe, SimpleFurnaceRecipe}
+
+import scala.util.Try
 
 object FurnaceRecipeEditor {
-    val IngredientSlot = 1 * 9 + 2
-    val ResultSlot = 1 * 9 + 6
+    val IngredientSlot = 1 * 9 + 1
+    val ResultSlot = 1 * 9 + 3
 
     val InventoryWidth = 9
     val InventoryHeight = 4
@@ -29,30 +30,61 @@ class FurnaceRecipeEditor[P <: Plugin](inventory: Inventory,
                                       (implicit val mainMenu: RecipesMenu[P],
                                        implicit override val api: JannyRecipesAPI,
                                        implicit override val plugin: P)
-    extends RecipeEditor[P, FurnaceRecipe /*TODO generalise to SmeltingRecipe?*/](furnaceRecipe, inventory) {
 
-    override def getIcon(): Option[ItemStack] = Option(recipe).map(_.getResult())
+    extends RecipeEditor[P, FurnaceRecipe /*TODO generalise to SmeltingRecipe?*/](furnaceRecipe, inventory)
+    with KeyedRecipeEditor
+    with GroupedRecipeEditor { self =>
 
-    //TODO duplicate code (it's also in CraftingRecipeEditor)
-    protected def generateId(): NamespacedKey = {
-        val resultStack = getInventory.getItem(ResultSlot)
+    private var cookingTime: Int = 200
+    private var experience: Float = 0F
 
-        var uniqueString = recipe.getType().getName() + "_" + java.util.UUID.randomUUID().toString
+    protected var shouldUpdateIngredients = false
+    protected var oldIngredientContent = getInventory.getItem(IngredientSlot)
+    private var ingredient: FurnaceIngredient = _
 
-        if (resultStack != null) {
-            uniqueString = resultStack.getType.name() + "_" + uniqueString
-        }
-
-        new NamespacedKey(plugin, uniqueString)
+    protected def hasIngredientContentsChanged(): Boolean = {
+        ingredient == null || shouldUpdateIngredients || oldIngredientContent != getInventory.getItem(IngredientSlot)
     }
 
+    if (recipe != null) {
+        this.ingredient = recipe.getIngredient()
+        setKey(recipe.getKey)
+        setGroup(recipe.getGroup().getOrElse(""))
+    }
+
+    override def makeRecipe(): Option[FurnaceRecipe] = {
+        val ingredientStack = getInventory.getItem(IngredientSlot)
+
+        if (ingredientStack != null) {
+            val ingredient = if (hasIngredientContentsChanged()) {
+                FurnaceIngredient(ingredientStack)
+            } else {
+                this.ingredient
+            }
+            val result = getInventory.getItem(ResultSlot)
+            val key = if (this.getKey() == null) generateId() else this.getKey()
+            val group = Option(this.getGroup).filter(_.nonEmpty)
+            val cookingTime = this.cookingTime
+            val experience = this.experience
+
+            val recipe = new SimpleFurnaceRecipe(key, group, ingredient, result, cookingTime, experience)
+            Some(recipe)
+        } else {
+            //no ingredient - too bad
+            None
+        }
+    }
+
+    override def getResultItemSlot(): Int = ResultSlot
+
+    override def getIcon(): Option[ItemStack] = Option(recipe).map(_.getResult())
 
     override protected def layoutBorder(): Unit = {
         val glassPaneStack = new ItemBuilder(Material.LIGHT_BLUE_STAINED_GLASS_PANE).name(Space).build()
         val inventory = getInventory
 
         for (i <- 0 until 9) inventory.setItem(i, glassPaneStack)
-        for (x <- 0 until (18, 1)) {
+        for (x <- 0 until (18, 2)) {
             inventory.setItem(1 * InventoryWidth + x, glassPaneStack)
         }
         for (i <- 18 until 27) inventory.setItem(i, glassPaneStack)
@@ -62,42 +94,80 @@ class FurnaceRecipeEditor[P <: Plugin](inventory: Inventory,
         if (recipe != null) {
             val inventory = getInventory
 
-            inventory.setItem(10, recipe.getIngredient().getItemStack())
-            inventory.setItem(12, recipe.getResult())
+            inventory.setItem(IngredientSlot, recipe.getIngredient().getItemStack())
+            inventory.setItem(ResultSlot, recipe.getResult())
         }
     }
 
     def layoutButtons(): Unit = {
+
+        val cookingTimeIndex = 14
+        val experienceIndex = 16
+
+        val saveAndExitIndex = 27
+        val renameIndex = 29
+        val setGroupIndex = 30
+        val typeIndex = 31
+        val modifiersIndex = 32
+        val deleteIndex = 33
+        val exitIndex = 35
+
         val typeButton = new ItemButton[FurnaceRecipeEditor[P]](new ItemBuilder(Material.FURNACE).name(TypeFurnace).enchant(Enchantment.DURABILITY, 1).build())
 
-        val cookingTimeButton = new ItemButton[FurnaceRecipeEditor[P]](new ItemBuilder(Material.CLOCK)
-            .name(interactable("Cooking time" + (if (recipe != null) ": " + recipe.getCookingTime() else "")))
-            .build()) //TODO add functionality
-        val experienceButton = new ItemButton[FurnaceRecipeEditor[P]](new ItemBuilder(Material.EXPERIENCE_BOTTLE)
-            .name(interactable("Experience" + (if (recipe != null) ": " + new DecimalFormat("#.##").format(recipe.getExperience()) else "")))
-            .build()) //TODO add functionality
+        val cookingTimeButton = new AnvilButton[self.type](callback = (menuHolder, event, input) => {
+                Try {Integer.parseInt(input) } .toOption.filter(_ > 0) match {
+                    case Some(ck) =>
+                        self.cookingTime = ck
 
-        setButton(14, cookingTimeButton)
-        setButton(16, experienceButton)
+                        //update the button's lore
+                        val anvilButton = menuHolder.getButton(cookingTimeIndex).asInstanceOf[AnvilButton[_]]
+                        anvilButton.setIcon(new ItemBuilder(anvilButton.getIcon).lore(lore(String.valueOf(self.cookingTime))).build())
+                    case None =>
+                        event.getWhoClicked().sendMessage(ChatColor.RED + "Please enter a positive integer number.")
+                }
+        },
+            paperDisplayName = String.valueOf(if (recipe == null) self.cookingTime else recipe.getCookingTime()),
+            icon = {
+                val itemBuilder = new ItemBuilder(Material.CLOCK)
+                    .name(interactable("Cooking time"))
 
+                if (recipe != null) itemBuilder.lore(lore(String.valueOf(recipe.getCookingTime())))
 
-        //TODO use SaveButton instead?
-        val saveAndExitButton = new RedirectItemButton[FurnaceRecipeEditor[P]](
-            new ItemBuilder(Material.LIME_CONCRETE).name(SaveAndExit).build(),
-            () => recipesMenu.getInventory()) {
+                itemBuilder.build()
+            })
+        val experienceButton = new AnvilButton[self.type](callback = (menuHolder, event, input) => {
+            Try { java.lang.Double.parseDouble(input) } .toOption.filter(_ >= 0) match {
+                case Some(exp) =>
+                    self.experience = exp.asInstanceOf[Float]
 
-            override def onClick(menuHolder: FurnaceRecipeEditor[P], event: InventoryClickEvent): Unit = {
-                //saveRecipe() //TODO
-                super.onClick(menuHolder, event)
+                    //update the button's lore
+                    val anvilButton = menuHolder.getButton(experienceIndex).asInstanceOf[AnvilButton[_]]
+                    anvilButton.setIcon(new ItemBuilder(anvilButton.getIcon).lore(lore(new DecimalFormat("#.##").format(self.experience))).build())
+                case None =>
+                    event.getWhoClicked().sendMessage(ChatColor.RED + "Please enter a non-negative number.")
             }
-        }
+        },
+            paperDisplayName = if (self.recipe == null) "0" else new DecimalFormat("#.##").format(recipe.getExperience()),
+            icon = {
+                val itemBuilder = new ItemBuilder(Material.EXPERIENCE_BOTTLE)
+                    .name(interactable("Experience"))
 
+                if (recipe != null) itemBuilder.lore(lore(new DecimalFormat("#.##").format(self.experience)))
+
+                itemBuilder.build()
+            })
+
+        setButton(cookingTimeIndex, cookingTimeButton)
+        setButton(experienceIndex, experienceButton)
+
+        val saveAndExitButton = new SaveButton[P, FurnaceRecipe, this.type](() => recipesMenu.getInventory)
         val exitButton = new RedirectItemButton[FurnaceRecipeEditor[P]](
             new ItemBuilder(Material.RED_CONCRETE).name(Exit).build(),
             () => recipesMenu.getInventory())
 
-        val renameButton = new ItemButton[FurnaceRecipeEditor[P]](new ItemBuilder(Material.NAME_TAG).name(Rename).build()) //TODO make this a RedirectItemButton as well
-        val setGroupButton = new ItemButton[FurnaceRecipeEditor[P]](new ItemBuilder(Material.CHEST).name(SetGroup).build()) //TODO Make this a RedirectItemButton as well
+        //val renameButton = new ItemButton[FurnaceRecipeEditor[P]](new ItemBuilder(Material.NAME_TAG).name(Rename).build())
+        val renameButton = new RenameButton(renameIndex, this)
+        val setGroupButton = new SetGroupButton(setGroupIndex, this)
         val modifiersButton = new ItemButton[FurnaceRecipeEditor[P]](new ItemBuilder(Material.HEART_OF_THE_SEA).name(Modifiers).build()) //TODO Make this a RedirectItemButton as well
 
         // TODO make a DeleteButton?
@@ -111,13 +181,13 @@ class FurnaceRecipeEditor[P <: Plugin](inventory: Inventory,
             }
         }
 
-        setButton(27, saveAndExitButton)
-        setButton(29, renameButton)
-        setButton(30, setGroupButton)
-        setButton(31, typeButton)
-        setButton(32, modifiersButton)
-        setButton(33, deleteButton)
-        setButton(35, exitButton)
+        setButton(saveAndExitIndex, saveAndExitButton)
+        setButton(renameIndex, renameButton)
+        setButton(setGroupIndex, setGroupButton)
+        setButton(typeIndex, typeButton)
+        setButton(modifiersIndex, modifiersButton)
+        setButton(deleteIndex, deleteButton)
+        setButton(exitIndex, exitButton)
     }
 
 }

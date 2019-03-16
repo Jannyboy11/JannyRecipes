@@ -80,8 +80,12 @@ object Impl extends JannyImplementation {
 
     override def addRecipe(recipe: Recipe): Boolean = {
         if (recipe.isInstanceOf[Keyed]) {
-            val keyedRecipe = recipe.asInstanceOf[Recipe with Keyed]
-            getCraftingManager().recipes.putIfAbsent(toNMSKey(keyedRecipe.getKey), toNMSRecipe(recipe)) == null
+            try {
+                getCraftingManager().a(toNMSRecipe(recipe))
+                true
+            } catch{
+                case e: IllegalStateException => false
+            }
         } else {
             false
         }
@@ -108,8 +112,6 @@ object Impl extends JannyImplementation {
     override def iterateRecipes(): Iterator[_ <: Recipe] = JavaConverters
         .asScalaIterator(getCraftingManager().recipes.values().iterator())
         .map(Conversions.toJannyRecipe)
-
-    //TODO I don't understand scala type parameters? when do I use RecipesPlugin, and when RecipesPlugin.type?
 
     override def persist(): RecipeStorage = Storage
 

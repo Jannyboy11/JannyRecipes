@@ -28,7 +28,7 @@ libraryDependencies ++= Seq(
 )
 
 assemblyShadeRules in assembly := Seq(
-    //should now work again because the assembly plugin now depends on jarjar 1.7.1 which supports the java 11 class file format supposedly
+    //should now work again because the assembly plugin now depends on jarjar 1.7.1 which should support the java 11 class file format
     ShadeRule.rename("xyz.janboerman.guilib.**" -> "xyz.janboerman.recipes.guilib.@1").inAll,
     ShadeRule.rename("net.wesjd.anvilgui.**" -> "xyz.janboerman.recipes.anvilgui.@1").inAll,
 )

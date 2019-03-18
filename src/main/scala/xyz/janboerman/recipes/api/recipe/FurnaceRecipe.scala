@@ -82,6 +82,10 @@ class SimpleFurnaceRecipe(private val namespacedKey: NamespacedKey,
 
     override def getKey(): NamespacedKey = namespacedKey
 
+    override def getCookingTime(): Int = cookingTime
+
+    override def getExperience(): Float = experience
+
     override def serialize(): util.Map[String, AnyRef] = {
         val map = new util.HashMap[String, AnyRef]()
         map.put(KeyString, new NamespacedRecipeKey(getKey))

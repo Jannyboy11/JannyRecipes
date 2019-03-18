@@ -7,6 +7,7 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.{ChatColor, Material}
 import org.bukkit.inventory.{Inventory, ItemStack}
 import org.bukkit.plugin.Plugin
+import org.bukkit.scheduler.BukkitTask
 import xyz.janboerman.guilib.api.ItemBuilder
 import xyz.janboerman.guilib.api.menu.{ItemButton, RedirectItemButton}
 import xyz.janboerman.recipes.api.JannyRecipesAPI
@@ -31,7 +32,7 @@ class FurnaceRecipeEditor[P <: Plugin](inventory: Inventory,
                                        implicit override val api: JannyRecipesAPI,
                                        implicit override val plugin: P)
 
-    extends RecipeEditor[P, FurnaceRecipe /*TODO generalise to SmeltingRecipe?*/](furnaceRecipe, inventory)
+    extends RecipeEditor[P, FurnaceRecipe](furnaceRecipe, inventory)
     with KeyedRecipeEditor
     with GroupedRecipeEditor { self =>
 
@@ -42,14 +43,16 @@ class FurnaceRecipeEditor[P <: Plugin](inventory: Inventory,
     protected var oldIngredientContent = getInventory.getItem(IngredientSlot)
     private var ingredient: FurnaceIngredient = _
 
-    protected def hasIngredientContentsChanged(): Boolean = {
-        ingredient == null || shouldUpdateIngredients || oldIngredientContent != getInventory.getItem(IngredientSlot)
-    }
-
     if (recipe != null) {
         this.ingredient = recipe.getIngredient()
         setKey(recipe.getKey)
         setGroup(recipe.getGroup().getOrElse(""))
+        this.cookingTime = recipe.getCookingTime()
+        this.experience = recipe.getExperience()
+    }
+
+    protected def hasIngredientContentsChanged(): Boolean = {
+        ingredient == null || shouldUpdateIngredients || oldIngredientContent != getInventory.getItem(IngredientSlot)
     }
 
     override def makeRecipe(): Option[FurnaceRecipe] = {
@@ -115,27 +118,30 @@ class FurnaceRecipeEditor[P <: Plugin](inventory: Inventory,
         val typeButton = new ItemButton[FurnaceRecipeEditor[P]](new ItemBuilder(Material.FURNACE).name(TypeFurnace).enchant(Enchantment.DURABILITY, 1).build())
 
         val cookingTimeButton = new AnvilButton[self.type](callback = (menuHolder, event, input) => {
-                Try {Integer.parseInt(input) } .toOption.filter(_ > 0) match {
-                    case Some(ck) =>
-                        self.cookingTime = ck
+            val player = event.getWhoClicked
 
-                        //update the button's lore
-                        val anvilButton = menuHolder.getButton(cookingTimeIndex).asInstanceOf[AnvilButton[_]]
-                        anvilButton.setIcon(new ItemBuilder(anvilButton.getIcon).lore(lore(String.valueOf(self.cookingTime))).build())
-                    case None =>
-                        event.getWhoClicked().sendMessage(ChatColor.RED + "Please enter a positive integer number.")
-                }
+            Try { Integer.parseInt(input) } .toOption.filter(_ > 0) match {
+                case Some(ck) =>
+                    self.cookingTime = ck
+
+                    //update the button's lore
+                    val anvilButton = menuHolder.getButton(cookingTimeIndex).asInstanceOf[AnvilButton[_]]
+                    anvilButton.setIcon(new ItemBuilder(anvilButton.getIcon).lore(lore(String.valueOf(self.cookingTime))).build())
+                case None =>
+                    player.sendMessage(ChatColor.RED + "Please enter a positive integer number.")
+            }
+
+            menuHolder.getPlugin.getServer.getScheduler.runTask(menuHolder.getPlugin, (_: BukkitTask) => player.openInventory(self.getInventory))
         },
             paperDisplayName = String.valueOf(if (recipe == null) self.cookingTime else recipe.getCookingTime()),
-            icon = {
-                val itemBuilder = new ItemBuilder(Material.CLOCK)
+            icon = new ItemBuilder(Material.CLOCK)
                     .name(interactable("Cooking time"))
+                    .lore(lore(String.valueOf(self.cookingTime)))
+                    .build())
 
-                if (recipe != null) itemBuilder.lore(lore(String.valueOf(recipe.getCookingTime())))
-
-                itemBuilder.build()
-            })
         val experienceButton = new AnvilButton[self.type](callback = (menuHolder, event, input) => {
+            val player = event.getWhoClicked
+
             Try { java.lang.Double.parseDouble(input) } .toOption.filter(_ >= 0) match {
                 case Some(exp) =>
                     self.experience = exp.asInstanceOf[Float]
@@ -144,18 +150,16 @@ class FurnaceRecipeEditor[P <: Plugin](inventory: Inventory,
                     val anvilButton = menuHolder.getButton(experienceIndex).asInstanceOf[AnvilButton[_]]
                     anvilButton.setIcon(new ItemBuilder(anvilButton.getIcon).lore(lore(new DecimalFormat("#.##").format(self.experience))).build())
                 case None =>
-                    event.getWhoClicked().sendMessage(ChatColor.RED + "Please enter a non-negative number.")
+                    player.sendMessage(ChatColor.RED + "Please enter a non-negative number.")
             }
+
+            menuHolder.getPlugin.getServer.getScheduler.runTask(menuHolder.getPlugin, (_: BukkitTask) => player.openInventory(menuHolder.getInventory))
         },
             paperDisplayName = if (self.recipe == null) "0" else new DecimalFormat("#.##").format(recipe.getExperience()),
-            icon = {
-                val itemBuilder = new ItemBuilder(Material.EXPERIENCE_BOTTLE)
+            icon = new ItemBuilder(Material.EXPERIENCE_BOTTLE)
                     .name(interactable("Experience"))
-
-                if (recipe != null) itemBuilder.lore(lore(new DecimalFormat("#.##").format(self.experience)))
-
-                itemBuilder.build()
-            })
+                    .lore(lore(new DecimalFormat("#.##").format(self.experience)))
+                    .build())
 
         setButton(cookingTimeIndex, cookingTimeButton)
         setButton(experienceIndex, experienceButton)

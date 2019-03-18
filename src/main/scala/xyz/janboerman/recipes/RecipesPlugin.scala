@@ -24,7 +24,7 @@ object RecipesPlugin
         .website("https://www.github.com/Jannyboy11/JannyRecipes")
         .prefix("CustomRecipes")
         .description("Plugin and library for managing crafting and smelting recipes")
-        //.loadOrder(PluginLoadOrder.STARTUP)
+        .loadOrder(PluginLoadOrder.STARTUP)
         .addCommand(new Command("recipes").description("Open the recipes manager").permission("jannyrecipes.command.recipes"))
         .addCommand(new Command("addrecipe").description("Shortcut command to open the new-recipe wizard").permission("jannyrecipes.command.recipes").aliases("newrecipe"))
         .addCommand(new Command("editrecipe").description("Edit a recipe that uses the item in your hand").permission("jannyrecipes.command.recipes"))

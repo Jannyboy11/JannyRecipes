@@ -85,4 +85,5 @@ trait RecipeStorage {
 
     def deleteRecipe(recipe: Recipe with ConfigurationSerializable): Either[String, Unit] //TODO Either[String, CompletableFuture[Unit]]? Future[Either[String, Unit]]?
 
+    def shutdown(): Boolean = true
 }

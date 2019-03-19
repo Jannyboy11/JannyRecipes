@@ -34,8 +34,8 @@ abstract class CraftingRecipeEditor[P <: Plugin, R <: CraftingRecipe](inventory:
     protected implicit override val plugin: P)
 
     extends RecipeEditor[P, R](craftingRecipe, inventory)
-    with KeyedRecipeEditor
-    with GroupedRecipeEditor { self =>
+    with KeyedRecipeEditorOps
+    with GroupedRecipeEditorOps { self =>
 
     private implicit val storage = api.persist()
 

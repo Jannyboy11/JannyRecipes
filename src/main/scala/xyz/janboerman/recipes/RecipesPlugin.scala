@@ -113,6 +113,10 @@ object RecipesPlugin
         })
     }
 
+    override def onDisable(): Unit = {
+        persist().shutdown()
+    }
+
     def setImplementation(jannyImplementation: JannyImplementation): Boolean = {
         if (implementation != null) throw new IllegalStateException("Cannot set implementation twice. Use the ImplementationEvent instead. Be sure to make your plugin load before " + getName + ".")
         if (jannyImplementation == null) throw new NullPointerException("implementation cannot be null.")

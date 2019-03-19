@@ -1,7 +1,7 @@
 package xyz.janboerman.recipes.api.persist
 
 import java.io.{File, IOException}
-import java.nio.file.{Files, Paths}
+import java.util.logging.Level
 
 import org.bukkit.{Keyed, NamespacedKey}
 import org.bukkit.configuration.file.YamlConfiguration
@@ -10,15 +10,28 @@ import org.bukkit.plugin.Plugin
 import xyz.janboerman.recipes.api.JannyRecipesAPI
 import xyz.janboerman.recipes.api.recipe._
 
-import scala.collection.JavaConverters
-import scala.util.Try
+import scala.collection.{JavaConverters, mutable}
+import scala.util.{Failure, Try}
 
 class SimpleStorage(val plugin: Plugin)(implicit api: JannyRecipesAPI) extends RecipeStorage {
 
+    //used to check whether a recipe should be disabled or deleted
+    private val ourRecipes: mutable.Set[NamespacedKey] = new mutable.HashSet[NamespacedKey]()
+
+
     private var recipesFolder: File = _
+    private var disabledFolder: File = _
 
     def getRecipesFolder(): File = {
         recipesFolder
+    }
+
+    def getDisabledFolder(): File = {
+        if (disabledFolder == null) {
+            disabledFolder = new File(plugin.getDataFolder, "disabled")
+            if (!disabledFolder.exists()) disabledFolder.mkdirs()
+        }
+        disabledFolder
     }
 
     def registerClass(clazz: Class[_ <: ConfigurationSerializable]): Unit = {
@@ -57,6 +70,13 @@ class SimpleStorage(val plugin: Plugin)(implicit api: JannyRecipesAPI) extends R
         registerClass(classOf[SimpleShapelessRecipe])
         registerClass(classOf[SimpleFurnaceRecipe])
 
+        registerClass(classOf[DisableByKeyCondition])
+
+        true
+    }
+
+    override def shutdown(): Boolean = {
+        ourRecipes.clear()
         true
     }
 
@@ -75,6 +95,9 @@ class SimpleStorage(val plugin: Plugin)(implicit api: JannyRecipesAPI) extends R
             try {
                 if (!saveFile.exists()) saveFile.createNewFile()
                 fileConfiguration.save(saveFile)
+
+                //keep track of recipes that are created by ourselves.
+                ourRecipes.add(key)
                 return Right(())
             } catch {
                 case e: IOException =>
@@ -88,39 +111,80 @@ class SimpleStorage(val plugin: Plugin)(implicit api: JannyRecipesAPI) extends R
     }
 
     override def loadRecipes(): Either[String, Iterator[Recipe with ConfigurationSerializable]] = {
-        //TODO also load 'removed' vanilla recipes
+        val disableAttempt = Try {
+            JavaConverters.asScalaIterator[File](java.util.Arrays.asList(getDisabledFolder()
+                .listFiles((file: File) => file.isFile && file.getName.endsWith(".yml")): _*).iterator())
+                .map(YamlConfiguration.loadConfiguration)
+                .map(_.get("condition").asInstanceOf[DisableCondition])
+                .foreach(_.disableRecipes)
+        }
 
-        val attempt = Try {
-            JavaConverters.asScalaIterator[File](java.util.Arrays.asList(recipesFolder.listFiles((file: File) => file.isFile && file.getName.endsWith(".yml")): _*).iterator())
+        disableAttempt match {
+            case Failure(ex) =>
+                plugin.getLogger.log(Level.SEVERE, "Error whilst loading disabled conditions", ex)
+                //don't return yet. we want to try and load the extra enabled recipes anyway.
+            case _ => ()
+        }
+
+        val enableAttempt = Try {
+            JavaConverters.asScalaIterator[File](java.util.Arrays.asList(recipesFolder
+                .listFiles((file: File) => file.isFile && file.getName.endsWith(".yml")): _*).iterator())
                 .map(YamlConfiguration.loadConfiguration)
                 .map(_.get("recipe").asInstanceOf[Recipe with ConfigurationSerializable])
-        } //why is there no mapLeft on Try, nor on Either??!!
-        if (attempt.isSuccess) return Right(attempt.get)
-        val throwable = attempt.toEither.swap.getOrElse(null)
+                .map(recipe => {
+                    if (recipe.isInstanceOf[Keyed]) {
+                        ourRecipes.add(recipe.asInstanceOf[Keyed].getKey)
+                    }
+                    recipe
+                })
+        }
+        if (enableAttempt.isSuccess) return Right(enableAttempt.get)
+        val throwable = enableAttempt.toEither.swap.getOrElse(null)
         throwable.printStackTrace()
         Left("Could not load recipes from disk.")
     }
 
     override def deleteRecipe(recipe: Recipe with ConfigurationSerializable): Either[String, Unit] = {
-        //TODO 'disable' the recipe instead if it was not created by JannyRecipes.
-
         if (recipe.isInstanceOf[Keyed]) {
             val r = recipe.asInstanceOf[Recipe with ConfigurationSerializable with Keyed]
             val key = r.getKey
 
-            val saveFile = new File(recipesFolder, saveFileName(key));
-            if (saveFile.exists()) {
-                if (saveFile.delete()) {
-                    Right(())
+            if (ourRecipes.contains(key)) {
+                //save the recipe file
+
+                val saveFile = new File(recipesFolder, saveFileName(key))
+                if (saveFile.exists()) {
+                    if (saveFile.delete()) {
+                        ourRecipes.remove(key)
+                        Right(())
+                    } else {
+                        Left(s"Could not delete save file of recipe $recipe.")
+                    }
                 } else {
-                    Left(s"Could not delete save file of recipe $recipe")
+                    //saveFile doesn't exist. nothing to do here.
+                    Right(())
                 }
+
             } else {
-                //saveFile doesn't exist. nothing to do here.
-                Right(())
+                //save it as disabled.
+
+                val saveFile = new File(getDisabledFolder(), saveFileName(key))
+                val fileConfiguration = new YamlConfiguration()
+                fileConfiguration.set("condition", new DisableByKeyCondition(new NamespacedRecipeKey(key)))
+
+                try {
+                    if (!saveFile.exists()) saveFile.createNewFile()
+                    fileConfiguration.save(saveFile)
+                    Right(())
+                } catch {
+                    case e: IOException =>
+                        e.printStackTrace()
+                        Left("Error occurred when trying to save the disabled-recipe file.")
+                }
             }
+
         } else {
-            Left("The recipe hasn't got a key.");
+            Left("The recipe hasn't got a key.")
         }
     }
 

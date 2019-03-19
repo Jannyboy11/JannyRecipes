@@ -33,8 +33,8 @@ class FurnaceRecipeEditor[P <: Plugin](inventory: Inventory,
                                        implicit override val plugin: P)
 
     extends RecipeEditor[P, FurnaceRecipe](furnaceRecipe, inventory)
-    with KeyedRecipeEditor
-    with GroupedRecipeEditor { self =>
+    with KeyedRecipeEditorOps
+    with GroupedRecipeEditorOps { self =>
 
     private var cookingTime: Int = 200
     private var experience: Float = 0F

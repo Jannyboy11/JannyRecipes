@@ -67,7 +67,7 @@ abstract class RecipeEditor[P <: Plugin, R <: Recipe](protected var recipe: R,
 
 }
 
-trait KeyedRecipeEditor { this: RecipeEditor[_, _/*TODO require that the Recipe implements Keyed?*/] =>
+trait KeyedRecipeEditorOps { this: RecipeEditor[_, _/*TODO require that the Recipe implements Keyed?*/] =>
     private var key: NamespacedKey = _
 
     def getKey(): NamespacedKey = key
@@ -89,7 +89,7 @@ trait KeyedRecipeEditor { this: RecipeEditor[_, _/*TODO require that the Recipe 
     }
 }
 
-trait GroupedRecipeEditor { this: RecipeEditor[_, _/*TODO require that the Recipe implements Grouped?*/] =>
+trait GroupedRecipeEditorOps { this: RecipeEditor[_, _/*TODO require that the Recipe implements Grouped?*/] =>
     private var group: String = _
 
     def getGroup: String = group

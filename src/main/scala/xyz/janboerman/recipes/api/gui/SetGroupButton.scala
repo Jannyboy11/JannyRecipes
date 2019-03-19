@@ -8,7 +8,7 @@ import org.bukkit.scheduler.BukkitTask
 import xyz.janboerman.guilib.api.ItemBuilder
 import xyz.janboerman.recipes.api.recipe.{Grouped, Recipe}
 
-class SetGroupButton(private val setGroupIndex: Int, private val recipeEditor: RecipeEditor[_ <: Plugin, _ <: Recipe] with GroupedRecipeEditor)
+class SetGroupButton(private val setGroupIndex: Int, private val recipeEditor: RecipeEditor[_ <: Plugin, _ <: Recipe] with GroupedRecipeEditorOps)
     extends AnvilButton[RecipeEditor[Plugin, Recipe with Grouped]]({case (menuHolder, event, input) =>
 
         val player = event.getWhoClicked

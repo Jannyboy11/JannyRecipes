@@ -55,12 +55,13 @@ abstract class RecipeEditor[P <: Plugin, R <: Recipe](protected var recipe: R,
     protected def layoutRecipe(): Unit
     protected def layoutButtons(): Unit
 
-
+    /**
+      * Constructs a new recipe based on the items in the inventory, and on other fields in the subclasses.
+      * @return Some(recipe) if a new recipe could be constructed, otherwise None
+      */
     def makeRecipe(): Option[R] = {
-        throw new NotImplementedError("The current editor (" + this + ") doesn't know how to make a new recipe from inventory contents (yet). it should override makeRecipe")
+        throw new NotImplementedError("The current editor (" + this + ") doesn't know how to make a new recipe from inventory contents (yet). It should override makeRecipe")
     }
-    //TODO let ShapedEditor, FurnaceEditor override this method.
-
 
     def getIcon(): Option[ItemStack] = None
 

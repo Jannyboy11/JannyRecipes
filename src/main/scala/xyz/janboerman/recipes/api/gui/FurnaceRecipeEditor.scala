@@ -142,7 +142,7 @@ class FurnaceRecipeEditor[P <: Plugin](inventory: Inventory,
         val experienceButton = new AnvilButton[self.type](callback = (menuHolder, event, input) => {
             val player = event.getWhoClicked
 
-            Try { java.lang.Double.parseDouble(input) } .toOption.filter(_ >= 0) match {
+            Try(java.lang.Double.parseDouble(input)).toOption.filter(_ >= 0) match {
                 case Some(exp) =>
                     self.experience = exp.asInstanceOf[Float]
 
@@ -169,21 +169,10 @@ class FurnaceRecipeEditor[P <: Plugin](inventory: Inventory,
             new ItemBuilder(Material.RED_CONCRETE).name(Exit).build(),
             () => recipesMenu.getInventory())
 
-        //val renameButton = new ItemButton[FurnaceRecipeEditor[P]](new ItemBuilder(Material.NAME_TAG).name(Rename).build())
         val renameButton = new RenameButton(renameIndex, this)
         val setGroupButton = new SetGroupButton(setGroupIndex, this)
         val modifiersButton = new ItemButton[FurnaceRecipeEditor[P]](new ItemBuilder(Material.HEART_OF_THE_SEA).name(Modifiers).build()) //TODO Make this a RedirectItemButton as well
-
-        // TODO make a DeleteButton?
-        val deleteButton = new RedirectItemButton[FurnaceRecipeEditor[P]](
-            new ItemBuilder(Material.BARRIER).name(Delete).build(), //TODO use YesNoMenu from GuiLib
-            () => recipesMenu.getInventory()) {
-
-            override def onClick(menuHolder: FurnaceRecipeEditor[P], event: InventoryClickEvent): Unit = {
-                //deleteRecipe() //TODO
-                super.onClick(menuHolder, event)
-            }
-        }
+        val deleteButton = new DeleteButton[P, FurnaceRecipe, this.type]()
 
         setButton(saveAndExitIndex, saveAndExitButton)
         setButton(renameIndex, renameButton)

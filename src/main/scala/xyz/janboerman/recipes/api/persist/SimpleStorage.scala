@@ -102,6 +102,8 @@ class SimpleStorage(val plugin: Plugin)(implicit api: JannyRecipesAPI) extends R
     }
 
     override def deleteRecipe(recipe: Recipe with ConfigurationSerializable): Either[String, Unit] = {
+        //TODO 'disable' the recipe instead if it was not created by JannyRecipes.
+
         if (recipe.isInstanceOf[Keyed]) {
             val r = recipe.asInstanceOf[Recipe with ConfigurationSerializable with Keyed]
             val key = r.getKey

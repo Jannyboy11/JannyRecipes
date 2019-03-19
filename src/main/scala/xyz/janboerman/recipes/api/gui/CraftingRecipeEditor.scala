@@ -80,17 +80,7 @@ abstract class CraftingRecipeEditor[P <: Plugin, R <: CraftingRecipe](inventory:
         val renameButton = new RenameButton(renameIndex, this)
         val setGroupButton = new SetGroupButton(setGroupIndex, this)
         val modifiersButton = new ItemButton[self.type](new ItemBuilder(Material.HEART_OF_THE_SEA).name(Modifiers).build()) //TODO Make this a RedirectItemButton as well
-
-        //TODO
-        val deleteButton = new RedirectItemButton[self.type](
-            new ItemBuilder(Material.BARRIER).name(Delete).build(), //TODO use YesNoMenu from GuiLib
-            () => recipesMenu.getInventory()) {
-
-            override def onClick(menuHolder: self.type, event: InventoryClickEvent): Unit = {
-                //deleteRecipe() //TODO
-                super.onClick(menuHolder, event)
-            }
-        }
+        val deleteButton = new DeleteButton[P, R, this.type]()
 
         setButton(saveAndExitIndex, saveAndExitButton)
         setButton(renameIndex, renameButton)

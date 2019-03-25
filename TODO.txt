@@ -3,6 +3,7 @@ Fix all TODOs in the code
 refactor duplicate code
 make type parameters more scala-idiomatic (no more Foo[_ <: SomeType] as in Java)
 fix editors per complex recipe,
+fix up the filters menu
 
 nog wat meer knoppen hun functionaliteit geven (modifiers!, multi-material ingredients!),
 checken of alles goed werkt met het recipe book van de client (zo nee, gebruik maken van Player#(un)discoverRecipe(s))

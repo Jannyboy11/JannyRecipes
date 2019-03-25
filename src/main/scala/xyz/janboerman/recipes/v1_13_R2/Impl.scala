@@ -16,6 +16,8 @@ import scala.collection.JavaConverters
 
 object Impl extends JannyImplementation {
 
+    private val supportedMappings = List("7dd4b3ec31629620c41553e5c142e454", "00ed8e5c39debc3ed194ad7c5645cc45")
+
     private var alreadyInitialized = false
 
     override def tryInitialize(): Boolean = {
@@ -24,18 +26,18 @@ object Impl extends JannyImplementation {
         if (!Bukkit.getServer.getClass.getName.equals("org.bukkit.craftbukkit.v1_13_R2.CraftServer"))
             return false
 
-        val compileTimeMappingsVersion = "00ed8e5c39debc3ed194ad7c5645cc45"
+        val compileTimeMappingsVersion = supportedMappings.head
 
-        val mappingsVersion: String = CraftMagicNumbers.INSTANCE.asInstanceOf[CraftMagicNumbers].getMappingsVersion
-        if (mappingsVersion != compileTimeMappingsVersion) {
+        val runTimeMappingsVersion: String = CraftMagicNumbers.INSTANCE.asInstanceOf[CraftMagicNumbers].getMappingsVersion
+        if (!supportedMappings.contains(runTimeMappingsVersion)) {
             val logger = RecipesPlugin.getLogger
 
             logger.warning("")
-            logger.warning("====================== WARNING ======================")
+            logger.warning("============================ WARNING ============================")
             logger.warning(s"Found possibly incompatible NMS mappings. ${RecipesPlugin.getName} may not work as expected.")
             logger.warning(s"Compile-time version: $compileTimeMappingsVersion" )
-            logger.warning(s"Run-time version: $mappingsVersion")
-            logger.warning("====================== WARNING ======================")
+            logger.warning(s"Run-time version:     $runTimeMappingsVersion")
+            logger.warning("============================ WARNING ============================")
             logger.warning("")
 
             //TODO record metrics on the NMS version?
@@ -83,7 +85,7 @@ object Impl extends JannyImplementation {
             try {
                 getCraftingManager().a(toNMSRecipe(recipe))
                 true
-            } catch{
+            } catch {
                 case e: IllegalStateException => false
             }
         } else {

@@ -6,7 +6,7 @@ import org.bukkit.plugin.{Plugin, PluginLoadOrder}
 import org.bukkit.scheduler.BukkitTask
 import xyz.janboerman.guilib.api.GuiListener
 import xyz.janboerman.recipes.api.JannyRecipesAPI
-import xyz.janboerman.recipes.api.gui.RecipeGuiFactory
+import xyz.janboerman.recipes.api.gui.{ComplexEditors, RecipeGuiFactory}
 import xyz.janboerman.recipes.api.persist.{RecipeStorage, SimpleStorage}
 import xyz.janboerman.recipes.api.recipe._
 import xyz.janboerman.recipes.command._
@@ -34,7 +34,8 @@ object RecipesPlugin
         .addPermission(new Permission("jannyrecipes.command.recipes").description("Allows access to /recipes").permissionDefault(PermissionDefault.OP))
         .addPermission(new Permission("jannyrecipes.command.reopen").description("Allows access to /reopen").permissionDefault(PermissionDefault.OP))
         .addPermission(new Permission("jannyrecipes.command.reedit").description("Allows access to /reedit").permissionDefault(PermissionDefault.OP))
-        .addPermission(new Permission("jannyrecipes.command.reloadrecipes").description("Allows access to /reloadrecipes").permissionDefault(PermissionDefault.OP)))
+        .addPermission(new Permission("jannyrecipes.command.reloadrecipes").description("Allows access to /reloadrecipes").permissionDefault(PermissionDefault.OP))
+        .addPermission(new Permission(ComplexEditors.BookPermission).description("Allows you to claim a book that explains a complex recipe.").permissionDefault(PermissionDefault.OP)))
     with JannyRecipesAPI {
 
     implicit def getAPI(): JannyRecipesAPI = this

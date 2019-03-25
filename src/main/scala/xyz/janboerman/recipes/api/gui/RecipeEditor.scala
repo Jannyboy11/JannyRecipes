@@ -1,7 +1,7 @@
 package xyz.janboerman.recipes.api.gui
 
 import org.bukkit.{ChatColor, Material, NamespacedKey}
-import org.bukkit.event.inventory.{InventoryClickEvent, InventoryOpenEvent}
+import org.bukkit.event.inventory.{InventoryClickEvent, InventoryOpenEvent, InventoryType}
 import org.bukkit.inventory.{Inventory, ItemStack}
 import org.bukkit.plugin.Plugin
 import xyz.janboerman.guilib.api.ItemBuilder
@@ -25,6 +25,17 @@ abstract class RecipeEditor[P <: Plugin, R <: Recipe](protected var recipe: R,
                                                       implicit protected val api: JannyRecipesAPI,
                                                       implicit protected val plugin: P)
     extends MenuHolder[P](plugin, inventory) {
+    // Scala I wish you allowed us to be able to call different super constructors in different constructor overloads. dammit.
+    // The following doesn't work since 'this' cannot be used in the body of an auxiliary constructor. Why!?
+//    def this(recipe: R, size: Int, title: String)
+//            (implicit recipesMenu: RecipesMenu[P], api: JannyRecipesAPI, plugin: P) = {
+//        this(recipe, plugin.getServer.createInventory(this, size, title))
+//    }
+//
+//    def this(recipe: R, inventoryType: InventoryType, title: String)
+//            (implicit recipesMenu: RecipesMenu[P], api: JannyRecipesAPI, plugin: P) = {
+//        this(recipe, plugin.getServer.createInventory(this, inventoryType, title))
+//    }
 
     private var firstTimeOpen = true
 

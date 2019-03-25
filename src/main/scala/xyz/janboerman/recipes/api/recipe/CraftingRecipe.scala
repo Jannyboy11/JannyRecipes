@@ -6,7 +6,7 @@ import org.bukkit.inventory.{CraftingInventory, ItemStack}
 /**
   * models a crafting recipe as a function: itemgrid -> (result, remainders)
   */
-trait CraftingRecipe extends Recipe with Keyed /*TODO with Grouped*/ {
+trait CraftingRecipe extends Recipe with Keyed /*TODO with Grouped? it's not in the NMS though.*/ {
 
     def tryCraft(craftingInventory: CraftingInventory, world: World): Option[CraftingResult]
 

@@ -69,9 +69,9 @@ class DeleteButton[P <: Plugin, R <: Recipe, RE <: RecipeEditor[P, R]]
             (implicit api: JannyRecipesAPI, recipesMenu: RecipesMenu[P]) =
             this(icon, () => recipesMenu.getInventory())
 
-    def this()(implicit api: JannyRecipesAPI, recipesMenu: RecipesMenu[P])
-        = this(new ItemBuilder(Material.BARRIER)
-        .name(interactable(Delete))
-        .build(), () => recipesMenu.getInventory())
+    def this()(implicit api: JannyRecipesAPI, recipesMenu: RecipesMenu[P]) =
+        this(new ItemBuilder(Material.BARRIER)
+            .name(interactable(Delete))
+            .build(), () => recipesMenu.getInventory())
 
 }

@@ -184,6 +184,9 @@ object Conversions {
             case jannyFurnace: xyz.janboerman.recipes.api.recipe.FurnaceRecipe => JannyFurnaceToNMS(jannyFurnace)
             case jannySmelting: SmeltingRecipe => JannySmeltingToNMS(jannySmelting);
 
+            //last attempt at preserving the 'craftingrecipe' information - this case can be triggered because of modifiers
+            case jannyCrafting: CraftingRecipe => JannyUnknownCraftingToNMS(jannyCrafting)
+
             //fallback //TODO allow plugins to register their own conversion?
             case _ => DummyIRecipe
         }

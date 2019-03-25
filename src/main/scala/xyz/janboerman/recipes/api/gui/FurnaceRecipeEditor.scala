@@ -3,7 +3,6 @@ package xyz.janboerman.recipes.api.gui
 import java.text.DecimalFormat
 
 import org.bukkit.enchantments.Enchantment
-import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.{ChatColor, Material}
 import org.bukkit.inventory.{Inventory, ItemStack}
 import org.bukkit.plugin.Plugin

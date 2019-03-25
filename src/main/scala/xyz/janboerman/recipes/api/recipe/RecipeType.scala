@@ -34,6 +34,8 @@ object RecipeType {
 trait RecipeType {
     def getName(): String
     def getIcon(): ItemStack
+
+    //TODO add a method: isCreatable()(implicit api: JannyRecipesAPI): Boolean? such that we can leave out those recipes that are not creatable?
 }
 
 object UnknownType extends RecipeType {
@@ -60,7 +62,7 @@ case object ArmorDyeType extends ComplexType {
         .changeMeta[LeatherArmorMeta](_.setColor(Color.WHITE))
         .build()
 
-    override def getName() =  "ArmorDye"
+    override def getName() = "ArmourDye"
     override def getIcon() = icon
 }
 case object BannerAddPatternType extends ComplexType {

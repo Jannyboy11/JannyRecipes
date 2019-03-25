@@ -10,6 +10,7 @@ copyToServer.sh
 #IntelliJ
 .idea/*
 *.iml
+*.log
 
 #SBT/Maven
 target/*

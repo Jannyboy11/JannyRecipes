@@ -59,6 +59,13 @@ abstract class JannyCraftingToNMS(janny: CraftingRecipe) extends IRecipe {
 }
 
 //actual implementations
+case class JannyUnknownCraftingToNMS(janny: CraftingRecipe) extends JannyCraftingToNMS(janny) {
+    override def d(): ItemStack = null
+    override def a(): RecipeSerializer[_ <: IRecipe] = DummySerializer
+    override def toBukkitRecipe: Recipe = () => null
+}
+
+
 case class JannyShapedToNMS(janny: ShapedRecipe) extends JannyCraftingToNMS(janny) {
 
     override def d(): ItemStack = toNMSStack(janny.getResult())

@@ -20,10 +20,10 @@ resolvers += "wesjd-repo" at "https://nexus.wesjd.net/repository/thirdparty/"
 libraryDependencies ++= Seq(
     //dependencies provided at runtime
     "org.bukkit" % "craftbukkit" % "1.13.2-R0.1-SNAPSHOT" % "provided",
-    "com.github.Jannyboy11.ScalaPluginLoader" % "ScalaLoader" % "v0.10" % "provided",
+    "com.github.Jannyboy11.ScalaPluginLoader" % "ScalaLoader" % "v0.11.1" % "provided",
 
     //dependencies that need to be bundled
-    "com.github.Jannyboy11.GuiLib" % "GuiLib-API" % "v1.8.4",
+    "com.github.Jannyboy11.GuiLib" % "GuiLib-API" % "v1.8.6",
     "net.wesjd" % "anvilgui" % "1.2.1-SNAPSHOT",
 )
 

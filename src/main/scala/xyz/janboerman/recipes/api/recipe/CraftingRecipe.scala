@@ -1,12 +1,12 @@
 package xyz.janboerman.recipes.api.recipe
 
 import org.bukkit.{Keyed, World}
-import org.bukkit.inventory.{CraftingInventory, ItemStack}
+import org.bukkit.inventory.CraftingInventory
 
 /**
-  * models a crafting recipe as a function: itemgrid -> (result, remainders)
+  * Models a crafting recipe as a function: itemgrid -> (result, remainders)
   */
-trait CraftingRecipe extends Recipe with Keyed /*TODO with Grouped? it's not in the NMS though.*/ {
+trait CraftingRecipe extends Recipe with Keyed /*no 'with Grouped' because complex recipes don't have groups*/ {
 
     def tryCraft(craftingInventory: CraftingInventory, world: World): Option[CraftingResult]
 

@@ -162,7 +162,7 @@ class RecipesMenu[P <: Plugin]()(implicit protected val api: JannyRecipesAPI, im
     def hasNextPage(): Boolean = recipeIterator.hasNext || currentPageNumber * RecipesPerPage < lastReachedRecipe - RecipesPerPage
 
     private def fillPage(): Unit = {
-        var startIndex = currentPageNumber * RecipesPerPage //might overflow because currentPageNr is dependent on user input
+        var startIndex = currentPageNumber * RecipesPerPage //might overflow because currentPageNumber is dependent on user input
         if (startIndex < 0) startIndex = 0
 
         //if the recipes for this page aren't 'loaded' yet, load them all unit here.
@@ -186,7 +186,11 @@ class RecipesMenu[P <: Plugin]()(implicit protected val api: JannyRecipesAPI, im
                 val recipe = cachedRecipes(recipeIndex)
 
                 val recipeEditor = guiFactory.newRecipeEditor(recipe)
-                setButton(slotIndex, new RedirectItemButton[RecipesMenu[P]](recipeEditor.getIcon().getOrElse(RecipeEditor.UnknownRecipeIcon), () => recipeEditor.getInventory()))
+                var icon = recipeEditor.getIcon().getOrElse(RecipeEditor.UnknownRecipeIcon)
+                if (recipe.isInstanceOf[Keyed]) {
+                   icon = new ItemBuilder(icon).name(interactable(recipe.asInstanceOf[Keyed].getKey.toString)).build()
+                }
+                setButton(slotIndex, new RedirectItemButton[RecipesMenu[P]](icon, () => recipeEditor.getInventory()))
             } else {
                 unsetButton(slotIndex)
             }

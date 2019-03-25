@@ -20,6 +20,9 @@ object GuiFactory extends RecipeGuiFactory[RecipesPlugin.type] {
             //TODO modified recipe editors
 
             case armorDye: ArmorDyeRecipe => ArmorDyeRecipeEditor(armorDye)
+            case bannerAddPattern: BannerAddPatternRecipe => BannerAddPatternRecipeEditor(bannerAddPattern)
+            case bannerDuplicate: BannerDuplicateRecipe => BannerDuplicateRecipeEditor(bannerDuplicate)
+            case bookClone: BookCloneRecipe => BookCloneRecipeEditor(bookClone)
             //TODO more complex recipe editors
 
             case shaped: ShapedRecipe => ShapedRecipeEditor(shaped)

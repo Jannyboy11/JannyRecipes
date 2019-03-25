@@ -1,7 +1,6 @@
 package xyz.janboerman.recipes.api.gui
 
-import org.bukkit.{Material, NamespacedKey}
-import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.Material
 import org.bukkit.inventory.Inventory
 import org.bukkit.plugin.Plugin
 import xyz.janboerman.guilib.api.ItemBuilder

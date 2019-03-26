@@ -23,6 +23,13 @@ object GuiFactory extends RecipeGuiFactory[RecipesPlugin.type] {
             case bannerAddPattern: BannerAddPatternRecipe => BannerAddPatternRecipeEditor(bannerAddPattern)
             case bannerDuplicate: BannerDuplicateRecipe => BannerDuplicateRecipeEditor(bannerDuplicate)
             case bookClone: BookCloneRecipe => BookCloneRecipeEditor(bookClone)
+            case fireworkRocket: FireworkRocketRecipe => FireworkRocketRecipeEditor(fireworkRocket)
+            case fireworkStarFade: FireworkStarFadeRecipe => FireworkStarFadeRecipeEditor(fireworkStarFade)
+            case fireworkStar: FireworkStarRecipe => FireworkStarRecipeEditor(fireworkStar)
+            case mapClone: MapCloneRecipe => MapCloneRecipeEditor(mapClone)
+            case mapExtend: MapExtendRecipe => MapExtendRecipeEditor(mapExtend)
+            case repairItem: RepairItemRecipe => RepairItemRecipeEditor(repairItem)
+
             //TODO more complex recipe editors
 
             case shaped: ShapedRecipe => ShapedRecipeEditor(shaped)

@@ -5,8 +5,8 @@ import org.bukkit.craftbukkit.v1_13_R2.inventory.CraftInventory
 import org.bukkit.inventory.InventoryHolder
 import org.bukkit.plugin.Plugin
 import xyz.janboerman.recipes.api.JannyRecipesAPI
-import xyz.janboerman.recipes.api.gui.{ArmorDyeRecipeEditor, BannerAddPatternRecipeEditor, BannerDuplicateRecipeEditor, BookCloneRecipeEditor, RecipesMenu}
-import xyz.janboerman.recipes.api.recipe.{ArmorDyeRecipe, BannerAddPatternRecipe, BannerDuplicateRecipe, BookCloneRecipe}
+import xyz.janboerman.recipes.api.gui.{ArmorDyeRecipeEditor, BannerAddPatternRecipeEditor, BannerDuplicateRecipeEditor, BookCloneRecipeEditor, FireworkRocketRecipeEditor, FireworkStarFadeRecipeEditor, FireworkStarRecipeEditor, MapCloneRecipeEditor, MapExtendRecipeEditor, RecipesMenu, RepairItemRecipeEditor}
+import xyz.janboerman.recipes.api.recipe._
 
 object ArmorDyeRecipeEditor {
     def apply[P <: Plugin](recipe: ArmorDyeRecipe)(implicit api: JannyRecipesAPI, plugin: P, recipesMenu: RecipesMenu[P]): ArmorDyeRecipeEditor[P] = {
@@ -43,6 +43,62 @@ object BookCloneRecipeEditor {
         holder
     }
 }
+
+object FireworkRocketRecipeEditor {
+    def apply[P <: Plugin](recipe: FireworkRocketRecipe)(implicit api: JannyRecipesAPI, plugin: P, recipesMenu: RecipesMenu[P]): FireworkRocketRecipeEditor[P] = {
+        val inventory = new SimpleNMSInventory(54, "Edit Firework Rocket Recipe")
+        val holder = new FireworkRocketRecipeEditor(recipe, new CraftInventory(inventory))
+        inventory.setInventoryHolder(holder)
+        holder
+    }
+}
+
+object FireworkStarFadeRecipeEditor {
+    def apply[P <: Plugin](recipe: FireworkStarFadeRecipe)(implicit api: JannyRecipesAPI, plugin: P, recipesMenu: RecipesMenu[P]): FireworkStarFadeRecipeEditor[P] = {
+        val inventory = new SimpleNMSInventory(54, "Edit Firework Star Fade Recipe")
+        val holder = new FireworkStarFadeRecipeEditor(recipe, new CraftInventory(inventory))
+        inventory.setInventoryHolder(holder)
+        holder
+    }
+}
+
+object FireworkStarRecipeEditor {
+    def apply[P <: Plugin](recipe: FireworkStarRecipe)(implicit api: JannyRecipesAPI, Plugin: P, recipesMenu: RecipesMenu[P]): FireworkStarRecipeEditor[P] = {
+        val inventory = new SimpleNMSInventory(54, "Edit Firework Star Recipe")
+        val holder = new FireworkStarRecipeEditor(recipe, new CraftInventory(inventory))
+        inventory.setInventoryHolder(holder)
+        holder
+    }
+}
+
+object MapCloneRecipeEditor {
+    def apply[P <: Plugin](recipe: MapCloneRecipe)(implicit api: JannyRecipesAPI, plugin: P, recipesMenu: RecipesMenu[P]): MapCloneRecipeEditor[P] = {
+        val inventory = new SimpleNMSInventory(54, "Edit Map Clone Recipe")
+        val holder = new MapCloneRecipeEditor(recipe, new CraftInventory(inventory))
+        inventory.setInventoryHolder(holder)
+        holder
+    }
+}
+
+object MapExtendRecipeEditor {
+    def apply[P <: Plugin](recipe: MapExtendRecipe)(implicit api: JannyRecipesAPI, plugin: P, recipesMenu: RecipesMenu[P]): MapExtendRecipeEditor[P] = {
+        val inventory = new SimpleNMSInventory(54, "Edit Map Extend Recipe")
+        val holder = new MapExtendRecipeEditor(recipe, new CraftInventory(inventory))
+        inventory.setInventoryHolder(holder)
+        holder
+    }
+}
+
+object RepairItemRecipeEditor {
+    def apply[P <: Plugin](recipe: RepairItemRecipe)(implicit api: JannyRecipesAPI, plugin: P, recipesMenu: RecipesMenu[P]): RepairItemRecipeEditor[P] = {
+        val inventory = new SimpleNMSInventory(54, "Edit Item Repair Recipe")
+        val holder = new RepairItemRecipeEditor(recipe, new CraftInventory(inventory))
+        inventory.setInventoryHolder(holder)
+        holder
+    }
+}
+
+//TODO other complex types
 
 class SimpleNMSInventory(size: Int, title: String) extends InventorySubcontainer(new ChatComponentText(title), size) {
 

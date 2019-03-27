@@ -5,7 +5,7 @@ import org.bukkit.craftbukkit.v1_13_R2.inventory.CraftInventory
 import org.bukkit.inventory.InventoryHolder
 import org.bukkit.plugin.Plugin
 import xyz.janboerman.recipes.api.JannyRecipesAPI
-import xyz.janboerman.recipes.api.gui.{ArmorDyeRecipeEditor, BannerAddPatternRecipeEditor, BannerDuplicateRecipeEditor, BookCloneRecipeEditor, FireworkRocketRecipeEditor, FireworkStarFadeRecipeEditor, FireworkStarRecipeEditor, MapCloneRecipeEditor, MapExtendRecipeEditor, RecipesMenu, RepairItemRecipeEditor}
+import xyz.janboerman.recipes.api.gui.{ArmorDyeRecipeEditor, BannerAddPatternRecipeEditor, BannerDuplicateRecipeEditor, BookCloneRecipeEditor, FireworkRocketRecipeEditor, FireworkStarFadeRecipeEditor, FireworkStarRecipeEditor, MapCloneRecipeEditor, MapExtendRecipeEditor, RecipesMenu, RepairItemRecipeEditor, ShieldDecorationRecipeEditor, ShulkerBoxColorRecipeEditor, TippedArrowRecipeEditor}
 import xyz.janboerman.recipes.api.recipe._
 
 object ArmorDyeRecipeEditor {
@@ -98,7 +98,34 @@ object RepairItemRecipeEditor {
     }
 }
 
-//TODO other complex types
+object ShieldDecorationRecipeEditor {
+    def apply[P <: Plugin](recipe: ShieldDecorationRecipe)(implicit api: JannyRecipesAPI, plugin: P, recipesMenu: RecipesMenu[P]): ShieldDecorationRecipeEditor[P] = {
+        val inventory = new SimpleNMSInventory(54, "Edit Shield Decoration Recipe")
+        val holder = new ShieldDecorationRecipeEditor(recipe, new CraftInventory(inventory))
+        inventory.setInventoryHolder(holder)
+        holder
+    }
+}
+
+object ShulkerBoxColorRecipeEditor {
+    def apply[P <: Plugin](recipe: ShulkerBoxColorRecipe)(implicit api: JannyRecipesAPI, plugin: P, recipesMenu: RecipesMenu[P]): ShulkerBoxColorRecipeEditor[P] = {
+        val inventory = new SimpleNMSInventory(54, "Edit Shulker Box Colouring Recipe")
+        val holder = new ShulkerBoxColorRecipeEditor(recipe, new CraftInventory(inventory))
+        inventory.setInventoryHolder(holder)
+        holder
+    }
+}
+
+object TippedArrowRecipeEditor {
+
+    def apply[P <: Plugin](recipe: TippedArrowRecipe)(implicit api: JannyRecipesAPI, plugin: P, recipesMenu: RecipesMenu[P]): TippedArrowRecipeEditor[P] = {
+        val inventory = new SimpleNMSInventory(54, "Edit Tipped Arrow Recipe")
+        val holder = new TippedArrowRecipeEditor(recipe, new CraftInventory(inventory))
+        inventory.setInventoryHolder(holder)
+        holder
+    }
+
+}
 
 class SimpleNMSInventory(size: Int, title: String) extends InventorySubcontainer(new ChatComponentText(title), size) {
 

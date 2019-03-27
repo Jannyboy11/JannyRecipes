@@ -29,8 +29,9 @@ object GuiFactory extends RecipeGuiFactory[RecipesPlugin.type] {
             case mapClone: MapCloneRecipe => MapCloneRecipeEditor(mapClone)
             case mapExtend: MapExtendRecipe => MapExtendRecipeEditor(mapExtend)
             case repairItem: RepairItemRecipe => RepairItemRecipeEditor(repairItem)
-
-            //TODO more complex recipe editors
+            case shieldDecoration: ShieldDecorationRecipe => ShieldDecorationRecipeEditor(shieldDecoration)
+            case shulkerBoxColor: ShulkerBoxColorRecipe => ShulkerBoxColorRecipeEditor(shulkerBoxColor)
+            case tippedArrow: TippedArrowRecipe => TippedArrowRecipeEditor(tippedArrow)
 
             case shaped: ShapedRecipe => ShapedRecipeEditor(shaped)
             case shapeless: ShapelessRecipe => ShapelessRecipeEditor(shapeless)
@@ -47,7 +48,8 @@ object GuiFactory extends RecipeGuiFactory[RecipesPlugin.type] {
 
         recipeType match {
             //TODO modified type
-            //TODO complex types
+
+            //TODO complex types TODO add a save button that un-disables the recipes again.
 
             case ShapedType => ShapedRecipeEditor(null)
             case ShapelessType => ShapelessRecipeEditor(null)

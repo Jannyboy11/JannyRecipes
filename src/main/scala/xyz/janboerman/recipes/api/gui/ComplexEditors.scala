@@ -4,7 +4,10 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.{Inventory, ItemStack}
 import org.bukkit.inventory.meta._
 import org.bukkit._
+import org.bukkit.block.Banner
+import org.bukkit.block.banner.{Pattern, PatternType}
 import org.bukkit.plugin.Plugin
+import org.bukkit.potion.{PotionData, PotionType}
 import xyz.janboerman.guilib.api.ItemBuilder
 import xyz.janboerman.guilib.api.menu.{ClaimButton, PermissionButton, RedirectItemButton}
 import xyz.janboerman.recipes.api.JannyRecipesAPI
@@ -117,7 +120,7 @@ class ArmorDyeRecipeEditor[P <: Plugin](armorDyeRecipe: ArmorDyeRecipe, inventor
         }
     }
 
-    def getBook(): ItemStack = new ItemBuilder(Material.WRITTEN_BOOK)
+    override def getBook(): ItemStack = new ItemBuilder(Material.WRITTEN_BOOK)
         .changeMeta[BookMeta](meta => {
         meta.setDisplayName(static("Type: Armour Dying"))
         meta.setAuthor(BookAuthor)
@@ -315,7 +318,7 @@ class FireworkStarRecipeEditor[P <: Plugin](recipe: FireworkStarRecipe, inventor
             + "Feather -> Burst\n"
             + "Gold Nugget -> Star\n"
             + "Any type of skull -> Creeper face\n")
-        meta.addPage("A diamond gives the firework star its fade effect. Glowstone dust adds a twinkling effect.")
+        meta.addPage("A diamond gives the firework star its trail effect. Glowstone dust adds a twinkling effect.")
 
     }).build()
 
@@ -324,17 +327,19 @@ class FireworkStarRecipeEditor[P <: Plugin](recipe: FireworkStarRecipe, inventor
 
         val resultSlot = 24
         val gunpowderSlot = 10
-        val glowstoneDustSlot = 11
-        val diamondSlot = 12
-        val dyeOneSlot = 19
-        val dyeTwoSlot = 20
+        val dyeOneSlot = 11
+        val dyeTwoSlot = 12
+        val glowstoneDustSlot = 19
+        val diamondSlot = 20
+        val goldNuggetSlot = 21
 
-        inventory.setItem(resultSlot, FireworkRocketType.getIcon())
+        inventory.setItem(resultSlot, FireworkStarType.getIcon())
         inventory.setItem(gunpowderSlot, new ItemStack(Material.GUNPOWDER))
-        inventory.setItem(glowstoneDustSlot, new ItemStack(Material.GLOWSTONE_DUST))
-        inventory.setItem(diamondSlot, new ItemStack(Material.DIAMOND))
         inventory.setItem(dyeOneSlot, new ItemStack(Material.DANDELION_YELLOW))
         inventory.setItem(dyeTwoSlot, new ItemStack(Material.ORANGE_DYE))
+        inventory.setItem(glowstoneDustSlot, new ItemStack(Material.GLOWSTONE_DUST))
+        inventory.setItem(diamondSlot, new ItemStack(Material.DIAMOND))
+        inventory.setItem(goldNuggetSlot, new ItemStack(Material.GOLD_NUGGET))
     }
 }
 
@@ -389,6 +394,7 @@ class MapExtendRecipeEditor[P <: Plugin](recipe: MapExtendRecipe, inventory: Inv
         val paper = new ItemStack(Material.PAPER)
         val enlargedMap = MapExtendType.getIcon()
         val filledMap = new ItemBuilder(enlargedMap).changeMeta[MapMeta](_.setScaling(false)).build()
+
         inventory.setItem(20, filledMap)
         inventory.setItem(10, paper)
         inventory.setItem(11, paper)
@@ -398,6 +404,7 @@ class MapExtendRecipeEditor[P <: Plugin](recipe: MapExtendRecipe, inventory: Inv
         inventory.setItem(28, paper)
         inventory.setItem(29, paper)
         inventory.setItem(30, paper)
+        inventory.setItem(24, enlargedMap)
     }
 }
 
@@ -458,6 +465,129 @@ class RepairItemRecipeEditor[P <: Plugin](recipe: RepairItemRecipe, inventory: I
     }
 
 }
-//TODO ShieldDecoration
-//TODO ShulkerBoxColor
-//TODO TippedArrow
+
+class ShieldDecorationRecipeEditor[P <: Plugin](recipe: ShieldDecorationRecipe, inventory: Inventory)
+                                               (implicit recipesMenu: RecipesMenu[P], api: JannyRecipesAPI, plugin: P)
+    extends ComplexRecipeEditor[P, ShieldDecorationRecipe](recipe, inventory) {
+
+    override def getIcon(): Option[ItemStack] = Some(ShieldDecorationType.getIcon())
+
+    override def getBook(): ItemStack = new ItemBuilder(Material.WRITTEN_BOOK)
+        .changeMeta[BookMeta](meta => {
+        meta.setDisplayName("Type: Shield Decoration")
+        meta.setAuthor(BookAuthor)
+        meta.addPage(ChatColor.BOLD + "The Shield Decoration Recipe\n\n" + ChatColor.RESET +
+            "This recipe allows players to decorate shields with banners. " +
+            "The recipe consumes both the banner and the shield and produces a new shield that takes the pattern from the banner.")
+    }).build()
+
+    override protected def layoutRecipe(): Unit = {
+        val inventory = getInventory
+
+        val bannerStack = new ItemBuilder(Material.WHITE_BANNER)
+            .changeMeta[BannerMeta](meta => {
+            meta.addPattern(new Pattern(DyeColor.RED, PatternType.STRIPE_TOP))
+            meta.addPattern(new Pattern(DyeColor.BLUE, PatternType.STRIPE_BOTTOM))
+        }).build()
+
+        val emptyShield = new ItemStack(Material.SHIELD)
+
+        inventory.setItem(10, emptyShield)
+        inventory.setItem(11, bannerStack)
+        inventory.setItem(24, ShieldDecorationType.getIcon())
+    }
+}
+
+class ShulkerBoxColorRecipeEditor[P <: Plugin](recipe: ShulkerBoxColorRecipe, inventory: Inventory)
+                                              (implicit recipesMenu: RecipesMenu[P], api: JannyRecipesAPI, plugin: P)
+    extends ComplexRecipeEditor[P, ShulkerBoxColorRecipe](recipe, inventory) {
+
+    override def getIcon(): Option[ItemStack] = Some(ShulkerBoxColorType.getIcon())
+
+    override def getBook(): ItemStack = new ItemBuilder(Material.WRITTEN_BOOK)
+        .changeMeta[BookMeta](meta => {
+        meta.setDisplayName("Type: Shulker Box Colouring")
+        meta.setAuthor(BookAuthor)
+        meta.addPage(ChatColor.BOLD + "The Shulker Box Colouring Recipe\n\n" + ChatColor.RESET +
+            "This recipe allows players to dye shulker boxes. The input is a shulker box and a dye, " +
+            "out comes a shulker with the colour of the dye.")
+    }).build()
+
+    override protected def layoutBorder(): Unit = {
+        val inventory = getInventory
+        val glassPaneItem = new ItemBuilder(Material.LIGHT_BLUE_STAINED_GLASS_PANE).name(Space).build()
+
+        for (i <- 0 until (4*9, 9)) {
+            inventory.setItem(i+4, glassPaneItem)
+        }
+        for (i <- 4*9 until 5*9) {
+            inventory.setItem(i, glassPaneItem)
+        }
+    }
+
+    override protected def layoutRecipe(): Unit = {
+        val inventory = getInventory
+
+        val dyes = Array(Material.ROSE_RED, Material.ORANGE_DYE, Material.DANDELION_YELLOW, Material.LIME_DYE,
+            Material.LAPIS_LAZULI, Material.CYAN_DYE, Material.LIGHT_BLUE_DYE, Material.CACTUS_GREEN,
+            Material.PURPLE_DYE, Material.MAGENTA_DYE, Material.PINK_DYE, Material.COCOA_BEANS,
+            Material.BONE_MEAL, Material.LIGHT_GRAY_DYE, Material.GRAY_DYE, Material.INK_SAC)
+
+        val shulkerBoxes = Array(Material.RED_SHULKER_BOX, Material.ORANGE_SHULKER_BOX, Material.YELLOW_SHULKER_BOX, Material.LIME_SHULKER_BOX,
+            Material.BLUE_SHULKER_BOX, Material.CYAN_SHULKER_BOX, Material.LIGHT_BLUE_SHULKER_BOX, Material.GREEN_SHULKER_BOX,
+            Material.PURPLE_SHULKER_BOX, Material.MAGENTA_SHULKER_BOX, Material.PINK_SHULKER_BOX, Material.BROWN_SHULKER_BOX,
+            Material.WHITE_SHULKER_BOX, Material.LIGHT_GRAY_SHULKER_BOX, Material.GRAY_SHULKER_BOX, Material.BLACK_SHULKER_BOX)
+
+        for (i <- 0 until 16) {
+            val x = i % 4
+            val y = i / 4
+
+            val slot = y * 9 + x
+
+            val dye = dyes(i)
+            val shulkerBox = shulkerBoxes(i)
+
+            inventory.setItem(slot, new ItemStack(dye))
+            inventory.setItem(slot + 5, new ItemStack(shulkerBox))
+        }
+    }
+}
+
+class TippedArrowRecipeEditor[P <: Plugin](recipe: TippedArrowRecipe, inventory: Inventory)
+                                          (implicit recipesMenu: RecipesMenu[P], api: JannyRecipesAPI, plugin: P)
+    extends ComplexRecipeEditor[P, TippedArrowRecipe](recipe, inventory) {
+
+    override def getIcon(): Option[ItemStack] = Some(TippedArrowType.getIcon())
+
+    override def getBook(): ItemStack = new ItemBuilder(Material.WRITTEN_BOOK)
+        .changeMeta[BookMeta](meta => {
+        meta.setDisplayName("Type: Tipped Arrow")
+        meta.setAuthor(BookAuthor)
+        meta.addPage(ChatColor.BOLD + "The Tipped Arrow Recipe\n\n" + ChatColor.RESET +
+            "The Tipped Arrow Recipe allows players to create tipped arrows. " +
+            "Tipped arrows are created using a lingering potion surrounded by 8 regular arrows.")
+    }).build()
+
+    override protected def layoutRecipe(): Unit = {
+        val inventory = getInventory
+
+        val arrowStack = new ItemStack(Material.ARROW)
+        val potionStack = new ItemBuilder(Material.LINGERING_POTION)
+            .changeMeta[PotionMeta](meta => {
+            meta.setBasePotionData(new PotionData(PotionType.POISON))
+            meta.setColor(Color.GREEN)
+        }).build()
+
+        inventory.setItem(20, potionStack)
+        inventory.setItem(10, arrowStack)
+        inventory.setItem(11, arrowStack)
+        inventory.setItem(12, arrowStack)
+        inventory.setItem(19, arrowStack)
+        inventory.setItem(21, arrowStack)
+        inventory.setItem(28, arrowStack)
+        inventory.setItem(29, arrowStack)
+        inventory.setItem(30, arrowStack)
+
+        inventory.setItem(24, TippedArrowType.getIcon())
+    }
+}

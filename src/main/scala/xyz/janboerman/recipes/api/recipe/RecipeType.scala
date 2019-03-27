@@ -1,6 +1,7 @@
 package xyz.janboerman.recipes.api.recipe
 
 import org.bukkit.Material._
+import org.bukkit.block.Banner
 import org.bukkit.block.banner.{Pattern, PatternType}
 import org.bukkit.{Color, DyeColor, FireworkEffect, Material}
 import org.bukkit.inventory.ItemStack
@@ -171,7 +172,14 @@ case object RepairItemType extends ComplexType {
     override def getIcon() = icon
 }
 case object ShieldDecorationType extends ComplexType {
-    private val icon = new ItemStack(SHIELD)
+    private val icon = new ItemBuilder(Material.SHIELD)
+        .changeMeta[BlockStateMeta](meta => {
+        val banner = meta.getBlockState.asInstanceOf[Banner]
+        banner.setBaseColor(DyeColor.WHITE)
+        banner.addPattern(new Pattern(DyeColor.RED, PatternType.STRIPE_TOP))
+        banner.addPattern(new Pattern(DyeColor.BLUE, PatternType.STRIPE_BOTTOM))
+        meta.setBlockState(banner)
+    }).build()
 
     override def getName() = "ShieldDecoration"
     override def getIcon() = icon
@@ -185,8 +193,8 @@ case object ShulkerBoxColorType extends ComplexType {
 case object TippedArrowType extends ComplexType {
     private val icon = new ItemBuilder(TIPPED_ARROW)
         .changeMeta[PotionMeta](meta => {
-        meta.setColor(Color.GREEN)
         meta.setBasePotionData(new PotionData(PotionType.POISON))
+        meta.setColor(Color.GREEN)
     }).build()
 
     override def getName() = "TippedArrow"

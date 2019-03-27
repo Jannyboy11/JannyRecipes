@@ -29,7 +29,10 @@ class DeleteButton[P <: Plugin, R <: Recipe, RE <: RecipeEditor[P, R]]
                                     if(api.removeRecipe(recipe)) {
                                         player.sendMessage(ChatColor.GREEN + "The recipe was deleted successfully.")
                                         true
-                                    } else false
+                                    } else {
+                                        player.sendMessage(ChatColor.RED + "Could not remove the recipe from the server.")
+                                        false
+                                    }
                                 case Left(message) =>
                                     player.sendMessage(ChatColor.RED + message)
                                     false

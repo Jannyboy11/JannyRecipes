@@ -131,22 +131,21 @@ object Conversions {
             case JannyShapelessToNMS(janny) => janny
             case JannyFurnaceToNMS(janny) => janny
             case JannySmeltingToNMS(janny) => janny
-
+                
             //special cases
-            case _: RecipeArmorDye          => new JannyArmorDye()
-            case _: RecipeBannerAdd         => new JannyBannerAddPattern()
-            case _: RecipeBannerDuplicate   => new JannyBannerDuplicate()
-            case _: RecipeBookClone         => new JannyBookClone()
-            case _: RecipeFireworks         => new JannyFireworkRocket()
-            case _: RecipeFireworksStar     => new JannyFireworkStar()
-            case _: RecipeFireworksFade     => new JannyFireworkStarFade()
-            case _: RecipeMapClone          => new JannyMapClone()
-            case _: RecipeMapExtend         => new JannyMapExtend()
-            case _: BetterMapExtendRecipe   => new JannyMapExtend()
-            case _: RecipeRepair            => new JannyRepairItem()
-            case _: RecipiesShield          => new JannyShieldDecoration()
-            case _: RecipeShulkerBox        => new JannyShulkerBoxColor()
-            case _: RecipeTippedArrow       => new JannyTippedArrow()
+            case _: RecipeArmorDye                                  => new JannyArmorDye()
+            case _: RecipeBannerAdd                                 => new JannyBannerAddPattern()
+            case _: RecipeBannerDuplicate                           => new JannyBannerDuplicate()
+            case _: RecipeBookClone                                 => new JannyBookClone()
+            case _: RecipeFireworks                                 => new JannyFireworkRocket()
+            case _: RecipeFireworksStar                             => new JannyFireworkStar()
+            case _: RecipeFireworksFade                             => new JannyFireworkStarFade()
+            case _: RecipeMapClone                                  => new JannyMapClone()
+            case _: RecipeMapExtend | _: BetterMapExtendRecipe      => new JannyMapExtend()
+            case _: RecipeRepair                                    => new JannyRepairItem()
+            case _: RecipiesShield                                  => new JannyShieldDecoration()
+            case _: RecipeShulkerBox                                => new JannyShulkerBoxColor()
+            case _: RecipeTippedArrow | _: BetterTippedArrowRecipe  => new JannyTippedArrow()
 
             //normal cases
             case shaped: BetterShapedRecipe => JannyShaped(shaped)

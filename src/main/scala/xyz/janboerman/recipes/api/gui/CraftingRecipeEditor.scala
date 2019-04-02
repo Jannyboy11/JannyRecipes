@@ -78,13 +78,15 @@ abstract class CraftingRecipeEditor[P <: Plugin, R <: CraftingRecipe](inventory:
 
         val renameButton = new RenameButton(renameIndex, this)
         val setGroupButton = new SetGroupButton(setGroupIndex, this)
-        val modifiersButton = new ItemButton[self.type](new ItemBuilder(Material.HEART_OF_THE_SEA).name(Modifiers).build()) //TODO Make this a RedirectItemButton as well
+        val modifiersButton = new RedirectItemButton[self.type](
+            new ItemBuilder(Material.HEART_OF_THE_SEA).name(Modifiers).build(),
+            () => new ModifiersMenu[P, R, self.type](recipe, self).getInventory)
         val deleteButton = new DeleteButton[P, R, this.type]()
 
         setButton(saveAndExitIndex, saveAndExitButton)
         setButton(renameIndex, renameButton)
         setButton(setGroupIndex, setGroupButton)
-        //49: type button
+        //49: type button - set by subclass
         setButton(modifiersIndex, modifiersButton)
         setButton(deleteIndex, deleteButton)
         setButton(exitIndex, exitButton)

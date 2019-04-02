@@ -83,29 +83,45 @@ class SimpleStorage(val plugin: Plugin)(implicit api: JannyRecipesAPI) extends R
     private def saveFileName(key: NamespacedKey): String = key.toString.replaceAll("\\W", "_") + ".yml"
 
     override def saveRecipe(recipe: Recipe with ConfigurationSerializable): Either[String, Unit] = {
+        var newlyCreated = true
+
         if (recipe.isInstanceOf[Keyed]) {
             val key = recipe.asInstanceOf[Keyed].getKey
             val folder = getRecipesFolder()
 
-            val saveFile = new File(folder, saveFileName(key))
+            val fileName: String = saveFileName(key)
+            val saveFile = new File(folder, fileName)
 
             val fileConfiguration = new YamlConfiguration()
             fileConfiguration.set("recipe", recipe)
 
-            try {
-                if (!saveFile.exists()) saveFile.createNewFile()
-                fileConfiguration.save(saveFile)
+            //un-disable the recipe, if it was disabled.
+            if (disabledFolder != null && disabledFolder.exists()) {
+                val disabledFile = new File(getDisabledFolder(), fileName)
+                if (disabledFile.exists()) {
+                    newlyCreated = false
+                    disabledFile.delete()
+                }
+            }
 
-                //keep track of recipes that are created by ourselves.
-                ourRecipes.add(key)
-                return Right(())
-            } catch {
-                case e: IOException =>
-                    e.printStackTrace()
-                    return Left("Error occured while saving a recipe to a file.")
+            if (newlyCreated) {
+                try {
+                    if (!saveFile.exists()) saveFile.createNewFile()
+                    fileConfiguration.save(saveFile)
+
+                    //keep track of recipes that are created by ourselves.
+                    ourRecipes.add(key)
+                    return Right(())
+                } catch {
+                    case e: IOException =>
+                        e.printStackTrace()
+                        return Left("Error occured while saving a recipe to a file.")
+                }
+            } else {
+                //we un-disabled a pre-existing recipe.
+                Right(())
             }
         } else {
-
             Left("The recipe hasn't got a key.")
         }
     }

@@ -94,7 +94,12 @@ class RecipesMenu[P <: Plugin]()(implicit protected val api: JannyRecipesAPI, im
                 .name(interactable("New..."))
                 .build(), () => new NewMenu[P]().getInventory)
 
-            val refreshButton = new ItemButton[RecipesMenu[P]](new ItemBuilder(Material.TOTEM_OF_UNDYING).name(interactable("Refresh")).build()) //TODO
+            //TODO I shouldn't need this button, right?
+            val refreshButton = new ItemButton[RecipesMenu[P]](new ItemBuilder(Material.TOTEM_OF_UNDYING).name(interactable("Refresh")).build()) {
+                override def onClick(holder: RecipesMenu[P], event: InventoryClickEvent): Unit = {
+                    self.refresh()
+                }
+            }
             val filtersButton = new RedirectItemButton[RecipesMenu[P]](new ItemBuilder(Material.COBWEB).name(interactable("Filters...")).build(), () =>
                 new FilterMenu[P](getSearch().map(x => (x, searchFilters)), typeFilters).getInventory())
 

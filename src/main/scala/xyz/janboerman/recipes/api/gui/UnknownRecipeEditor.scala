@@ -12,7 +12,7 @@ import xyz.janboerman.recipes.api.recipe.Recipe
 class UnknownRecipeEditor[P <: Plugin]()(implicit override val recipesMenu: RecipesMenu[P],
                                          implicit override val api: JannyRecipesAPI,
                                          implicit override val plugin: P)
-    extends RecipeEditor[P, Recipe](null, plugin.getServer.createInventory(null, 54, "Edit Unknown Recipe")) {
+    extends RecipeEditor[P, Recipe](null, plugin.getServer.createInventory(null, 54, "Toggle Unknown Recipe")) {
     override protected def layoutBorder(): Unit = {}
 
     override def onClick(event: InventoryClickEvent): Unit = {
@@ -32,9 +32,7 @@ class UnknownRecipeEditor[P <: Plugin]()(implicit override val recipesMenu: Reci
         val exitButton = new RedirectItemButton[UnknownRecipeEditor[P]](new ItemBuilder(Material.RED_CONCRETE).name(Exit).build(), () => recipesMenu.getInventory)
 
         setButton(53, exitButton)
-
-        val deleteButton = new ItemButton[UnknownRecipeEditor[P]](
-            new ItemBuilder(Material.BARRIER).name(Delete).build()) //TODO use RedirectItemButton, get the YesNoMenu from the guiFactory
+        //TODO set the deletebutton here?
     }
 
     override def getIcon(): Option[ItemStack] = Some(RecipeEditor.UnknownRecipeIcon)

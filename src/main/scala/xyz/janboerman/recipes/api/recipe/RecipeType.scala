@@ -8,6 +8,7 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta._
 import org.bukkit.potion.{PotionData, PotionType}
 import xyz.janboerman.guilib.api.ItemBuilder
+import xyz.janboerman.recipes.api.recipe.modify.{ModifierType, RecipeModifier}
 
 import scala.collection.mutable
 
@@ -36,7 +37,12 @@ trait RecipeType {
     def getName(): String
     def getIcon(): ItemStack
 
-    //TODO add a method: isCreatable()(implicit api: JannyRecipesAPI): Boolean? such that we can leave out those recipes that are not creatable?
+    //TODO add a method: isCreatable(recipeType: RecipeType)(implicit api: JannyRecipesAPI): Boolean? such that we can leave out those recipes that are not creatable?
+}
+
+case class ModifiedType[M <: ModifierType[_, _]](baseType: RecipeType, modifierType: M) extends RecipeType {
+    override def getIcon(): ItemStack = baseType.getIcon()
+    override def getName(): String = modifierType.getName() + " " + baseType.getName()
 }
 
 object UnknownType extends RecipeType {

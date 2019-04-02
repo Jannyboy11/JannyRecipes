@@ -26,12 +26,9 @@ object ReloadRecipesCommandExecutor extends CommandExecutor {
                 }
                 if (successes > 0) getLogger.info(ChatColor.GREEN + s"Loaded $successes recipes.")
                 if (errors > 0) getLogger.severe(ChatColor.RED + s"$errors recipes failed to load.")
+
             case Left(errorMessage) => sender.sendMessage(ChatColor.RED + errorMessage)
-
-            case _ => sender.sendMessage("SHOULD NOT OCCUR!!!") //TODO remove
         }
-
-        //TODO re-add and disable vanilla recipes too.
 
         true
     }

@@ -4,7 +4,6 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.{Inventory, ItemStack}
 import org.bukkit.inventory.meta._
 import org.bukkit._
-import org.bukkit.block.Banner
 import org.bukkit.block.banner.{Pattern, PatternType}
 import org.bukkit.plugin.Plugin
 import org.bukkit.potion.{PotionData, PotionType}
@@ -12,6 +11,9 @@ import xyz.janboerman.guilib.api.ItemBuilder
 import xyz.janboerman.guilib.api.menu.{ClaimButton, PermissionButton, RedirectItemButton}
 import xyz.janboerman.recipes.api.JannyRecipesAPI
 import xyz.janboerman.recipes.api.recipe._
+
+//TODO add lores to items such that players get more info when they hover over items?
+//TODO don't use 'Edit' in the inventory's title? because the recipes cannot be edited. just deleted.
 
 object ComplexEditors {
     val BookPermission = "jannyrecipes.editor.book.claim"

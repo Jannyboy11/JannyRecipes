@@ -21,8 +21,8 @@ class SaveButton[P <: Plugin, R <: Recipe, RE <: RecipeEditor[P, R]](icon: ItemS
         .name(interactable(SaveAndExit))
         .build(), redirect)
 
-    def save(recipe: R with ConfigurationSerializable): Either[String, Unit] = {
-        //TODO check whether the recipe is vanilla? if so, do something different?
+    protected def save(recipe: R with ConfigurationSerializable): Either[String, Unit] = {
+        //the recipeStorage will take care of the distinction
         if (recipe != null) {
             recipeStorage.saveRecipe(recipe)
         } else {

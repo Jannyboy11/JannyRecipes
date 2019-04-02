@@ -10,7 +10,7 @@ import xyz.janboerman.recipes.api.recipe._
 
 object ArmorDyeRecipeEditor {
     def apply[P <: Plugin](recipe: ArmorDyeRecipe)(implicit api: JannyRecipesAPI, plugin: P, recipesMenu: RecipesMenu[P]): ArmorDyeRecipeEditor[P] = {
-        val inventory = new SimpleNMSInventory(54, "Edit Armour Dye Recipe")
+        val inventory = new SimpleNMSInventory(54, "Toggle Armour Dye Recipe")
         val holder = new ArmorDyeRecipeEditor(recipe, new CraftInventory(inventory))
         inventory.setInventoryHolder(holder)
         holder
@@ -19,7 +19,7 @@ object ArmorDyeRecipeEditor {
 
 object BannerAddPatternRecipeEditor {
     def apply[P <: Plugin](recipe: BannerAddPatternRecipe)(implicit api: JannyRecipesAPI, plugin: P, recipesMenu: RecipesMenu[P]): BannerAddPatternRecipeEditor[P] = {
-        val inventory = new SimpleNMSInventory(54, "Edit Banner Pattern Recipe")
+        val inventory = new SimpleNMSInventory(54, "Toggle Banner Pattern Recipe")
         val holder = new BannerAddPatternRecipeEditor(recipe, new CraftInventory(inventory))
         inventory.setInventoryHolder(holder)
         holder
@@ -28,7 +28,7 @@ object BannerAddPatternRecipeEditor {
 
 object BannerDuplicateRecipeEditor {
     def apply[P <: Plugin](recipe: BannerDuplicateRecipe)(implicit api: JannyRecipesAPI, plugin: P, recipesMenu: RecipesMenu[P]): BannerDuplicateRecipeEditor[P] = {
-        val inventory = new SimpleNMSInventory(54, "Edit Banner Duplication Recipe")
+        val inventory = new SimpleNMSInventory(54, "Toggle Banner Duplication Recipe")
         val holder = new BannerDuplicateRecipeEditor(recipe, new CraftInventory(inventory))
         inventory.setInventoryHolder(holder)
         holder
@@ -37,7 +37,7 @@ object BannerDuplicateRecipeEditor {
 
 object BookCloneRecipeEditor {
     def apply[P <: Plugin](recipe: BookCloneRecipe)(implicit api: JannyRecipesAPI, plugin: P, recipesMenu: RecipesMenu[P]): BookCloneRecipeEditor[P] = {
-        val inventory = new SimpleNMSInventory(54, "Edit Book Clone Recipe")
+        val inventory = new SimpleNMSInventory(54, "Toggle Book Clone Recipe")
         val holder = new BookCloneRecipeEditor(recipe, new CraftInventory(inventory))
         inventory.setInventoryHolder(holder)
         holder
@@ -46,7 +46,7 @@ object BookCloneRecipeEditor {
 
 object FireworkRocketRecipeEditor {
     def apply[P <: Plugin](recipe: FireworkRocketRecipe)(implicit api: JannyRecipesAPI, plugin: P, recipesMenu: RecipesMenu[P]): FireworkRocketRecipeEditor[P] = {
-        val inventory = new SimpleNMSInventory(54, "Edit Firework Rocket Recipe")
+        val inventory = new SimpleNMSInventory(54, "Toggle Firework Rocket Recipe")
         val holder = new FireworkRocketRecipeEditor(recipe, new CraftInventory(inventory))
         inventory.setInventoryHolder(holder)
         holder
@@ -55,7 +55,7 @@ object FireworkRocketRecipeEditor {
 
 object FireworkStarFadeRecipeEditor {
     def apply[P <: Plugin](recipe: FireworkStarFadeRecipe)(implicit api: JannyRecipesAPI, plugin: P, recipesMenu: RecipesMenu[P]): FireworkStarFadeRecipeEditor[P] = {
-        val inventory = new SimpleNMSInventory(54, "Edit Firework Star Fade Recipe")
+        val inventory = new SimpleNMSInventory(54, "Toggle Firework Star Fade Recipe")
         val holder = new FireworkStarFadeRecipeEditor(recipe, new CraftInventory(inventory))
         inventory.setInventoryHolder(holder)
         holder
@@ -64,7 +64,7 @@ object FireworkStarFadeRecipeEditor {
 
 object FireworkStarRecipeEditor {
     def apply[P <: Plugin](recipe: FireworkStarRecipe)(implicit api: JannyRecipesAPI, Plugin: P, recipesMenu: RecipesMenu[P]): FireworkStarRecipeEditor[P] = {
-        val inventory = new SimpleNMSInventory(54, "Edit Firework Star Recipe")
+        val inventory = new SimpleNMSInventory(54, "Toggle Firework Star Recipe")
         val holder = new FireworkStarRecipeEditor(recipe, new CraftInventory(inventory))
         inventory.setInventoryHolder(holder)
         holder
@@ -73,7 +73,7 @@ object FireworkStarRecipeEditor {
 
 object MapCloneRecipeEditor {
     def apply[P <: Plugin](recipe: MapCloneRecipe)(implicit api: JannyRecipesAPI, plugin: P, recipesMenu: RecipesMenu[P]): MapCloneRecipeEditor[P] = {
-        val inventory = new SimpleNMSInventory(54, "Edit Map Clone Recipe")
+        val inventory = new SimpleNMSInventory(54, "Toggle Map Clone Recipe")
         val holder = new MapCloneRecipeEditor(recipe, new CraftInventory(inventory))
         inventory.setInventoryHolder(holder)
         holder
@@ -82,7 +82,7 @@ object MapCloneRecipeEditor {
 
 object MapExtendRecipeEditor {
     def apply[P <: Plugin](recipe: MapExtendRecipe)(implicit api: JannyRecipesAPI, plugin: P, recipesMenu: RecipesMenu[P]): MapExtendRecipeEditor[P] = {
-        val inventory = new SimpleNMSInventory(54, "Edit Map Extend Recipe")
+        val inventory = new SimpleNMSInventory(54, "Toggle Map Extend Recipe")
         val holder = new MapExtendRecipeEditor(recipe, new CraftInventory(inventory))
         inventory.setInventoryHolder(holder)
         holder
@@ -91,7 +91,7 @@ object MapExtendRecipeEditor {
 
 object RepairItemRecipeEditor {
     def apply[P <: Plugin](recipe: RepairItemRecipe)(implicit api: JannyRecipesAPI, plugin: P, recipesMenu: RecipesMenu[P]): RepairItemRecipeEditor[P] = {
-        val inventory = new SimpleNMSInventory(54, "Edit Item Repair Recipe")
+        val inventory = new SimpleNMSInventory(54, "Toggle Item Repair Recipe")
         val holder = new RepairItemRecipeEditor(recipe, new CraftInventory(inventory))
         inventory.setInventoryHolder(holder)
         holder
@@ -100,7 +100,7 @@ object RepairItemRecipeEditor {
 
 object ShieldDecorationRecipeEditor {
     def apply[P <: Plugin](recipe: ShieldDecorationRecipe)(implicit api: JannyRecipesAPI, plugin: P, recipesMenu: RecipesMenu[P]): ShieldDecorationRecipeEditor[P] = {
-        val inventory = new SimpleNMSInventory(54, "Edit Shield Decoration Recipe")
+        val inventory = new SimpleNMSInventory(54, "Toggle Shield Decoration Recipe")
         val holder = new ShieldDecorationRecipeEditor(recipe, new CraftInventory(inventory))
         inventory.setInventoryHolder(holder)
         holder
@@ -109,7 +109,7 @@ object ShieldDecorationRecipeEditor {
 
 object ShulkerBoxColorRecipeEditor {
     def apply[P <: Plugin](recipe: ShulkerBoxColorRecipe)(implicit api: JannyRecipesAPI, plugin: P, recipesMenu: RecipesMenu[P]): ShulkerBoxColorRecipeEditor[P] = {
-        val inventory = new SimpleNMSInventory(54, "Edit Shulker Box Colouring Recipe")
+        val inventory = new SimpleNMSInventory(54, "Toggle Shulker Box Colouring Recipe")
         val holder = new ShulkerBoxColorRecipeEditor(recipe, new CraftInventory(inventory))
         inventory.setInventoryHolder(holder)
         holder
@@ -117,14 +117,12 @@ object ShulkerBoxColorRecipeEditor {
 }
 
 object TippedArrowRecipeEditor {
-
     def apply[P <: Plugin](recipe: TippedArrowRecipe)(implicit api: JannyRecipesAPI, plugin: P, recipesMenu: RecipesMenu[P]): TippedArrowRecipeEditor[P] = {
-        val inventory = new SimpleNMSInventory(54, "Edit Tipped Arrow Recipe")
+        val inventory = new SimpleNMSInventory(54, "Toggle Tipped Arrow Recipe")
         val holder = new TippedArrowRecipeEditor(recipe, new CraftInventory(inventory))
         inventory.setInventoryHolder(holder)
         holder
     }
-
 }
 
 class SimpleNMSInventory(size: Int, title: String) extends InventorySubcontainer(new ChatComponentText(title), size) {

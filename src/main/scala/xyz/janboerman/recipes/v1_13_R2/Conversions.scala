@@ -131,7 +131,7 @@ object Conversions {
             case JannyShapelessToNMS(janny) => janny
             case JannyFurnaceToNMS(janny) => janny
             case JannySmeltingToNMS(janny) => janny
-                
+
             //special cases
             case _: RecipeArmorDye                                  => new JannyArmorDye()
             case _: RecipeBannerAdd                                 => new JannyBannerAddPattern()

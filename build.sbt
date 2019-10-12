@@ -23,7 +23,7 @@ libraryDependencies ++= Seq(
 
     //dependencies that need to be bundled
     "com.github.Jannyboy11.GuiLib" % "GuiLib-API" % "v1.9.2",
-    "net.wesjd" % "anvilgui" % "1.2.2-SNAPSHOT",
+    "net.wesjd" % "anvilgui" % "1.2.1-SNAPSHOT",
 )
 
 assemblyShadeRules in assembly := Seq(

@@ -166,7 +166,7 @@ class SimpleStorage(val plugin: Plugin)(implicit api: JannyRecipesAPI) extends R
             val key = r.getKey
 
             if (ourRecipes.contains(key)) {
-                //save the recipe file
+                //delete the recipe file
 
                 val saveFile = new File(recipesFolder, saveFileName(key))
                 if (saveFile.exists()) {

@@ -5,13 +5,15 @@ import java.util.stream.StreamSupport
 import com.google.gson.{JsonArray, JsonElement, JsonObject, JsonSyntaxException}
 import net.minecraft.server.v1_13_R2._
 import xyz.janboerman.recipes.v1_13_R2.Extensions.{NmsIngredient, NmsKey, NmsNonNullList, NmsRecipe}
-import xyz.janboerman.recipes.v1_13_R2.Extensions.NmsRecipe.Group
+import xyz.janboerman.recipes.v1_13_R2.Extensions.NmsRecipe._
 import xyz.janboerman.recipes.v1_13_R2.recipe.bukkit.{BetterCraftFurnaceRecipe, BetterCraftShapedRecipe, BetterCraftShapelessRecipe, BetterRecipeChoice}
 
 import scala.collection.mutable.ArrayBuffer
 
 case class BetterShapelessRecipe(key: MinecraftKey, group: Group, ingredients: NonNullList[RecipeItemStack], result: ItemStack)
     extends ShapelessRecipes(key, group, result, ingredients) {
+
+    //TODO find out whether the not-found implicit conversion is a bug in the scala compiler or in IntelliJ.
 
     def getIngredients() = new NmsRecipe(this).getIngredients() //scalac y u so dumb? I should be able to call super.getIngredients()
     def getResult() = new NmsRecipe(this).getResult()  //scalac y u so dumb? I should be able to call super.getResult()

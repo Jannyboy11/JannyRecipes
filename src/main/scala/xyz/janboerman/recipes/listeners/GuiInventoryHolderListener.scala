@@ -2,7 +2,7 @@ package xyz.janboerman.recipes.listeners
 
 import org.bukkit.entity.Player
 import org.bukkit.event.{EventHandler, Listener}
-import org.bukkit.event.inventory.InventoryOpenEvent
+import org.bukkit.event.inventory.{InventoryCloseEvent, InventoryOpenEvent}
 import org.bukkit.event.player.PlayerQuitEvent
 import xyz.janboerman.guilib.api.GuiInventoryHolder
 import xyz.janboerman.recipes.RecipesPlugin
@@ -21,7 +21,7 @@ object GuiInventoryHolderListener extends Listener {
     def getLastOpenedEditor(player: Player): Option[RecipeEditor[_, _ <: Recipe]] = lastOpenedEditors.get(player)
 
     @EventHandler
-    def onOpen(event: InventoryOpenEvent): Unit = {
+    def onClose(event: InventoryCloseEvent): Unit = {
         if (!event.getPlayer.isInstanceOf[Player]) return
 
         val player = event.getPlayer.asInstanceOf[Player]

@@ -23,7 +23,7 @@ object AddRecipeCommandExecutor extends CommandExecutor {
 
         implicit val recipesMenu: RecipesMenu[RecipesPlugin.type] = GuiInventoryHolderListener.getLastOpenedGui(player) match {
             case Some(mainMenu: RecipesMenu[RecipesPlugin.type]) => mainMenu
-            case None => api.getGuiFactory[RecipesPlugin.type]().newRecipesMenu()
+            case _ => guiFactory.newRecipesMenu()
         }
 
         player.openInventory(new NewMenu[RecipesPlugin.type]().getInventory)

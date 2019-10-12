@@ -17,7 +17,7 @@ import xyz.janboerman.scalaloader.plugin.description.{Api, ApiVersion, Scala, Sc
 import xyz.janboerman.scalaloader.plugin.{ScalaPlugin, ScalaPluginDescription}
 
 @Api(value = ApiVersion.v1_13)
-@Scala(version = ScalaVersion.v2_13_0_M5)
+@Scala(version = ScalaVersion.v2_13_1)
 object RecipesPlugin
     extends ScalaPlugin(new ScalaPluginDescription("JannyRecipes", "3.0.0-ALPHA")
         .authors("Jannyboy11")

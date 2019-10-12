@@ -110,7 +110,7 @@ object Conversions {
                 }
             } => openInventory.getViewers.get(0).getOpenInventory.getTopInventory
 
-            //we don't whether we need CraftInventoryHorse or CraftInventoryLlama since that is
+            //we don't know whether we need CraftInventoryHorse or CraftInventoryLlama since that is
             //determined by the entity (CraftHorse or CraftLlama)
             case horse: InventoryHorseChest => new CraftInventoryAbstractHorse(horse)
 
@@ -345,7 +345,7 @@ object Conversions {
             case janny: ShapelessRecipe => JannyShapelessToBukkit(janny)
             case janny: FurnaceRecipe => JannyFurnaceToBukkit(janny)
 
-            case _ => () => null //fallback //TODO throw an exception instead? an empty shapeless recipe maybe?
+            case _ => throw new UnsupportedOperationException("Converting from a custom janny recipe implementation to a bukkit recipe is not yet supported.")
         }
     }
 

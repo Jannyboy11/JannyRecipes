@@ -83,6 +83,7 @@ class ShapelessRecipeEditor[P <: Plugin](inventory: Inventory,
             }
 
             val recipe = new SimpleShapelessRecipe(key, group, ingredients, result)
+            //TODO apply modifiers
             Some(recipe)
         } else {
             //no ingredients - too bad

@@ -15,6 +15,7 @@ import xyz.janboerman.recipes.v1_13_R2.{Conversions}
 case class BetterRecipeChoice(recipeItemStack: RecipeItemStack) extends MaterialChoice({
     recipeItemStack.buildChoices()
     if (recipeItemStack.choices.isEmpty) {
+        //needed because MaterialChoice can't have an empty list.
         Collections.singletonList(Material.AIR)
     } else {
         Arrays.stream(recipeItemStack.choices)

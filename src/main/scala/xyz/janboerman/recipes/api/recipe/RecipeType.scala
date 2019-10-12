@@ -37,19 +37,13 @@ trait RecipeType {
     def getName(): String
     def getIcon(): ItemStack
 
-    //TODO add a method: isCreatable(recipeType: RecipeType)(implicit api: JannyRecipesAPI): Boolean? such that we can leave out those recipes that are not creatable?
-}
-
-case class ModifiedType[M <: ModifierType[_, _]](baseType: RecipeType, modifierType: M) extends RecipeType {
-    override def getIcon(): ItemStack = baseType.getIcon()
-    override def getName(): String = modifierType.getName() + " " + baseType.getName()
+    //TODO add a method: isCreatable()(implicit api: JannyRecipesAPI): Boolean? such that we can leave out those recipes that are not creatable?
 }
 
 object UnknownType extends RecipeType {
     override def getName(): String = "Unknown"
     override def getIcon() = new ItemStack(Material.STRUCTURE_VOID)
 }
-
 
 case object ShapedType extends RecipeType {
     override def getName() = "Shaped"

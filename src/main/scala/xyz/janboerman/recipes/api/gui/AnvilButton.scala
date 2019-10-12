@@ -14,8 +14,7 @@ import xyz.janboerman.guilib.api.menu.{ItemButton, MenuHolder}
   * A button that opens an AnvilGui
   * @param callback the anvil gui's callback
   * @param paperDisplayName the display name of the item being renamed
-  * @param displayName the display name of the button itself
-  * @param material the material type
+  * @param icon the display icon
   * @tparam MH the menuholder's type
   */
 class AnvilButton[MH <: MenuHolder[_]](private val callback: (MH, InventoryClickEvent, String) => Unit,
@@ -27,20 +26,15 @@ class AnvilButton[MH <: MenuHolder[_]](private val callback: (MH, InventoryClick
         if (event.getWhoClicked.isInstanceOf[Player]) {
             val player = event.getWhoClicked.asInstanceOf[Player]
             val plugin = holder.getPlugin.asInstanceOf[Plugin]
-            plugin.getServer.getScheduler.runTask(plugin, new Runnable {
-                //Can't use the lambda expression version because scalac is dumb.
-                //It doesn't know that it should prioritize the functional interface over the abstract class.
-                //Runnable should be preferred over BukkitRunnable.
-                //At least it's better than in scala 2.12 - where the lambda was compiled to an instance of the abstract class
-                //instead of to an instance of the functional interface
+            plugin.getServer.getScheduler.runTask(plugin, new Runnable() {
                 override def run(): Unit = {
                     event.getView.close()
 
-                    new AnvilGUI(plugin, player, paperDisplayName, new BiFunction[Player, String, String] {
+                    new AnvilGUI(plugin, player, paperDisplayName, new BiFunction[Player, String, String]() {
                         //same for BiFunction[Player, String, String] and ClickHandler.
                         override def apply(p: Player, userInput: String): String = {
                             callback(holder, event, userInput)
-                            null
+                            null //return null to close the anvilgui
                         }
                     })
                 }

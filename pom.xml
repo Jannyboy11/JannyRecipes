@@ -9,7 +9,7 @@
     <version>3.0.0-ALPHA</version>
 
     <properties>
-        <scala.version>2.13.0-M5</scala.version>
+        <scala.version>2.13.0</scala.version> <!-- scala maven plugin completely derps on scala 2.13.1 -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <finalName>${project.artifactId}-${project.version}</finalName>
     </properties>
@@ -21,10 +21,9 @@
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
-                <version>3.4.4</version>
+                <version>4.2.0</version>
                 <configuration>
                     <recompileMode>incremental</recompileMode>
-                    <useZincServer>true</useZincServer>
                     <args>
                         <arg>-language:implicitConversions</arg>
                     </args>
@@ -124,7 +123,7 @@
         <dependency>
             <groupId>com.github.Jannyboy11.GuiLib</groupId>
             <artifactId>GuiLib-API</artifactId>
-            <version>v1.8.6</version>
+            <version>v1.9.2/version>
         </dependency>
 
         <dependency>

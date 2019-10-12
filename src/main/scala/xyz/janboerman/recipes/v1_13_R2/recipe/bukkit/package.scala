@@ -14,10 +14,18 @@ package object bukkit {
 
     private[bukkit] def cloneRecipeChoice(recipeChoice: RecipeChoice): RecipeChoice = {
         recipeChoice match {
+            case null => null
+                //unfortunately necessary because the scala compiler is so dumb it does not know interface methods with access modifiers are public!
+                //special-case known implementations to avoid reflection
             case brc: BetterRecipeChoice => brc.clone()
             case mat: MaterialChoice => mat.clone()
             case exact: ExactChoice => exact.clone()
-            case x => x //cannot call x.clone() because scalac is dumb. it thinks interface methods can be package-protected. lol.
+
+            case x =>
+                //invoke clone reflectively to work around the scala compiler issue *sigh*
+                val method = x.getClass.getMethod("clone")
+                val y = method.invoke(x)
+                y.asInstanceOf[RecipeChoice]
         }
     }
 }

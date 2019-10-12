@@ -102,7 +102,7 @@ object Extensions {
         def getRemainingStacks(matrix: IInventory): NonNullList[ItemStack] = iRecipe.b(matrix)
         def getIngredients(): NonNullList[RecipeItemStack] = iRecipe.e()
         def isHidden(): Boolean = iRecipe.c()
-        def getSerializer(): RecipeSerializer[_ <: IRecipe] = iRecipe.a()
+        def getSerializer(): RecipeSerializer[_ <: IRecipe] = iRecipe.a().asInstanceOf[RecipeSerializer[IRecipe]]
     }
 
     implicit class NmsShapedRecipe(shapedRecipes: ShapedRecipes) {
@@ -132,7 +132,7 @@ object Extensions {
         def apply(packetDataSerializer: PacketDataSerializer): RecipeItemStack = RecipeItemStack.b(packetDataSerializer)
         def apply(iMaterial: IMaterial*): RecipeItemStack = RecipeItemStack.a(iMaterial: _*)
         def empty: RecipeItemStack = RecipeItemStack.a
-        def exact(iMaterial: IMaterial*): RecipeItemStack =  {
+        def exact(iMaterial: IMaterial*): RecipeItemStack = {
             val recipeItemStack = NmsIngredient(iMaterial: _*)
             recipeItemStack.exact = true
             recipeItemStack

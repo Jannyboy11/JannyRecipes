@@ -8,6 +8,7 @@ import org.bukkit.Material._
 
 object MaterialUtils {
 
+    //TODO in 1.14, there are extra dyes
     lazy val dyesIngredient = list(
         INK_SAC,
         ROSE_RED,
@@ -109,7 +110,7 @@ object MaterialUtils {
 
     private def isArmour(material: org.bukkit.Material): Boolean = {
         val name = material.name()
-        //don't count horse armour because it is unbreakable
+        //don't count horse armour because it is unbreakable. TODO is it though? TODO test this by hitting a horse
         material == SHIELD ||
         material == TURTLE_HELMET ||
         material == LEATHER_HELMET ||
@@ -127,7 +128,7 @@ object MaterialUtils {
         .filter(m => isTool(m)
             || isWeapon(m)
             || isArmour(m)
-            || m == ELYTRA)
+            || m == ELYTRA) //TODO are elytra not armour?
         .collect(Collectors.toList[org.bukkit.Material])
 
 }

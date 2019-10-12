@@ -70,6 +70,7 @@ class FurnaceRecipeEditor[P <: Plugin](inventory: Inventory,
             val experience = this.experience
 
             val recipe = new SimpleFurnaceRecipe(key, group, ingredient, result, cookingTime, experience)
+            //TODO apply modifiers
             Some(recipe)
         } else {
             //no ingredient - too bad

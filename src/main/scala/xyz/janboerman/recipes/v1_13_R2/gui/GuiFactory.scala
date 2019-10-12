@@ -3,6 +3,7 @@ package xyz.janboerman.recipes.v1_13_R2.gui
 import xyz.janboerman.recipes.RecipesPlugin
 import xyz.janboerman.recipes.api.gui.{RecipeEditor, RecipeGuiFactory, RecipesMenu, SaveButton, UnknownRecipeEditor}
 import xyz.janboerman.recipes.api.recipe._
+import xyz.janboerman.recipes.api.recipe.modify.{ModifiedRecipe, ModifiedRecipeType, RecipeModifier}
 import xyz.janboerman.recipes.v1_13_R2.recipe.janny.{JannyArmorDye, JannyBannerAddPattern, JannyBannerDuplicate, JannyBookClone, JannyFireworkRocket, JannyFireworkStar, JannyFireworkStarFade, JannyMapClone, JannyMapExtend, JannyRepairItem, JannyShieldDecoration, JannyShulkerBoxColor, JannyTippedArrow}
 
 
@@ -12,13 +13,13 @@ object GuiFactory extends RecipeGuiFactory[RecipesPlugin.type] {
 
     override def newRecipesMenu(): RecipesMenu[P] = new RecipesMenu[P]()
 
-    override def newRecipeEditor(recipe: Recipe)
-                                (implicit recipesMenu: RecipesMenu[P]): RecipeEditor[P, _] = {
-
-        //TODO custom recipe types
+    private def newRecipeEditor(recipe: Recipe, modifiers: List[RecipeModifier[_]])
+                               (implicit mainMenu: RecipesMenu[P]): RecipeEditor[P, _] = {
 
         recipe match {
-            //TODO modified recipe editors
+            case ModifiedRecipe(base, modifier) =>
+                newRecipeEditor(base, modifier :: modifiers)
+                //TODO RecipeEditor should have some sort of modifiers list or sth..
 
             case armorDye: ArmorDyeRecipe => ArmorDyeRecipeEditor(armorDye)
             case bannerAddPattern: BannerAddPatternRecipe => BannerAddPatternRecipeEditor(bannerAddPattern)
@@ -40,15 +41,23 @@ object GuiFactory extends RecipeGuiFactory[RecipesPlugin.type] {
 
             case _ => new UnknownRecipeEditor()
         }
-
     }
 
+    override def newRecipeEditor(recipe: Recipe)
+                                (implicit recipesMenu: RecipesMenu[P]): RecipeEditor[P, _] =
+        newRecipeEditor(recipe, Nil)
+
     //TODO add implicit parameter IsCreatable[R] or something? type-class pattern ftw
-    override def newRecipeEditor(recipeType: RecipeType)(implicit mainMenu: RecipesMenu[P]): RecipeEditor[P, _] = {
-        //TODO custom recipes types
+    override def newRecipeEditor(recipeType: RecipeType)
+                                (implicit mainMenu: RecipesMenu[P]): RecipeEditor[P, _] = {
+
+        //TODO custom recipes types (although that should not be necessary given there are modifiers..)
 
         recipeType match {
-            //TODO modified type
+            case mt: ModifiedRecipeType =>
+                //TODO
+
+                ???
 
             case ArmorDyeType =>
                 val editor = ArmorDyeRecipeEditor(JannyArmorDye())

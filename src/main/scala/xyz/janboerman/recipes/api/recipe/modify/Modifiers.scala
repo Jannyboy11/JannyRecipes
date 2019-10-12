@@ -3,69 +3,72 @@ package xyz.janboerman.recipes.api.recipe.modify
 import java.util.UUID
 
 import org.bukkit.entity.Player
-import org.bukkit.{Bukkit, Material, NamespacedKey, World}
+import org.bukkit.{Bukkit, ChatColor, Material, NamespacedKey, World}
 import org.bukkit.inventory.{CraftingInventory, ItemStack}
 import org.bukkit.plugin.Plugin
+import org.bukkit.scheduler.BukkitTask
 import xyz.janboerman.guilib.api.ItemBuilder
 import xyz.janboerman.guilib.api.menu.MenuButton
 import xyz.janboerman.recipes.api.gui._
+import xyz.janboerman.recipes.api.recipe._
 
 import scala.collection.mutable
-import xyz.janboerman.recipes.api.recipe._
-import xyz.janboerman.recipes.api.recipe.{ModifiedType, RecipeType}
 
 //TODO modifiers and ModifiedRecipes should be ConfigurationSerializable.
 
-trait RecipeModifier[R <: Recipe] extends (R => ModifiedRecipe[R]) {
+trait RecipeModifier[Base <: Recipe] {
+    def apply(base: Base): ModifiedRecipe[Base]
+
+    /**
+      * The Icon of the modifier when it is not applied to a recipe.
+      * @return an itemStack with a name indicating what kind of modifier it is
+      */
     def getIcon(): ItemStack
 }
 
-trait ModifiedRecipe[R <: Recipe] { self: R =>
-    def getBaseRecipe(): R
-    def getModifier(): RecipeModifier[R]
+object ModifiedRecipe {
+    def unapply[Base <: Recipe](arg: ModifiedRecipe[Base]): Option[(Base, RecipeModifier[Base])] =
+        Some((arg.getBaseRecipe(), arg.getModifier))
 }
 
-trait CraftingRecipeModifier[R <: CraftingRecipe] extends RecipeModifier[R] {
-
-
+trait ModifiedRecipe[Base <: Recipe] /*does not extend Recipe because it is intended to be used using `with` */ {
+    def getBaseRecipe(): Base
+    def getModifier: RecipeModifier[Base]
 }
 
-trait SmeltingRecipeModifier[R <: SmeltingRecipe] extends RecipeModifier[R] {
-
-
+class ModifiedRecipeType(val baseRecipeType: RecipeType, val modifierType: ModifierType[_, _, _]) extends RecipeType {
+    override def getIcon(): ItemStack = baseRecipeType.getIcon() //TODO add to the lore? (e.g. for a world modifier "World: <world-name>") should the RecipeEditor do this?
+    override def getName(): String = modifierType.getName() + " " + baseRecipeType.getName()
 }
-//TODO? classes for shaped?, shapeless? and furnace?
-
 
 object ModifierType {
-    val values = new mutable.HashSet[ModifierType[_, _]]()
+    val values = new mutable.HashSet[ModifierType[_, _, _]]()
 
-    values.add(PermissionModifier.modifierType)
-    values.add(WorldModifier.modifierType)
+    values.add(WorldModifier.modifierType[CraftingRecipe])
+    values.add(PermissionModifier.modifierType[CraftingRecipe])
 }
 
-trait ModifierType[T, M <: RecipeModifier[_]] {
+trait ModifierType[T, Base <: Recipe, M <: RecipeModifier[Base]] {
     def getIcon(): ItemStack
-    def create(from: T): Either[String, M]
+    def create(base: Base, from: T): Either[String, M]
     def getName(): String
     def appliesTo(recipe: Recipe): Boolean
-    def newButton[R <: Recipe, P <: Plugin, RE <: RecipeEditor[P, R]](recipe: R)(implicit plugin: P): MenuButton[ModifiersMenu[P, R, RE]]
+    def newButton[P <: Plugin, RE <: RecipeEditor[P, Base]](recipe: Base)(implicit plugin: P): MenuButton[ModifiersMenu[P, Base, RE]]
 }
 
 object WorldModifier {
-    implicit val modifierType = new ModifierType[String, WorldModifier] {
+    implicit def modifierType[Base <: CraftingRecipe] = new ModifierType[String, Base, WorldModifier[Base]]() {
         override def getIcon(): ItemStack = new ItemBuilder(Material.FILLED_MAP).name(interactable("World")).build()
-        override def create(from: String): Either[String, WorldModifier] = {
+        override def create(base: Base, from: String): Either[String, WorldModifier[Base]] = {
             var world = Bukkit.getWorld(from)
             if (world == null) {
                 try {
                     val uid = UUID.fromString(from)
                     world = Bukkit.getWorld(uid)
                     if (world != null) {
-                        return Right(new WorldModifier(world))
-                    }
+                        return Right(new WorldModifier(base, world))                   }
                 } catch {
-                    case _: IllegalArgumentException => ()
+                    case _: IllegalArgumentException => () //string is not a world name or uuid - continue to `return Left(...)`
                 }
             }
 
@@ -74,9 +77,11 @@ object WorldModifier {
         override def getName(): String = "World-Specific"
         override def appliesTo(recipe: Recipe): Boolean = recipe.isInstanceOf[CraftingRecipe]
 
-        override def newButton[R <: Recipe, P <: Plugin, RE <: RecipeEditor[P, R]](recipe: R)(implicit plugin: P): MenuButton[ModifiersMenu[P, R, RE]] =
-            new AnvilButton[ModifiersMenu[P, R, RE]](icon = getIcon(), paperDisplayName = "", callback = (modifiersMenu, event, input) => {
-                val eitherErrorWorldModifier = create(input)
+        override def newButton[P <: Plugin, RE <: RecipeEditor[P, Base]](recipe: Base)(implicit plugin: P): MenuButton[ModifiersMenu[P, Base, RE]] =
+            //TODO instead of an anvil button, use a button that opens a new gui that lets you pick the world.
+
+            new AnvilButton[ModifiersMenu[P, Base, RE]](icon = getIcon(), paperDisplayName = "", callback = (modifiersMenu, event, input) => {
+                val eitherErrorWorldModifier = create(modifiersMenu.getRecipe(), input)
 
                 //TODO apply modifier to recipe.
                 //TODO re-open modifiers menu
@@ -84,10 +89,10 @@ object WorldModifier {
     }
 }
 
-class WorldModifier(val world: World) extends CraftingRecipeModifier[CraftingRecipe] { self =>
+class WorldModifier[Base <: CraftingRecipe](val base: Base, val world: World) extends RecipeModifier[Base] { self =>
 
-    override def apply(base: CraftingRecipe): CraftingRecipe with ModifiedRecipe[CraftingRecipe] =
-        new CraftingRecipe with ModifiedRecipe[CraftingRecipe] { mix =>
+    override def apply(base: Base): ModifiedRecipe[Base] =
+        new CraftingRecipe with ModifiedRecipe[Base] {
             override def tryCraft(craftingInventory: CraftingInventory, world: World): Option[CraftingResult] = {
                 craftingInventory.getHolder match {
                     case player: Player if player.getWorld.equals(world) => base.tryCraft(craftingInventory, world)
@@ -95,20 +100,13 @@ class WorldModifier(val world: World) extends CraftingRecipeModifier[CraftingRec
                 }
             }
 
-            override def getType(): RecipeType = {
-                //TODO always return ModifiedType?
-                base match {
-                    case shaped: ShapedRecipe => ShapedType
-                    case shapeless: ShapelessRecipe => ShapelessType
-                    case _ => ModifiedType(base.getType(), WorldModifier.modifierType)
-                }
-            }
+            override def getType(): RecipeType = new ModifiedRecipeType(base.getType(), WorldModifier.modifierType)
 
             override def getKey: NamespacedKey = base.getKey
 
-            override def getBaseRecipe(): CraftingRecipe = base
+            override def getBaseRecipe(): Base = base
 
-            override def getModifier(): RecipeModifier[CraftingRecipe] = self
+            override def getModifier() = self
         }
 
     override def getIcon(): ItemStack = new ItemBuilder(Material.FILLED_MAP).name(interactable("World")).lore(lore(world.getName)).build()
@@ -116,31 +114,37 @@ class WorldModifier(val world: World) extends CraftingRecipeModifier[CraftingRec
 
 
 object PermissionModifier {
-    implicit val modifierType = new ModifierType[String, PermissionModifier] {
+    implicit def modifierType[Base <: CraftingRecipe] = new ModifierType[String, Base, PermissionModifier[Base]] {
         override def getIcon(): ItemStack = new ItemBuilder(Material.IRON_BARS).name(interactable("Permission")).build()
-        override def create(from: String): Either[String, PermissionModifier] = Right(new PermissionModifier(from))
+        override def create(base: Base, from: String): Either[String, PermissionModifier[Base]] = Right(new PermissionModifier(base, from))
         override def getName(): String = "Permission-Specific"
         override def appliesTo(recipe: Recipe): Boolean = recipe.isInstanceOf[CraftingRecipe]
-        /*TODO override*/ def newButton[R <: Recipe, P <: Plugin, RE <: RecipeEditor[P, R]]
-        (recipe: R, permissionModifier: PermissionModifier)
-        (implicit plugin: P): MenuButton[ModifiersMenu[P, R, RE]] = {
-            //TODO
-            ???
-        }
-        override def newButton[R <: Recipe, P <: Plugin, RE <: RecipeEditor[P, R]](recipe: R)(implicit plugin: P): MenuButton[ModifiersMenu[P, R, RE]] =
-            new AnvilButton[ModifiersMenu[P, R, RE]](icon = getIcon(), paperDisplayName = "", callback = (modifiersMenu, event, input) => {
-                val eitherErrorPermissionModifier = create(input)
+        override def newButton[P <: Plugin, RE <: RecipeEditor[P, Base]](base: Base)(implicit plugin: P): MenuButton[ModifiersMenu[P, Base, RE]] =
+            new AnvilButton[ModifiersMenu[P, Base, RE]](icon = getIcon(), paperDisplayName = "", callback = (modifiersMenu, event, input) => {
+                val eitherErrorPermissionModifier = create(base, input)
+                eitherErrorPermissionModifier match {
+                    case Right(permissionModifier) =>
+                    //TODO apply modifier to recipe.
+                    //TODO set it to the RecipeEditor
 
-                //TODO apply modifier to recipe.
-                //TODO re-open modifiers menu
+                    case Left(message) =>
+                        event.getWhoClicked.sendMessage(ChatColor.RED + message)
+                }
+
+                //re-open modifiers menu
+                modifiersMenu.getPlugin.getServer.getScheduler.runTask(modifiersMenu.getPlugin, (_: BukkitTask) => {
+                    event.getView.close()
+                    event.getWhoClicked.openInventory(modifiersMenu.getInventory)
+                })
             })
     }
 }
 
-class PermissionModifier(val permission: String) extends CraftingRecipeModifier[CraftingRecipe] { self =>
+class PermissionModifier[Base <: CraftingRecipe](val base: Base, val permission: String) extends RecipeModifier[Base] { self =>
 
-    override def apply(base: CraftingRecipe): CraftingRecipe with ModifiedRecipe[CraftingRecipe] = {
-        new CraftingRecipe with ModifiedRecipe[CraftingRecipe] {
+    //TODO ideally i would want to return Base with ModifiedRecipeBase - use metaprogramming?!
+    override def apply(base: Base): ModifiedRecipe[Base] = {
+        new CraftingRecipe with ModifiedRecipe[Base] {
             override def tryCraft(craftingInventory: CraftingInventory, world: World): Option[CraftingResult] = {
                 craftingInventory.getHolder match {
                     case player: Player if player.hasPermission(permission) => base.tryCraft(craftingInventory, world)
@@ -148,17 +152,13 @@ class PermissionModifier(val permission: String) extends CraftingRecipeModifier[
                 }
             }
 
-            override def getType(): RecipeType = base match {
-                case shaped: ShapedRecipe => ShapedType
-                case shapeless: ShapelessRecipe => ShapelessType
-                case _ => UnknownType
-            }
+            override def getType(): RecipeType = new ModifiedRecipeType(base.getType(), PermissionModifier.modifierType)
 
             override def getKey: NamespacedKey = base.getKey
 
-            override def getBaseRecipe(): CraftingRecipe = base
+            override def getBaseRecipe(): Base = base
 
-            override def getModifier(): RecipeModifier[CraftingRecipe] = self
+            override def getModifier() = self
         }
     }
 
@@ -166,40 +166,3 @@ class PermissionModifier(val permission: String) extends CraftingRecipeModifier[
 
 }
 
-//TODO
-class ShapedIngredientModifier(ingredientKey: Char, ingredientModifier: CraftingIngredient => CraftingIngredient /*TODO create a specialized type for this?*/)
-    extends CraftingRecipeModifier[ShapedRecipe] { self =>
-
-    override def getIcon(): ItemStack = new ItemBuilder(Material.ITEM_FRAME).name(interactable("Ingredient")).build()
-
-    override def apply(base: ShapedRecipe): ModifiedRecipe[ShapedRecipe] = {
-
-        ???
-    }
-}
-
-//TODO
-class ShapelessIngredientModifier(ingredientKey: Int, ingredientModifier: CraftingIngredient => CraftingIngredient /*TODO idem*/)
-    extends CraftingRecipeModifier[ShapelessRecipe] { self =>
-
-    override def getIcon(): ItemStack = ???
-
-    override def apply(recipe: ShapelessRecipe): ModifiedRecipe[ShapelessRecipe] = ???
-}
-
-
-//trait ModifiedCraftingRecipe[R <: CraftingRecipe] extends ModifiedRecipe[R] with CraftingRecipe
-//
-//case class SimpleModifiedCraftingRecipe[B <: CraftingRecipe](baseRecipe: B,
-//                                                             resultModifier: (CraftingInventory, World, Option[CraftingResult]) => Option[CraftingResult],
-//                                                             keyModifier: NamespacedKey => NamespacedKey = identity)
-//    extends ModifiedCraftingRecipe[B] {
-//
-//    override def getBaseRecipe(): B = baseRecipe
-//
-//    override def tryCraft(inventory: CraftingInventory, world: World): Option[CraftingResult] = {
-//        resultModifier.apply(inventory, world, getBaseRecipe().tryCraft(inventory, world))
-//    }
-//
-//    override def getKey: NamespacedKey = keyModifier.apply(baseRecipe.getKey)
-//}

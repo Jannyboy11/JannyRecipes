@@ -53,10 +53,11 @@ object Impl extends JannyImplementation {
             serializerMapField.setAccessible(true)
             val serializersMap = serializerMapField.get(null).asInstanceOf[java.util.Map[String, RecipeSerializer[_]]]
 
-            //register custom serializers - improved nms recipes
+            //override existing serializers with custom serializers - improved nms recipes
             serializersMap.put(BetterFurnaceSerializer.getRecipeType(), BetterFurnaceSerializer)
             serializersMap.put(BetterShapedSerializer.getRecipeType(), BetterShapedSerializer)
             serializersMap.put(BetterShapelessSerializer.getRecipeType(), BetterShapelessSerializer)
+            //these two are special in the sense that they are complex but also shaped (according to bukkit)
             serializersMap.put(BetterMapExtendRecipe.serializer.a(), BetterMapExtendRecipe.serializer)
             serializersMap.put(BetterTippedArrowRecipe.serializer.a(), BetterTippedArrowRecipe.serializer)
 

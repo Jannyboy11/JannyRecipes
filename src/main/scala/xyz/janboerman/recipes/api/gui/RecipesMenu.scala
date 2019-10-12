@@ -98,6 +98,7 @@ class RecipesMenu[P <: Plugin]()(implicit protected val api: JannyRecipesAPI, im
             val refreshButton = new ItemButton[RecipesMenu[P]](new ItemBuilder(Material.TOTEM_OF_UNDYING).name(interactable("Refresh")).build()) {
                 override def onClick(holder: RecipesMenu[P], event: InventoryClickEvent): Unit = {
                     self.refresh()
+                    self.fillPage()
                 }
             }
             val filtersButton = new RedirectItemButton[RecipesMenu[P]](new ItemBuilder(Material.COBWEB).name(interactable("Filters...")).build(), () =>

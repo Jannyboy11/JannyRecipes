@@ -82,8 +82,7 @@ class ByTypeFilter(private val recipeClass: Class[_ <: Recipe]) extends RecipeFi
     override def hashCode(): Int = recipeClass.hashCode()
 
     override def apply(recipe: Recipe): Boolean = recipeClass.isInstance(recipe)
-
-
+    
 }
 
 class ByNamespaceFilter(private val namespace: String) extends RecipeFilter {

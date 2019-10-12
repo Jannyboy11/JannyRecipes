@@ -11,6 +11,8 @@ class ModifiersMenu[P <: Plugin, R <: Recipe, RE <: RecipeEditor[P, R]](recipe: 
 
     var firstTimeOpen = true
 
+    def getRecipe(): R = recipe
+
     override def onOpen(event: InventoryOpenEvent): Unit = {
         if (firstTimeOpen) {
             setupButtons()
@@ -21,7 +23,8 @@ class ModifiersMenu[P <: Plugin, R <: Recipe, RE <: RecipeEditor[P, R]](recipe: 
     private def setupButtons(): Unit = {
         var buttonSlot = 0
         for (modifierType <- ModifierType.values if modifierType.appliesTo(recipe) && buttonSlot < 45 /*TODO worry about paging later*/) {
-            val button = modifierType.newButton(recipe)
+            //assume modifiertype works for R since we tested modifierType.appliesTo(recipe)
+            val button = modifierType.asInstanceOf[ModifierType[_, R, _]].newButton(recipe)
             setButton(buttonSlot, button)
             buttonSlot += 1
         }

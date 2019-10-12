@@ -57,7 +57,6 @@ object RecipesPlugin
         }
     }
 
-
     override def onEnable(): Unit = {
         val pluginManager = getServer.getPluginManager
         guiListener = GuiListener.getInstance()
@@ -80,15 +79,16 @@ object RecipesPlugin
                 case _ =>
                     getLogger.severe("Failed to acquire a working recipe implementation. Disabling...")
                     pluginManager.disablePlugin(this)
+                    return
             }
         }
 
         val persistentStorage = persist()
         if (!persistentStorage.init()) {
-            getLogger.warning("Persistent storage layer failed to initialize correctly.")
+            getLogger.severe("Persistent storage layer failed to initialize correctly.")
         }
         getServer().getScheduler.runTask(this, (_: BukkitTask) => {
-            //in a bukkit task because minecraft's datapack clear the recipes on startup. lol.
+            //in a bukkit task because minecraft's datapacks clear the recipes on startup. lol.
             //TODO find out how to 'implement' a datapack? can I wrap my 'Impl' or 'JannyRecipesAPI' class?
             persistentStorage.loadRecipes() match {
                 case Right(iterator) =>

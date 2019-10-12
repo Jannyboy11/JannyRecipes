@@ -60,7 +60,7 @@ trait CraftingIngredient extends Ingredient {
     }
 
     override def clone(): CraftingIngredient = {
-        val choicesClone = getChoices().map(itemStack => itemStack.clone())
+        val choicesClone = getChoices().map(_.clone())
         new CraftingIngredient {
             override def getChoices(): List[_ <: ItemStack] = choicesClone
         }

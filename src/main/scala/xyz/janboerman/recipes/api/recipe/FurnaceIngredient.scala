@@ -11,7 +11,7 @@ object FurnaceIngredient {
     def apply(matcher: ItemStack): FurnaceIngredient = new SimpleFurnaceIngredient(matcher)
 }
 
-trait FurnaceIngredient extends Ingredient { outer =>
+trait FurnaceIngredient extends Ingredient {
 
     def getItemStack(): ItemStack
 

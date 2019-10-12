@@ -1,13 +1,17 @@
 package xyz.janboerman.recipes.api.gui
 
 import org.bukkit.{ChatColor, Material, NamespacedKey}
-import org.bukkit.event.inventory.{InventoryClickEvent, InventoryOpenEvent, InventoryType}
+import org.bukkit.event.inventory.{InventoryClickEvent, InventoryOpenEvent}
 import org.bukkit.inventory.{Inventory, ItemStack}
 import org.bukkit.plugin.Plugin
+
+import scala.collection.mutable
+
 import xyz.janboerman.guilib.api.ItemBuilder
 import xyz.janboerman.guilib.api.menu.MenuHolder
+import xyz.janboerman.recipes.api.recipe.modify.RecipeModifier
 import xyz.janboerman.recipes.api.{JannyRecipesAPI, PlayerUtils}
-import xyz.janboerman.recipes.api.recipe.{Recipe, ShapedRecipe}
+import xyz.janboerman.recipes.api.recipe.Recipe
 
 object RecipeEditor {
 
@@ -37,6 +41,19 @@ abstract class RecipeEditor[P <: Plugin, R <: Recipe](protected var recipe: R,
 //        this(recipe, plugin.getServer.createInventory(this, inventoryType, title))
 //    }
 
+    private lazy val modifiers = new mutable.LinkedHashSet[RecipeModifier[R]]()
+
+    def getModifiers(): mutable.Iterable[RecipeModifier[R]] = modifiers
+
+    def addModifier(modifier: RecipeModifier[R]): Unit = modifiers.add(modifier)
+
+    def setModifiers(modifiers: IterableOnce[RecipeModifier[R]]): Unit = {
+        this.modifiers.clear()
+        this.modifiers.addAll(modifiers)
+    }
+
+    def removeModifier(modifier: RecipeModifier[R]): Unit = modifiers.remove(modifier)
+
     private var firstTimeOpen = true
 
     override def onOpen(event: InventoryOpenEvent): Unit = {
@@ -55,7 +72,7 @@ abstract class RecipeEditor[P <: Plugin, R <: Recipe](protected var recipe: R,
         event.setCancelled(false)
         super.onClick(event)
 
-        PlayerUtils.updateInventory(event.getWhoClicked, getPlugin) //needed to update the client's bad shift-click predictions
+        PlayerUtils.updateInventory(event.getWhoClicked, getPlugin) //needed to correct the client's shift-click predictions
     }
 
     def getCachedRecipe(): Option[R] = {
@@ -70,7 +87,7 @@ abstract class RecipeEditor[P <: Plugin, R <: Recipe](protected var recipe: R,
       * Constructs a new recipe based on the items in the inventory, and on other fields in the subclasses.
       * @return Some(recipe) if a new recipe could be constructed, otherwise None
       */
-    def makeRecipe(): Option[R] = {
+    def makeRecipe(): Option[R] = { //TODO change return type to Option[ModifiedRecipe[_]]? :)
         throw new NotImplementedError("The current editor (" + this + ") doesn't know how to make a new recipe from inventory contents (yet). It should override makeRecipe")
     }
 

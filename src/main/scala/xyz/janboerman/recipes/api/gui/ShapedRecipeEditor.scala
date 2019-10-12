@@ -149,6 +149,7 @@ class ShapedRecipeEditor[P <: Plugin](inventory: Inventory,
             }
 
             val recipe = new SimpleShapedRecipe(key, group, shape, ingredients, result)
+            //TODO apply modifiers
             Some(recipe)
         } else {
             //no ingredients - too bad

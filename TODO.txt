@@ -1,5 +1,6 @@
 Fix all TODOs in the code
 
+implement modifiers for recipes (world, permission), and ingredients (nbt, count).
 refactor duplicate code
 make type parameters more scala-idiomatic (no more Foo[_ <: SomeType] as in Java)
 fix editors per complex recipe,

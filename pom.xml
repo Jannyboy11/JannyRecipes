@@ -4,12 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>xyz.janboerman</groupId>
+    <groupId>com.janboerman</groupId>
     <artifactId>JannyRecipes</artifactId>
     <version>3.0.0-ALPHA</version>
 
     <properties>
-        <scala.version>2.13.0</scala.version> <!-- scala maven plugin completely derps on scala 2.13.1 -->
+        <scala.version>2.13.3</scala.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <finalName>${project.artifactId}-${project.version}</finalName>
     </properties>
@@ -21,11 +21,12 @@
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
-                <version>4.2.0</version>
+                <version>4.4.0</version>
                 <configuration>
                     <recompileMode>incremental</recompileMode>
                     <args>
                         <arg>-language:implicitConversions</arg>
+                        <arg>-language:higherKinds</arg>
                     </args>
                 </configuration>
                 <executions>
@@ -45,7 +46,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Automatic-Module-Name>xyz.janboerman.recipes</Automatic-Module-Name>
+                            <Automatic-Module-Name>com.janboerman.recipes</Automatic-Module-Name>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -65,11 +66,11 @@
                             <relocations>
                                 <relocation>
                                     <pattern>xyz.janboerman.guilib</pattern>
-                                    <shadedPattern>xyz.janboerman.recipes.guilib</shadedPattern>
+                                    <shadedPattern>com.janboerman.recipes.guilib</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>net.wesjd.anvilgui</pattern>
-                                    <shadedPattern>xyz.janboerman.recipes.anvilgui</shadedPattern>
+                                    <shadedPattern>com.janboerman.recipes.anvilgui</shadedPattern>
                                 </relocation>
                             </relocations>
 
@@ -113,17 +114,17 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.Jannyboy11.ScalaPluginLoader</groupId>
+            <groupId>xyz.janboerman</groupId>
             <artifactId>ScalaLoader</artifactId>
-            <version>v0.12.2</version>
+            <version>0.13.7-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
 
         <!-- dependencies that need to be bundled -->
         <dependency>
-            <groupId>com.github.Jannyboy11.GuiLib</groupId>
+            <groupId>xyz.janboerman</groupId>
             <artifactId>GuiLib-API</artifactId>
-            <version>v1.9.2</version>
+            <version>1.10.2</version>
         </dependency>
 
         <dependency>

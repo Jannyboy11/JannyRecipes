@@ -23,25 +23,24 @@ object GuiFactory extends RecipeGuiFactory[RecipesPlugin.type] {
         recipe match {
             case ModifiedRecipe(base, modifier) =>
                 newRecipeEditor(base, modifier :: modifiers)
-                //TODO RecipeEditor should have some sort of modifiers list or sth..
 
-            case armorDye: ArmorDyeRecipe => ArmorDyeRecipeEditor(armorDye)
-            case bannerAddPattern: BannerAddPatternRecipe => BannerAddPatternRecipeEditor(bannerAddPattern)
-            case bannerDuplicate: BannerDuplicateRecipe => BannerDuplicateRecipeEditor(bannerDuplicate)
-            case bookClone: BookCloneRecipe => BookCloneRecipeEditor(bookClone)
-            case fireworkRocket: FireworkRocketRecipe => FireworkRocketRecipeEditor(fireworkRocket)
-            case fireworkStarFade: FireworkStarFadeRecipe => FireworkStarFadeRecipeEditor(fireworkStarFade)
-            case fireworkStar: FireworkStarRecipe => FireworkStarRecipeEditor(fireworkStar)
-            case mapClone: MapCloneRecipe => MapCloneRecipeEditor(mapClone)
-            case mapExtend: MapExtendRecipe => MapExtendRecipeEditor(mapExtend)
-            case repairItem: RepairItemRecipe => RepairItemRecipeEditor(repairItem)
-            case shieldDecoration: ShieldDecorationRecipe => ShieldDecorationRecipeEditor(shieldDecoration)
-            case shulkerBoxColor: ShulkerBoxColorRecipe => ShulkerBoxColorRecipeEditor(shulkerBoxColor)
-            case tippedArrow: TippedArrowRecipe => TippedArrowRecipeEditor(tippedArrow)
+            case armorDye: ArmorDyeRecipe =>                    ArmorDyeRecipeEditor(armorDye)
+            case bannerAddPattern: BannerAddPatternRecipe =>    BannerAddPatternRecipeEditor(bannerAddPattern)
+            case bannerDuplicate: BannerDuplicateRecipe =>      BannerDuplicateRecipeEditor(bannerDuplicate)
+            case bookClone: BookCloneRecipe =>                  BookCloneRecipeEditor(bookClone)
+            case fireworkRocket: FireworkRocketRecipe =>        FireworkRocketRecipeEditor(fireworkRocket)
+            case fireworkStarFade: FireworkStarFadeRecipe =>    FireworkStarFadeRecipeEditor(fireworkStarFade)
+            case fireworkStar: FireworkStarRecipe =>            FireworkStarRecipeEditor(fireworkStar)
+            case mapClone: MapCloneRecipe =>                    MapCloneRecipeEditor(mapClone)
+            case mapExtend: MapExtendRecipe =>                  MapExtendRecipeEditor(mapExtend)
+            case repairItem: RepairItemRecipe =>                RepairItemRecipeEditor(repairItem)
+            case shieldDecoration: ShieldDecorationRecipe =>    ShieldDecorationRecipeEditor(shieldDecoration)
+            case shulkerBoxColor: ShulkerBoxColorRecipe =>      ShulkerBoxColorRecipeEditor(shulkerBoxColor)
+            case tippedArrow: TippedArrowRecipe =>              TippedArrowRecipeEditor(tippedArrow)
 
-            case shaped: ShapedRecipe => ShapedRecipeEditor(shaped)
-            case shapeless: ShapelessRecipe => ShapelessRecipeEditor(shapeless)
-            case furnace: FurnaceRecipe => FurnaceRecipeEditor(furnace)
+            case shaped: ShapedRecipe =>        ShapedRecipeEditor(shaped)
+            case shapeless: ShapelessRecipe =>  ShapelessRecipeEditor(shapeless)
+            case furnace: FurnaceRecipe =>      FurnaceRecipeEditor(furnace)
 
             case _ => new UnknownRecipeEditor()
         }
@@ -51,7 +50,7 @@ object GuiFactory extends RecipeGuiFactory[RecipesPlugin.type] {
                                 (implicit recipesMenu: RecipesMenu[P]): RecipeEditor[P, _] =
         newRecipeEditor(recipe, Nil)
 
-    //TODO add implicit parameter IsCreatable[R] or something? type-class pattern ftw
+    //TODO add implicit parameter IsCreatable[RecipeType] or something? so that this method can't ever be called with ModifiedRecipeType.
     override def newRecipeEditor(recipeType: RecipeType)
                                 (implicit mainMenu: RecipesMenu[P]): RecipeEditor[P, _] = {
 
@@ -59,9 +58,9 @@ object GuiFactory extends RecipeGuiFactory[RecipesPlugin.type] {
 
         recipeType match {
             case mt: ModifiedRecipeType =>
-                //TODO
-
-                ???
+                //this is not realistic, because a modified recipe is never new!
+                //it is always created from a `base` recipe
+                throw new RuntimeException("Cannot create an editor for a new modified recipe, because modified recipes are never new!")
 
             case ArmorDyeType =>
                 val editor = ArmorDyeRecipeEditor(JannyArmorDye())

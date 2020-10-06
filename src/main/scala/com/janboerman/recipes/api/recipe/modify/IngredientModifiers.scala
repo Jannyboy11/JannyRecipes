@@ -1,5 +1,7 @@
 package com.janboerman.recipes.api.recipe.modify
 
+import java.util
+
 import com.janboerman.recipes.api.recipe.{CraftingIngredient, Ingredient, ItemIngredient, Recipe}
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
@@ -80,6 +82,7 @@ case class IngredientLocator[IngredientLocation, BaseRecipe <: Recipe, BaseIngre
     def locate(recipe: BaseRecipe): BaseIngredient = locator(recipe, location)
 }
 
+//TODO not sure whether I even want this class..
 class IngredientRecipeModifier[BaseIngredient <: Ingredient, IngredientLocation, BaseRecipe <: Recipe](
     ingredientLocator: IngredientLocator[IngredientLocation, BaseRecipe, BaseIngredient],
     baseRecipe: BaseRecipe, ingredientLocation: IngredientLocation)
@@ -105,7 +108,7 @@ class IngredientRecipeModifier[BaseIngredient <: Ingredient, IngredientLocation,
         override def getIcon(): ItemStack = icon
 
         override def create(base: BaseRecipe, from: IngredientLocator[IngredientLocation, BaseRecipe, BaseIngredient]): Either[String, RecipeModifier[BaseRecipe, BaseRecipe]] = {
-            Right(self)
+            Right(self) //TODO this seems incorrect design
         }
 
         override def getName(): String = "with modified ingredient"
@@ -132,6 +135,8 @@ class IngredientRecipeModifier[BaseIngredient <: Ingredient, IngredientLocation,
     override def getIcon(): ItemStack = ??? //TODO
 
     override def getType(): ModifierType[IngredientLocator[IngredientLocation, BaseRecipe, BaseIngredient], BaseRecipe, BaseRecipe] = modifierType;
+
+    override def serialize(): util.Map[String, AnyRef] = ??? //TODO (don't forget valueOf in companion object)
 }
 
 

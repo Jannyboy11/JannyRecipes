@@ -1,5 +1,6 @@
 package com.janboerman.recipes.api.recipe.modify
 
+import java.util
 import java.util.UUID
 
 import com.janboerman.recipes.api.gui.{ModifiersMenu, RecipeEditor}
@@ -13,13 +14,15 @@ import xyz.janboerman.guilib.api.ItemBuilder
 import xyz.janboerman.guilib.api.menu.MenuButton
 import com.janboerman.recipes.api.gui._
 import com.janboerman.recipes.api.recipe._
+import org.bukkit.configuration.serialization.{ConfigurationSerializable, ConfigurationSerialization}
 
 import scala.collection.mutable
 
-//TODO modifiers and ModifiedRecipes should be ConfigurationSerializable.
+trait RecipeModifier[Base <: Recipe, Basic <: Recipe] extends ConfigurationSerializable {
+    //Base: the recipe type that got modified
+    //Basic: the 'minimum' recipe type that is produced when the modifier is applied
 
-trait RecipeModifier[Base <: Recipe, Basic <: Recipe] {
-    def apply(base: Base): ModifiedRecipe[Base, Basic] //do I need to add Basic as a second type argument? yes probably.
+    def apply(base: Base): ModifiedRecipe[Base, Basic]
 
     /**m
       * The Icon of the modifier when it is not applied to a recipe.
@@ -27,17 +30,46 @@ trait RecipeModifier[Base <: Recipe, Basic <: Recipe] {
       */
     def getIcon(): ItemStack
 
-    def getType(): ModifierType[_, Base, Basic /*Basic represents the 'minimal' recipe type that this modifier produces. */]
+    def getType(): ModifierType[_, Base, Basic]
 }
 
 object ModifiedRecipe {
     def unapply[Base <: Recipe, Basic <: Recipe](arg: ModifiedRecipe[Base, Basic]): Option[(Base, RecipeModifier[Base, Basic])] =
         Some((arg.getBaseRecipe(), arg.getModifier()))
+
+    def valueOf[Base <: Recipe](map: java.util.Map[String, AnyRef]): ModifiedRecipe[Base, _] = {
+        if (!map.containsKey("base")) throw new IllegalArgumentException("Map must contain \"base\" key")
+        if (!map.containsKey("modifier")) throw new IllegalArgumentException("Map must contain \"modifier\" key")
+
+        val baseMap = map.get("base").asInstanceOf[java.util.Map[String, AnyRef]]
+        val modifierMap = map.get("modifier").asInstanceOf[java.util.Map[String, AnyRef]]
+
+        val modifier = ConfigurationSerialization.deserializeObject(modifierMap).asInstanceOf[RecipeModifier[Base, _]]
+        val base = ConfigurationSerialization.deserializeObject(baseMap).asInstanceOf[Base]
+
+        modifier.apply(base)
+    }
 }
 
-trait ModifiedRecipe[Base <: Recipe, Basic <: Recipe] { this: Recipe =>
+trait ModifiedRecipe[Base <: Recipe, Basic <: Recipe] extends ConfigurationSerializable { this: Recipe =>
     def getBaseRecipe(): Base
     def getModifier(): RecipeModifier[Base, Basic] /*not sure whether Basic must be a type parameter of the trait, or a type parameter of the method*/
+
+    override def serialize(): java.util.Map[String, AnyRef] = {
+        val base = getBaseRecipe();
+        val modifier = getModifier();
+
+        if (base.isInstanceOf[ConfigurationSerializable] && modifier.isInstanceOf[ConfigurationSerializable]) {
+            val baseMap = base.asInstanceOf[ConfigurationSerializable].serialize()
+            val modifierMap = modifier.asInstanceOf[ConfigurationSerializable].serialize()
+
+            java.util.Map.of("base", baseMap, "modifier", modifierMap)
+        } else {
+            java.util.Map.of()
+        }
+    }
+
+    //TODO should modifiers have a key? an actual a NamespacedKey? how will they be saved/loaded?
 }
 
 class ModifiedRecipeType(val baseRecipeType: RecipeType, val modifierType: ModifierType[_, _, _]) extends RecipeType {
@@ -50,11 +82,12 @@ object ModifierType {
 
     values.add(WorldModifierType)
     values.add(PermissionModifierType)
+    //TODO count modifier type
 }
 
 trait ModifierType[From, Base <: Recipe, Basic <: Recipe] {
     def getIcon(): ItemStack
-    def create(base: Base, from: From): Either[String, RecipeModifier[Base, Basic]]
+    def create(base: Base /*TODO redundant parameter?!*/, from: From): Either[String, RecipeModifier[Base, Basic]]
     def getName(): String
     def appliesTo(recipe: Recipe): Boolean
     def newButton[P <: Plugin, RE <: RecipeEditor[P, Base]](recipe: Base)(implicit plugin: P): MenuButton[ModifiersMenu[P, Base, RE]]
@@ -69,7 +102,7 @@ object WorldModifierType extends ModifierType[String, CraftingRecipe, CraftingRe
                 val uid = UUID.fromString(from)
                 world = Bukkit.getWorld(uid)
                 if (world != null) {
-                    return Right(new WorldModifier(base, world))
+                    return Right(new WorldModifier(world))
                 }
             } catch {
                 case _: IllegalArgumentException => () //string is not a world name or uuid - continue to `return Left(...)`
@@ -92,7 +125,15 @@ object WorldModifierType extends ModifierType[String, CraftingRecipe, CraftingRe
         })
 }
 
-class WorldModifier(val base: CraftingRecipe, val world: World) extends RecipeModifier[CraftingRecipe, CraftingRecipe] { self =>
+object WorldModifier {
+    def valueOf(map: java.util.Map[String, AnyRef]): WorldModifier = {
+        val worldName = map.get("world").asInstanceOf[String]
+        val world = Bukkit.getWorld(worldName)
+        new WorldModifier(world)
+    }
+}
+
+class WorldModifier(val world: World) extends RecipeModifier[CraftingRecipe, CraftingRecipe] { self =>
 
     override def apply(base: CraftingRecipe): ModifiedRecipe[CraftingRecipe, CraftingRecipe] = {
         //a type-class pattern would have fit nicely probably, because Ideally we would have `new Basic with ModifiedRecipe` but `new` can't be used for type arguments.
@@ -117,11 +158,13 @@ class WorldModifier(val base: CraftingRecipe, val world: World) extends RecipeMo
     override def getIcon(): ItemStack = new ItemBuilder(Material.FILLED_MAP).name(interactable("World")).lore(lore(world.getName)).build()
 
     override def getType() = WorldModifierType
+
+    override def serialize(): util.Map[String, AnyRef] = java.util.Map.of("world", world.getName)
 }
 
 object PermissionModifierType extends ModifierType[String, CraftingRecipe, CraftingRecipe] {
     override def getIcon(): ItemStack = new ItemBuilder(Material.IRON_BARS).name(interactable("Permission")).build()
-    override def create(base: CraftingRecipe, from: String): Either[String, PermissionModifier] = Right(new PermissionModifier(base, from))
+    override def create(base: CraftingRecipe, from: String): Either[String, PermissionModifier] = Right(new PermissionModifier(from))
     override def getName(): String = "Permission-Specific"
     override def appliesTo(recipe: Recipe): Boolean = recipe.isInstanceOf[CraftingRecipe]
     override def newButton[P <: Plugin, RE <: RecipeEditor[P, CraftingRecipe]](base: CraftingRecipe)(implicit plugin: P): MenuButton[ModifiersMenu[P, CraftingRecipe, RE]] =
@@ -147,7 +190,14 @@ object PermissionModifierType extends ModifierType[String, CraftingRecipe, Craft
         })
 }
 
-class PermissionModifier(val base: CraftingRecipe, val permission: String) extends RecipeModifier[CraftingRecipe, CraftingRecipe] { self =>
+object PermissionModifier {
+    def valueOf(map: java.util.Map[String, AnyRef]): PermissionModifier = {
+        val permission = map.get("permission").asInstanceOf[String]
+        new PermissionModifier(permission)
+    }
+}
+
+class PermissionModifier(val permission: String) extends RecipeModifier[CraftingRecipe, CraftingRecipe] { self =>
 
     //TODO ideally i would want to return Base with ModifiedRecipeBase - use metaprogramming?!
     //TODO can't I use Shapeless? That seems really far fetched. probably better to wait for Scala 3 and use Match Types.
@@ -174,5 +224,7 @@ class PermissionModifier(val base: CraftingRecipe, val permission: String) exten
     override def getIcon(): ItemStack = new ItemBuilder(Material.IRON_BARS).name(interactable("Permission")).lore(lore(permission)).build()
 
     override def getType() = PermissionModifierType
+
+    override def serialize(): util.Map[String, AnyRef] = java.util.Map.of("permission", permission)
 }
 

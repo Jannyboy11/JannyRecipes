@@ -11,6 +11,7 @@ import org.bukkit.configuration.serialization.{ConfigurationSerializable, Config
 import org.bukkit.plugin.Plugin
 import com.janboerman.recipes.api.JannyRecipesAPI
 import com.janboerman.recipes.api.recipe._
+import com.janboerman.recipes.api.recipe.modify.{ModifiedRecipe, RecipeModifier}
 
 import scala.collection.{JavaConverters, mutable}
 import scala.util.{Failure, Try}
@@ -73,6 +74,9 @@ class SimpleStorage(val plugin: Plugin)(implicit api: JannyRecipesAPI) extends R
         registerClass(classOf[SimpleShapelessRecipe])
         registerClass(classOf[SimpleFurnaceRecipe])
 
+        registerClass(classOf[ModifiedRecipe[_, _]])
+        registerClass(classOf[RecipeModifier[_, _]])
+
         registerClass(classOf[DisableByKeyCondition])
 
         true
@@ -118,7 +122,7 @@ class SimpleStorage(val plugin: Plugin)(implicit api: JannyRecipesAPI) extends R
                 } catch {
                     case e: IOException =>
                         e.printStackTrace()
-                        return Left("Error occured while saving a recipe to a file.")
+                        return Left("Error occurred while saving a recipe to a file.")
                 }
             } else {
                 //we un-disabled a pre-existing recipe.

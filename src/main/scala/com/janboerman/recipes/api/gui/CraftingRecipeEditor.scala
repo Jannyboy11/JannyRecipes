@@ -30,8 +30,8 @@ object CraftingRecipeEditor {
 import CraftingRecipeEditor._
 
 abstract class CraftingRecipeEditor[P <: Plugin, R <: CraftingRecipe](inventory: Inventory, craftingRecipe: R)(
-    protected implicit override val recipesMenu: RecipesMenu[P],
-    protected implicit override val api: JannyRecipesAPI,
+    implicit override val recipesMenu: RecipesMenu[P],
+    implicit override val api: JannyRecipesAPI,
     protected implicit override val plugin: P)
 
     extends RecipeEditor[P, R](craftingRecipe, inventory)

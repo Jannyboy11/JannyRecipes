@@ -25,8 +25,8 @@ object RecipeEditor {
 
 abstract class RecipeEditor[P <: Plugin, R <: Recipe](protected var recipe: R,
                                                       private val inventory: Inventory)
-                                                     (implicit protected val recipesMenu: RecipesMenu[P],
-                                                      implicit protected val api: JannyRecipesAPI,
+                                                     (implicit val recipesMenu: RecipesMenu[P],
+                                                      implicit val api: JannyRecipesAPI,
                                                       implicit protected val plugin: P)
     extends MenuHolder[P](plugin, inventory) {
     // Scala I wish you allowed us to be able to call different super constructors in different constructor overloads. dammit.
@@ -41,7 +41,7 @@ abstract class RecipeEditor[P <: Plugin, R <: Recipe](protected var recipe: R,
 //        this(recipe, plugin.getServer.createInventory(this, inventoryType, title))
 //    }
 
-    private lazy val modifiers = new mutable.LinkedHashSet[RecipeModifier[R, _]]()
+    private lazy val modifiers = new mutable.LinkedHashSet[RecipeModifier[R, _]]() //TODO LinkedHashMap[ModifierType, RecipeModifier]??
 
     def getModifiers(): mutable.Iterable[RecipeModifier[R, _]] = modifiers
 

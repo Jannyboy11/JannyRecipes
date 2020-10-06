@@ -3,12 +3,11 @@ package com.janboerman.recipes.api.recipe
 import org.bukkit.Material._
 import org.bukkit.block.Banner
 import org.bukkit.block.banner.{Pattern, PatternType}
-import org.bukkit.{Color, DyeColor, FireworkEffect, Material}
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta._
 import org.bukkit.potion.{PotionData, PotionType}
+import org.bukkit.{Color, DyeColor, FireworkEffect, Material}
 import xyz.janboerman.guilib.api.ItemBuilder
-import com.janboerman.recipes.api.recipe.modify.{ModifierType, RecipeModifier}
 
 import scala.collection.mutable
 
@@ -37,7 +36,7 @@ trait RecipeType {
     def getName(): String
     def getIcon(): ItemStack
 
-    //TODO add a method: isCreatable()(implicit api: JannyRecipesAPI): Boolean? such that we can leave out those recipes that are not creatable?
+    //TODO add a method: isCreatable()(implicit api: JannyRecipesAPI): Boolean? such that we can leave out those recipes that are not creatable? (see GuiFactory!)
 }
 
 object UnknownRecipeType extends RecipeType {

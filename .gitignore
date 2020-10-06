@@ -16,3 +16,4 @@ copyToServer.sh
 target/*
 project/target/*
 project/project/target/*
+.bsp/*

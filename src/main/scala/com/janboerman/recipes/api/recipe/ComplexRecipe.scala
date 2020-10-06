@@ -7,32 +7,32 @@ import org.bukkit.Material
 import org.bukkit.Material._
 import org.bukkit.configuration.serialization.ConfigurationSerializable
 import org.bukkit.inventory.ItemStack
-import com.janboerman.recipes.api.MaterialUtils
 
 import scala.collection.JavaConverters
 
 //TODO override getKey() as default methods?
 
+//TODO remove FixedResult / FixedIngredients duplicate code by using trait inheritance :)
+//TODO Would be nicer in Scala 3 where trait parameters are a thing
+//TODO for now I've could SimpleFixedIngredients and SimpleFixedResult using protected abstracts vals
+
 trait ComplexRecipe extends CraftingRecipe {
     override def isHidden(): Boolean = true
 }
 trait ArmorDyeRecipe extends ComplexRecipe with ConfigurationSerializable with FixedResult with FixedIngredients {
-    private val materials = util.EnumSet.noneOf(classOf[Material])
     private val leathers = Seq(LEATHER_HELMET, LEATHER_CHESTPLATE, LEATHER_LEGGINGS, LEATHER_BOOTS)
+    private val dyes = util.EnumSet.noneOf(classOf[Material])
     for (material <- JavaConverters.asScalaIterator(MaterialUtils.dyesIngredient.iterator())) {
-        materials.add(material)
-    }
-    for (material <- leathers) {
-        materials.add(material)
+        dyes.add(material)
     }
 
     override def getResultStack(): ItemStack = ArmorDyeType.getIcon()
     override def hasResultType(material: Material): Boolean = leathers.contains(material)
 
-    override def hasIngredient(material: Material): Boolean = materials.contains(material)
+    override def hasIngredient(material: Material): Boolean = dyes.contains(material) || leathers.contains(material)
     override def hasIngredient(itemStack: ItemStack): Boolean = itemStack != null && hasIngredient(itemStack.getType)
     override def getIngredientStacks(): Iterable[ItemStack] = new Iterable[ItemStack] {
-        override def iterator: Iterator[ItemStack] = (JavaConverters.asScalaIterator[Material](materials.iterator()) ++ leathers.iterator).map(new ItemStack(_))
+        override def iterator: Iterator[ItemStack] = (JavaConverters.asScalaIterator[Material](dyes.iterator()) ++ leathers.iterator).map(new ItemStack(_))
     }
 
     override def getType(): RecipeType = ArmorDyeType
@@ -48,7 +48,7 @@ trait BannerAddPatternRecipe extends ComplexRecipe with ConfigurationSerializabl
 
     override def hasIngredient(material: Material): Boolean = materials.contains(material)
     override def hasIngredient(itemStack: ItemStack): Boolean = itemStack != null && hasIngredient(itemStack.getType)
-    override def getIngredientStacks(): Iterable[ItemStack] = new Iterable[ItemStack](){
+    override def getIngredientStacks(): Iterable[ItemStack] = new Iterable[ItemStack]() {
         override def iterator: Iterator[ItemStack] = JavaConverters.asScalaIterator(materials.iterator()).map(new ItemStack(_))
     }
 
@@ -65,7 +65,7 @@ trait BannerDuplicateRecipe extends ComplexRecipe with ConfigurationSerializable
 
     override def hasIngredient(material: Material): Boolean = materials.contains(material)
     override def hasIngredient(itemStack: ItemStack): Boolean = itemStack != null && hasIngredient(itemStack.getType)
-    override def getIngredientStacks(): Iterable[ItemStack] = new Iterable[ItemStack](){
+    override def getIngredientStacks(): Iterable[ItemStack] = new Iterable[ItemStack]() {
         override def iterator: Iterator[ItemStack] = JavaConverters.asScalaIterator(materials.iterator()).map(new ItemStack(_))
     }
 

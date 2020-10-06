@@ -1,5 +1,6 @@
 package com.janboerman.recipes.api.gui
 
+import com.janboerman.recipes.RecipesPlugin
 import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.plugin.Plugin
 import xyz.janboerman.guilib.api.menu.MenuHolder
@@ -33,12 +34,13 @@ class ModifiersMenu[P <: Plugin, R <: Recipe, RE <: RecipeEditor[P, R]](recipe: 
             buttonSlot += 1
         }
 
+        import recipeEditor.{recipesMenu, api}
+
         //Save & Exit Button.
+        setButton(45, new SaveButton(() => recipeEditor.getInventory()))
         //TODO in the RecipeEditor, keep a list of active modifiers. (also populated when the editor is opened for the first time)
         //TODO the save button in this inventory then sets the modifiers list in the recipe editor
         //TODO the recipe editor serializes applies the modifiers when the recipe is saved (they are also serialized!)
     }
-
-
 
 }

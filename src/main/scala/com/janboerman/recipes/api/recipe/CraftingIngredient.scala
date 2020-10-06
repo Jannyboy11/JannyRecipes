@@ -9,7 +9,8 @@ import com.janboerman.recipes.api.persist.SerializableList
 import com.janboerman.recipes.api.persist.RecipeStorage._
 
 object CraftingIngredient {
-    private lazy val EmptyIngredient = new CraftingIngredient {
+    //does not need to be a lazy val because this class will only be loaded when empty is called (which could also be called when apply is called)
+    private val EmptyIngredient = new CraftingIngredient {
         override def getChoices(): List[_ <: ItemStack] = Nil
         override def apply(input: ItemStack): Boolean = input == null
         override def clone(): CraftingIngredient = this
@@ -45,12 +46,14 @@ trait CraftingIngredient extends Ingredient with ItemIngredient {
 
         itemStack.getType match {
             case Material.LAVA_BUCKET | Material.WATER_BUCKET | Material.MILK_BUCKET =>
-                Some({val clone = itemStack.clone(); clone.setType(Material.BUCKET); clone})
+                Some({val clone = itemStack.clone(); clone.setType(Material.BUCKET); clone})        //amount stays the same?
             case Material.DRAGON_BREATH =>
-                Some({val clone = itemStack.clone(); clone.setType(Material.GLASS_BOTTLE); clone})
+                Some({val clone = itemStack.clone(); clone.setType(Material.GLASS_BOTTLE); clone})  //amount stays the same?
 
             case _ => Some({val clone = itemStack.clone(); clone.setAmount(clone.getAmount - 1); clone})
         }
+        //TODO I believe there exists API for this in Bukkit 1.15.2+
+        //TODO https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html#getCraftingRemainingItem()
     }
 
     override def apply(itemStack: ItemStack): Boolean = {

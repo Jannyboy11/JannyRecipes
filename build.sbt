@@ -22,7 +22,7 @@ libraryDependencies ++= Seq(
     "xyz.janboerman" % "ScalaLoader" % "0.13.7-SNAPSHOT" % "provided",
 
     //dependencies that need to be bundled
-    "xyz.janboerman" % "GuiLib-API" % "v1.10.2",
+    "xyz.janboerman" % "GuiLib-API" % "1.10.2",
     "net.wesjd" % "anvilgui" % "1.2.1-SNAPSHOT",
 )
 
